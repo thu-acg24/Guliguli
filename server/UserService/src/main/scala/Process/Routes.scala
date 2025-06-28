@@ -23,11 +23,11 @@ import Impl.QueryFollowerListMessagePlanner
 import Impl.ChangeFollowStatusMessagePlanner
 import Impl.ChangeUserRoleMessagePlanner
 import Impl.ModifyUserInfoMessagePlanner
-import Impl.getUIDByTokenMessagePlanner
+import Impl.GetUIDByTokenMessagePlanner
 import Impl.QueryAuditorsMessagePlanner
 import Impl.QueryUserStatMessagePlanner
 import Impl.QueryUserInfoMessagePlanner
-import Impl.changeBanStatusMessagePlanner
+import Impl.ChangeBanStatusMessagePlanner
 import Impl.QueryFollowingListMessagePlanner
 import Impl.RegisterMessagePlanner
 import Common.API.TraceID
@@ -37,7 +37,7 @@ import java.util.UUID
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 object Routes:
-  val projects: TrieMap[String, Topic[IO, String]] = TrieMap.empty
+  private val projects: TrieMap[String, Topic[IO, String]] = TrieMap.empty
 
   private def executePlan(messageType: String, str: String): IO[String] =
     messageType match {
@@ -99,7 +99,7 @@ object Routes:
        
       case "getUIDByTokenMessage" =>
         IO(
-          decode[getUIDByTokenMessagePlanner](str) match
+          decode[GetUIDByTokenMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for getUIDByTokenMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
@@ -127,7 +127,7 @@ object Routes:
        
       case "changeBanStatusMessage" =>
         IO(
-          decode[changeBanStatusMessagePlanner](str) match
+          decode[ChangeBanStatusMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for changeBanStatusMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
@@ -155,7 +155,7 @@ object Routes:
         IO.raiseError(new Exception(s"Unknown type: $messageType"))
     }
 
-  def handlePostRequest(req: Request[IO]): IO[String] = {
+  private def handlePostRequest(req: Request[IO]): IO[String] = {
     req.as[Json].map { bodyJson =>
       val hasPlanContext = bodyJson.hcursor.downField("planContext").succeeded
 

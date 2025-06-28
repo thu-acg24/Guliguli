@@ -99,3 +99,6 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.2",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.2"
 )
+
+// 引入mindrot进行密码加密
+libraryDependencies += "org.mindrot" % "jbcrypt" % "0.4"

@@ -42,38 +42,24 @@ case class ModifyUserInfoMessagePlanner(
 
   // Main plan definition
   override def plan(using PlanContext): IO[Option[String]] = {
-    for {
-      // Step 1: Validate token and get userID (if available)
-      _ <- IO(logger.info(s"Step 1: Validating token ${token}"))
-      userIDOpt <- validateToken(token)
+    validateToken(token).flatMap {
+      case Some(userID) =>
+        validateNewField(newField) match {
+          case Some(error) =>
+            IO(logger.error(s"Field validation failed: $error")) *>
+              IO.pure(Some(error))
 
-      // If token is invalid, return error
-      userID <- userIDOpt match {
-        case Some(id) => IO.pure(id)
-        case None =>
-          IO {
-            logger.error("Token validation failed: Invalid Token")
-            return IO.pure(Some("Invalid Token"))
-          }
-      }
+          case None =>
+            for {
+              _ <- IO(logger.info("All validations passed, updating database"))
+              result <- updateUserInfoInDB(userID, newField)
+            } yield result
+        }
 
-      // Step 2: Validate fields in newField
-      _ <- IO(logger.info(s"Step 2: Validating new field values"))
-      validationResult = validateNewField(newField)
-      _ <- validationResult match {
-        case Some(error) =>
-          IO {
-            logger.error(s"Field validation failed: ${error}")
-            return IO.pure(Some(error))
-          }
-        case None => IO.unit
-      }
-
-      // Step 3: Update UserTable with given newField values
-      _ <- IO(logger.info(s"Step 3: Updating user info in the database"))
-      updateResult <- updateUserInfoInDB(userID, newField)
-
-    } yield updateResult
+      case None =>
+        IO(logger.error("Token validation failed: Invalid Token")) *>
+          IO.pure(Some("Invalid Token"))
+    }
   }
 
   /**

@@ -64,9 +64,9 @@ case class LoginMessagePlanner(
             } else {
 
               // Step 3: Check if the user is banned
-              _ <- IO(logger.info(s"检查用户是否被封禁，用户ID为${userID}"))
-              isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
-              _ <- IO(logger.info(s"用户封禁状态：${isBanned}"))
+              IO(logger.info(s"检查用户是否被封禁，用户ID为${userID}"))
+              val isBanned = decodeField[Boolean](userJson, "is_banned")
+              IO(logger.info(s"用户封禁状态：${isBanned}"))
 
               if (isBanned) {
                 IO(logger.info("用户账户已被封禁")).as(List("", "Account has been banned"))

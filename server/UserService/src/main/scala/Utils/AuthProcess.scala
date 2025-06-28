@@ -20,7 +20,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Utils.AuthProcess.hashPassword
 import io.circe.Json
 import java.util.UUID
-import Common.API.{PlanContext}
+import Common.API.PlanContext
 
 case object AuthProcess {
   private val logger = LoggerFactory.getLogger(getClass)

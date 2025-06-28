@@ -3,31 +3,31 @@ package Impl
 
 import Utils.AuthProcess.validateToken
 import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import cats.effect.IO
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import org.joda.time.DateTime
 import io.circe.Json
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.syntax.*
+import io.circe.generic.auto.*
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.syntax.*
+import io.circe.generic.auto.*
 import org.joda.time.DateTime
 import cats.implicits.*
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.API.{PlanContext, Planner}
 import cats.effect.IO
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Utils.AuthProcess.validateToken
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 
 case class ChangeFollowStatusMessagePlanner(
                                              token: String,
@@ -36,33 +36,38 @@ case class ChangeFollowStatusMessagePlanner(
                                              override val planContext: PlanContext
                                            ) extends Planner[Option[String]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
     for {
-      _ <- IO(logger.info(s"Start processing changeFollowStatusMessage with token=${token}, followeeID=${followeeID}, isFollow=${isFollow}"))
+      _ <- IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow"))
 
-      // Step 1: Validate Token and obtain userID
-      userIDOpt <- validateToken(token)
-      userID <- userIDOpt match {
-        case Some(id) => IO.pure(id)
-        case None =>
-          IO {
-            logger.info("Invalid token provided.")
-            Some("Invalid Token")
-          }
+      // Step 1: 验证Token
+      userIdOrError <- validateToken(token).map {
+        case Some(id) => Right(id)
+        case None => Left(Some("Invalid Token"))
       }
 
-      // Step 2: Check if target user exists
-      targetExists <- checkUserExists(followeeID)
-      _ <- if (!targetExists) IO {
-        logger.info("Target user not found, returning error.")
-        Some("Target user not found")
-      } else IO.unit
+      // 提前处理token错误
+      result <- userIdOrError match {
+        case Left(error) =>
+          IO(logger.info("Invalid token")).as(error)
 
-      // Step 3: Process follow/unfollow action
-      result <- if (isFollow) handleFollow(userID, followeeID) else handleUnfollow(userID, followeeID)
+        case Right(userId) =>
+          for {
+            // Step 2: 检查用户存在
+            exists <- checkUserExists(followeeID)
 
+            // 处理用户不存在的情况
+            result2 <- if (!exists) {
+              IO(logger.info("Target user not found")).as(Some("Target user not found"))
+            } else {
+              // Step 3: 执行操作
+              if (isFollow) handleFollow(userId, followeeID)
+              else handleUnfollow(userId, followeeID)
+            }
+          } yield result2
+      }
     } yield result
   }
 
