@@ -1,0 +1,25 @@
+/**
+ * ChangeFavoriteMessage
+ * desc: 增或删用户收藏记录。
+ * @param token: String (用户身份认证Token)
+ * @param videoID: Int (视频唯一标识符)
+ * @param isFav: Boolean (表示是否收藏(true表示新增收藏，false表示取消收藏))
+ * @return result: String (操作结果，None表示成功，Some(String)表示错误信息)
+ */
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+
+
+
+export class ChangeFavoriteMessage extends TongWenMessage {
+    constructor(
+        public  token: string,
+        public  videoID: number,
+        public  isFav: boolean
+    ) {
+        super()
+    }
+    getAddress(): string {
+        return "127.0.0.1:10016"
+    }
+}
+
