@@ -34,7 +34,7 @@ case class QueryUserRoleMessagePlanner(
     token: String,
     override val planContext: PlanContext
 ) extends Planner[Option[UserRole]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[UserRole]] = {
     for {

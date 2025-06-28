@@ -43,72 +43,74 @@ case class ChangeUserRoleMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[String]] = {
-    for {
-      // Step 1: 确认操作用户具有管理员权限
-      _ <- IO(logger.info(s"[Step 1] 验证Token=${token}对应用户的权限"))
-      maybeOperatorRole <- getOperatorRole()
-      _ <- IO.whenA(maybeOperatorRole.isEmpty || maybeOperatorRole.get != UserRole.Admin) {
-        IO(logger.error(s"Token=${token}的用户无操作权限, 实际角色=${maybeOperatorRole.getOrElse("None")}")) >>
-          IO.raiseError(new IllegalArgumentException("Unauthorized Access"))
+    val operations = List {
+      getOperatorRole()
+      checkUserExists(userID)
+      validateNewRoleValidity()
+      updateUserRoleInDB()
+    }
+    operations.foldLeft(IO.pure(None: Option[String])) { (acc, op) =>
+      acc.flatMap {
+        case None => op // 如果之前没有错误，执行下一个操作
+        case error => IO.pure(error) // 如果已有错误，直接返回
       }
-
-      // Step 2: 确认目标用户是否存在
-      _ <- IO(logger.info(s"[Step 2] 验证用户ID=${userID}是否存在"))
-      maybeTargetUser <- getTargetUserInfo()
-      _ <- IO.whenA(maybeTargetUser.isEmpty) {
-        IO(logger.error(s"未找到用户ID=${userID}的信息")) >>
-          IO.raiseError(new IllegalArgumentException("Target user not found"))
-      }
-
-      // Step 3: 验证角色更改的合法性
-      _ <- IO(logger.info(s"[Step 3] 开始验证新角色=${newRole}的合法性"))
-      _ <- validateNewRoleValidity()
-
-      // Step 4: 更新用户角色信息
-      _ <- IO(logger.info(s"[Step 4] 更新用户ID=${userID}的角色为${newRole}"))
-      updateResult <- updateUserRoleInDB()
-      _ <- IO.whenA(updateResult == 0) {
-        IO(logger.error(s"[Step 4] 用户角色更新失败，用户ID=${userID}，新角色=${newRole}")) >>
-          IO.raiseError(new IllegalArgumentException("Failed to update user role"))
-      }
-
-      _ <- IO(logger.info(s"[Step 5] 用户角色更新成功！用户ID=${userID}, 新角色=${newRole}"))
-    } yield None
+    }
   }
 
   // Step 1 Helper: 获取操作者角色
-  private def getOperatorRole()(using PlanContext): IO[Option[UserRole]] = {
+  private def getOperatorRole()(using PlanContext): IO[Option[String]] = {
     QueryUserRoleMessage(token).send.flatMap {
+      case Some(UserRole.Admin) =>
+        IO(logger.info(s"Token=${token}对应用户角色=${UserRole.Admin}")) >> IO.pure(None)
       case Some(role) =>
-        IO(logger.info(s"Token=${token}对应用户角色=${role}")) >> IO.pure(Some(role))
+        IO(logger.info(s"Token=${token}对应用户角色=${role}")) >> IO.pure(Some("操作人权限不足"))
       case None =>
-        IO(logger.warn(s"无法通过Token=${token}获取对应用户角色")) >> IO.pure(None)
+        IO(logger.warn(s"无法通过Token=${token}获取对应用户角色")) >> IO.pure(Some("无法获取操作人权限"))
     }
   }
 
-  // Step 2 Helper: 获取目标用户信息
-  private def getTargetUserInfo()(using PlanContext): IO[Option[UserInfo]] = {
-    QueryUserInfoMessage(userID).send.flatMap {
-      case Some(user) =>
-        IO(logger.info(s"目标用户存在: 用户名=${user.username}, 用户ID=${userID}")) >> IO.pure(Some(user))
-      case None =>
-        IO(logger.error(s"目标用户不存在, 用户ID=${userID}")) >> IO.pure(None)
-    }
+  // Step 2 Helper: 查看目标用户是否存在
+  def checkUserExists(userID: Int)(using PlanContext): IO[Option[String]] = {
+    val sql =
+      s"""
+  SELECT 1
+  FROM ${schemaName}.user_table
+  WHERE user_id = ?
+         """.stripMargin
+
+    readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
+      .flatMap {
+        case Some(_) => IO.pure(None) // 查询到目标用户
+        case None =>
+          IO(logger.info(s"[ChangeUserRoleStatus] 未在数据库中找到目标用户(userID=${userID})")) >>
+            IO.pure(Some("目标用户不存在"))
+      }
+      .handleErrorWith { ex =>
+        IO(logger.error(s"[ChangeUserRoleStatus] 查询目标用户(userID=${userID})时发生错误: ${ex.getMessage}")) >>
+          IO.pure(Some("查询目标用户时发生错误"))
+      }
   }
 
   // Step 3 Helper: 验证 newRole 的合法性
-  private def validateNewRoleValidity()(using PlanContext): IO[Unit] = IO {
+  private def validateNewRoleValidity()(using PlanContext): IO[Option[String]] = {
     if (newRole == UserRole.Admin) {
-      val errorMessage = "Cannot assign Admin role to other users"
-      logger.error(errorMessage)
-      throw new IllegalArgumentException(errorMessage)
+      IO(logger.error("Cannot assign Admin role")) >>
+        IO.pure(Some("无法将权限修改为管理员"))
+    } else {
+      IO(UserRole.fromString(newRole.toString))
+        .attempt // 将结果转换为Either[Throwable, UserRole]
+        .flatMap {
+          case Right(_) =>
+            IO(logger.info(s"角色验证通过: $newRole")) >> IO.pure(None)
+          case Left(ex) =>
+            IO(logger.error(s"无效角色: ${ex.getMessage}")) >>
+              IO.pure(Some("给定权限不合法"))
+        }
     }
-    UserRole.fromString(newRole.toString) // 验证枚举值兼容性，若非法会抛出异常
-    logger.info(s"角色 newRole=${newRole} 验证通过")
   }
 
   // Step 4 Helper: 更新数据库中的用户角色
-  private def updateUserRoleInDB()(using PlanContext): IO[Int] = {
+  private def updateUserRoleInDB()(using PlanContext): IO[Option[String]] = {
     val updateSQL =
       s"""
          |UPDATE ${schemaName}.user_table
@@ -122,6 +124,15 @@ case class ChangeUserRoleMessagePlanner(
       SqlParameter("Int", userID.toString)
     )
 
+    // 执行更新操作并处理结果
     readDBInt(updateSQL, params)
+      .map { updatedRows =>
+        if (updatedRows > 0) None // 更新成功
+        else Some(s"未更新任何记录，可能用户不存在(userID=$userID)")
+      }
+      .handleErrorWith { ex =>
+        IO(logger.error(s"更新用户角色失败(userID=$userID): ${ex.getMessage}")) >>
+          IO.pure(Some(s"数据库更新失败: ${ex.getMessage}"))
+      }
   }
 }

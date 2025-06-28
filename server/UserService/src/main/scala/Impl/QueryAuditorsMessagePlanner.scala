@@ -37,7 +37,7 @@ case class QueryAuditorsMessagePlanner(
   override val planContext: PlanContext
 ) extends Planner[Option[List[UserInfo]]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[List[UserInfo]]] = {
     for {

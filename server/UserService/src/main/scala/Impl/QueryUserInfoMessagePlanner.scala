@@ -33,7 +33,7 @@ case class QueryUserInfoMessagePlanner(
     userID: Int,
     override val planContext: PlanContext
 ) extends Planner[Option[UserInfo]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[UserInfo]] = {
     for {

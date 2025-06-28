@@ -42,6 +42,7 @@ case class ModifyUserInfoMessagePlanner(
 
   // Main plan definition
   override def plan(using PlanContext): IO[Option[String]] = {
+    IO(logger.info(s"Validating token $token"))
     validateToken(token).flatMap {
       case Some(userID) =>
         validateNewField(newField) match {

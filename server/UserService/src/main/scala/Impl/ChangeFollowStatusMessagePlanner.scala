@@ -39,51 +39,41 @@ case class ChangeFollowStatusMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
-    for {
-      _ <- IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow"))
-
-      // Step 1: 验证Token
-      userIdOrError <- validateToken(token).map {
-        case Some(id) => Right(id)
-        case None => Left(Some("Invalid Token"))
-      }
-
-      // 提前处理token错误
-      result <- userIdOrError match {
-        case Left(error) =>
-          IO(logger.info("Invalid token")).as(error)
-
-        case Right(userId) =>
-          for {
-            // Step 2: 检查用户存在
-            exists <- checkUserExists(followeeID)
-
-            // 处理用户不存在的情况
-            result2 <- if (!exists) {
-              IO(logger.info("Target user not found")).as(Some("Target user not found"))
-            } else {
-              // Step 3: 执行操作
-              if (isFollow) handleFollow(userId, followeeID)
-              else handleUnfollow(userId, followeeID)
-            }
-          } yield result2
-      }
-    } yield result
+    IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow"))
+    // 我们的接口定义形式注定无法使用简单的 for comprehension（需要使用EitherT之类的东西，还不如flatMap嵌套），因为返回None的场景和一般场景不同。
+    validateToken(token).flatMap {
+      case Some(userId) =>
+        checkUserExists(followeeID).flatMap {
+          case None =>
+            if (isFollow) handleFollow(userId, followeeID)
+            else handleUnfollow(userId, followeeID)
+          case Some(error) =>
+            IO.pure(Some(error))
+        }
+      case None => IO.pure(Some("Invalid Token"))
+    }
   }
 
-  private def checkUserExists(userID: Int)(using PlanContext): IO[Boolean] = {
-    logger.info(s"Checking if user with ID=${userID} exists.")
+  // 可以改成公共方法。
+  def checkUserExists(userID: Int)(using PlanContext): IO[Option[String]] = {
     val sql =
       s"""
-         SELECT 1
-         FROM ${schemaName}.user_table
-         WHERE user_id = ?;
-       """
-    readDBBoolean(sql, List(SqlParameter("Int", userID.toString)))
-      .map(exists => {
-        logger.info(s"User existence status for userID=${userID}: ${exists}")
-        exists
-      })
+    SELECT 1
+    FROM ${schemaName}.user_table
+    WHERE user_id = ?
+           """.stripMargin
+
+    readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
+      .flatMap {
+        case Some(_) => IO.pure(None) // 查询到目标用户
+        case None =>
+          IO(logger.info(s"[ChangeFollowStatus] 未在数据库中找到目标用户(userID=${userID})")) >>
+            IO.pure(Some("目标用户不存在"))
+      }
+      .handleErrorWith { ex =>
+        IO(logger.error(s"[ChangeFollowStatus] 查询目标用户(userID=${userID})时发生错误: ${ex.getMessage}")) >>
+          IO.pure(Some("查询目标用户时发生错误"))
+      }
   }
 
   private def handleFollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Option[String]] = {

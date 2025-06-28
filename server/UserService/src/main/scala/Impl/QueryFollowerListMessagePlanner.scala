@@ -36,7 +36,7 @@ case class QueryFollowerListMessagePlanner(
     rangeR: Int,
     override val planContext: PlanContext
 ) extends Planner[List[FollowRelation]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[FollowRelation]] = {
     for {
