@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { setUserToken } from "Globals/GlobalStore"
-import {LoginMessage} from "Plugins/UserService/APIs/LoginMessage";
+import { LoginMessage } from "Plugins/UserService/APIs/LoginMessage";
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -44,14 +44,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                         <div className="form-group">
                             <label className="form-label">用户名</label>
                             <input type="text" className="form-input" placeholder="请输入用户名"
-                                   value={username} onChange={(e) => setUsername(e.target.value)}/>
+                                value={username} onChange={(e) => setUsername(e.target.value)} />
                         </div>
                         <div className="form-group">
                             <label className="form-label">密码</label>
                             <input type="password" className="form-input" placeholder="请输入密码"
-                                   value={password} onChange={(e) => setPassword(e.target.value)}/>
+                                value={password} onChange={(e) => setPassword(e.target.value)} />
                         </div>
-                        {message && <div>{message}</div>} TODO: Add CSS
+                        {message && (
+                            <div className="error-message">
+                                <div className="error-icon">!</div>
+                                <div className="error-text">{message}</div>
+                            </div>
+                        )}
                         <button type="submit" className="login-btn">
                             登录
                         </button>
