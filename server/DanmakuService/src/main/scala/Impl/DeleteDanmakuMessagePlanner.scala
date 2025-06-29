@@ -8,7 +8,7 @@ import Common.ServiceUtils.schemaName
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import Objects.UserService.UserRole
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import APIs.UserService.QueryUserRoleMessage
 import cats.effect.IO
@@ -24,7 +24,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 
 case class DeleteDanmakuMessagePlanner(
                                         token: String,
@@ -73,7 +73,7 @@ case class DeleteDanmakuMessagePlanner(
   }
 
   private def verifyToken(token: String)(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   private def checkDanmakuExistence(danmakuID: Int)(using PlanContext): IO[Option[(Int, Int)]] = {
