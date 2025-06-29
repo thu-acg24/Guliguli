@@ -4,7 +4,7 @@ package Impl
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -22,7 +22,6 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -61,7 +60,7 @@ case class RecordWatchDataMessagePlanner(
 
   private def getUserIdByToken()(using PlanContext): IO[Option[Int]] = {
     logger.info(s"开始调用getUIDByTokenMessage解析Token: $token")
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   private def validateVideo(userID: Int)(using PlanContext): IO[Option[String]] = {

@@ -5,7 +5,7 @@ import Objects.RecommendationService.VideoInfo
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -28,7 +28,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -38,7 +37,7 @@ case class UpdateVideoInfoMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[Option[String]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
     for {
@@ -68,7 +67,7 @@ case class UpdateVideoInfoMessagePlanner(
 
   // Sub-step 1.1: Retrieve User ID based on the token
   private def getUserIDFromToken()(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   // Sub-step 2.1: Validate if the user is the uploader of the video

@@ -4,7 +4,7 @@ package Impl
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -28,7 +28,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -39,7 +38,7 @@ case class UpdateFeedbackLikeMessagePlanner(
                                              override val planContext: PlanContext
                                            ) extends Planner[Option[String]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[String]] = {
     for {
@@ -70,7 +69,7 @@ case class UpdateFeedbackLikeMessagePlanner(
   private def validateToken()(using PlanContext): IO[Option[Int]] = {
     for {
       _ <- IO(logger.info(s"[validateToken] 调用getUIDByTokenMessage(${token})"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      userIDOpt <- GetUIDByTokenMessage(token).send
       _ <- IO(logger.info(s"[validateToken] 校验结果: ${userIDOpt.map(id => s"有效的 userID=${id}").getOrElse("Token 无效")}"))
     } yield userIDOpt
   }

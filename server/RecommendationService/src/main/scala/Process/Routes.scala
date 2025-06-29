@@ -15,14 +15,14 @@ import org.http4s.client.Client
 import org.http4s.dsl.io.*
 import scala.collection.concurrent.TrieMap
 import Common.Serialize.CustomColumnTypes.*
-import Impl.deleteVideoInfoMessagePlanner
+import Impl.DeleteVideoInfoMessagePlanner
 import Impl.UpdateFeedbackFavoriteMessagePlanner
 import Impl.RecordWatchDataMessagePlanner
 import Impl.SearchVideosMessagePlanner
-import Impl.updateVideoInfoMessagePlanner
+import Impl.UpdateVideoInfoMessagePlanner
 import Impl.GetRecommendedVideosMessagePlanner
 import Impl.SearchVideosCountMessagePlanner
-import Impl.addVideoInfoMessagePlanner
+import Impl.AddVideoInfoMessagePlanner
 import Impl.UpdateFeedbackLikeMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
@@ -35,9 +35,9 @@ object Routes:
 
   private def executePlan(messageType: String, str: String): IO[String] =
     messageType match {
-      case "deleteVideoInfoMessage" =>
+      case "DeleteVideoInfoMessage" =>
         IO(
-          decode[deleteVideoInfoMessagePlanner](str) match
+          decode[DeleteVideoInfoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for deleteVideoInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
@@ -63,9 +63,9 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "updateVideoInfoMessage" =>
+      case "ApdateVideoInfoMessage" =>
         IO(
-          decode[updateVideoInfoMessagePlanner](str) match
+          decode[UpdateVideoInfoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for updateVideoInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
@@ -84,9 +84,9 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "addVideoInfoMessage" =>
+      case "AddVideoInfoMessage" =>
         IO(
-          decode[addVideoInfoMessagePlanner](str) match
+          decode[AddVideoInfoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for addVideoInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten

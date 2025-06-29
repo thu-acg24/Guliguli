@@ -5,7 +5,7 @@ import Objects.RecommendationService.VideoInfo
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -29,7 +29,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 import io.circe.syntax._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -39,14 +38,14 @@ case class AddVideoInfoMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[Option[String]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   // 主函数计划
   override def plan(using PlanContext): IO[Option[String]] = {
     for {
       // Step 1: 校验Token是否合法并获取用户的userID
       _ <- IO(logger.info(s"[Step 1] 校验Token是否合法并获取用户的userID: ${token}"))
-      userIDOption <- getUIDByTokenMessage(token).send
+      userIDOption <- GetUIDByTokenMessage(token).send
       userID <- validateUserID(userIDOption)
 
       // Step 2: 校验用户是否为当前视频的上传者

@@ -62,7 +62,7 @@ async function main() {
     console.log("forgeConfig:", forgeConfig)
     await runHook(forgeConfig, "prePackage", process.platform, getHostArch()) */
 
-    // packges.api.core.src.api.packages. 截取打包部分，不需要构建本地应用部分
+    // packages.api.core.src.api.packages. 截取打包部分，不需要构建本地应用部分
     try {
         const runner = listrPackage({})
         await runner.run()
