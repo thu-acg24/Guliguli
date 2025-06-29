@@ -1,9 +1,9 @@
 // MainPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { loginPagePath } from "./LoginPage";
+import iconSrc from "../icon.png";
 
-export const mainPagePath = "/main"
+export const mainPagePath = "/"
 const MainPage: React.FC = () => {
     const navigate = useNavigate();
     const [showLoginModal, setShowLoginModal] = useState(false);
@@ -73,7 +73,9 @@ const MainPage: React.FC = () => {
         <div className="main-page">
             {/* Header */}
             <header className="header">
-                <div className="logo" onClick={() => alert('跳转到首页')}>BILIBILI</div>
+                <div className="logo" onClick={() => navigate(mainPagePath)}>
+                    <img src={iconSrc} alt="GULIGULI" className="logo-icon" />
+                </div>
                 <div className="search-container">
                     <div className="search-box">
                         <input

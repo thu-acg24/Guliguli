@@ -14,17 +14,19 @@
 }
 
 .logo {
-    width: 120px;
-    height: 40px;
-    background-color: #fb7299;
-    border-radius: 4px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-weight: bold;
     margin-right: 40px;
     cursor: pointer;
+    padding: 8px;
+}
+
+.logo-icon {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
 }
 
 .search-container {
