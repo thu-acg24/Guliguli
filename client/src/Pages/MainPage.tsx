@@ -1,28 +1,14 @@
 // MainPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import iconSrc from "../icon.png";
+import Header from "../Components/Header";
 
 export const mainPagePath = "/"
 const MainPage: React.FC = () => {
     const navigate = useNavigate();
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [showSearchModal, setShowSearchModal] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState("");
     const [categoryTitle, setCategoryTitle] = useState("");
     const [categoryContent, setCategoryContent] = useState("");
-
-    // API call placeholder for search
-    const performSearch = () => {
-        if (searchKeyword.trim()) {
-            setShowSearchModal(true);
-            // API call would go here
-            // Example: fetch(`/api/search?q=${searchKeyword}`)
-            //   .then(response => response.json())
-            //   .then(data => setSearchResults(data))
-        }
-    };
 
     // API call placeholder for category content
     const loadCategoryContent = (categoryName: string, categoryId: string) => {
@@ -71,35 +57,7 @@ const MainPage: React.FC = () => {
 
     return (
         <div className="main-page">
-            {/* Header */}
-            <header className="header">
-                <div className="logo" onClick={() => navigate(mainPagePath)}>
-                    <img src={iconSrc} alt="GULIGULI" className="logo-icon" />
-                </div>
-                <div className="search-container">
-                    <div className="search-box">
-                        <input
-                            type="text"
-                            className="search-input"
-                            placeholder="搜索视频、UP主"
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && performSearch()}
-                        />
-                        <button className="search-btn" onClick={performSearch}>搜索</button>
-                    </div>
-                </div>
-                <div className="user-actions">
-                    <div className="user-avatar" onClick={() => setShowLoginModal(true)}>
-                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+" alt="用户头像" />
-                    </div>
-                    <div className="action-btn" onClick={() => setShowLoginModal(true)}>消息</div>
-                    <div className="action-btn" onClick={() => setShowLoginModal(true)}>动态</div>
-                    <div className="action-btn" onClick={() => setShowLoginModal(true)}>收藏</div>
-                    <div className="action-btn" onClick={() => setShowLoginModal(true)}>历史</div>
-                    <div className="upload-btn" onClick={() => setShowLoginModal(true)}>投稿</div>
-                </div>
-            </header>
+            <Header />
 
             {/* Main View */}
             <div className="main-view" onClick={() => alert('跳转到宣传页面')}>
@@ -188,71 +146,6 @@ const MainPage: React.FC = () => {
                     加载更多...
                 </div>
             </div>
-
-            {/* Login Modal */}
-            {showLoginModal && (
-                <div className="modal" onClick={() => setShowLoginModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <div className="modal-title">登录</div>
-                            <div className="modal-close" onClick={() => setShowLoginModal(false)}>&times;</div>
-                        </div>
-                        <div className="modal-body">
-                            <form className="login-form">
-                                <div className="form-group">
-                                    <label className="form-label">用户名</label>
-                                    <input type="text" className="form-input" placeholder="请输入用户名" />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">密码</label>
-                                    <input type="password" className="form-input" placeholder="请输入密码" />
-                                </div>
-                                <button type="button" className="login-btn" onClick={() => {
-                                    // API call would go here for login
-                                    // Example: fetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) })
-                                    // navigate(loginPagePath);
-                                }}>
-                                    登录
-                                </button>
-                                <div className="register-link">
-                                    还没有账户？<a href="#" onClick={(e) => {
-                                        e.preventDefault();
-                                        alert('跳转到注册页面');
-                                        setShowLoginModal(false);
-                                    }}>点击注册</a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Search Modal */}
-            {showSearchModal && (
-                <div className="modal" onClick={() => setShowSearchModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <div className="modal-title">搜索结果</div>
-                            <div className="modal-close" onClick={() => setShowSearchModal(false)}>&times;</div>
-                        </div>
-                        <div className="modal-body">
-                            <p>正在搜索：<span>{searchKeyword}</span></p>
-                            <div>
-                                <div style={{ marginTop: '15px', padding: '10px', background: '#f5f5f5', borderRadius: '4px' }}>
-                                    <p>搜索到5个与"{searchKeyword}"相关的视频</p>
-                                    <ul style={{ marginTop: '10px' }}>
-                                        <li style={{ padding: '5px 0', borderBottom: '1px solid #eee' }}>{searchKeyword}相关视频1</li>
-                                        <li style={{ padding: '5px 0', borderBottom: '1px solid #eee' }}>{searchKeyword}相关视频2</li>
-                                        <li style={{ padding: '5px 0', borderBottom: '1px solid #eee' }}>{searchKeyword}相关视频3</li>
-                                        <li style={{ padding: '5px 0', borderBottom: '1px solid #eee' }}>{searchKeyword}相关视频4</li>
-                                        <li style={{ padding: '5px 0' }}>{searchKeyword}相关视频5</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Category Modal */}
             {showCategoryModal && (
