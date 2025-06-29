@@ -5,7 +5,7 @@ import APIs.DanmakuService.QueryDanmakuByIDMessage
 import APIs.MessageService.SendMessageMessage
 import Utils.NotifyProcess.sendNotification
 import Objects.DanmakuService.Danmaku
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -29,7 +29,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -45,7 +45,7 @@ case class ReportDanmakuContentMessagePlanner(
     for {
       // Step 1: Check if the token is valid
       _ <- IO(logger.info(s"校验token是否有效: ${token}"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      userIDOpt <- GetUIDByTokenMessage(token).send
       _ <- IO(logger.info(s"获取的userID为: ${userIDOpt.getOrElse("None")}"))
       _ <- IO.whenA(userIDOpt.isEmpty) {
         val errorLog = "无效的Token"

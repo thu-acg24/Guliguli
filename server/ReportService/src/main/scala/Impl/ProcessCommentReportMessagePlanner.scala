@@ -10,7 +10,7 @@ import Objects.UserService.UserRole
 import Utils.NotifyProcess.sendNotification
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import APIs.CommentService.DeleteCommentMessage
 import Objects.ReportService.ReportStatus
 import Common.API.{PlanContext, Planner}
@@ -43,9 +43,9 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 case class ProcessCommentReportMessagePlanner(
     token: String,
     reportID: Int,
-    status: ReportStatus
-)(using val planContext: PlanContext)
-    extends Planner[Option[String]] {
+    status: ReportStatus,
+    override val planContext: PlanContext
+) extends Planner[Option[String]] {
 
   private val logger =
     LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
@@ -199,21 +199,6 @@ case class ProcessCommentReportMessagePlanner(
         None
       }
     }
-  }
-
-  private def sendNotificationToReporter(
-      token: String,
-      reporterID: Int,
-      videoTitle: String,
-      commentContent: String,
-      status: ReportStatus
-  )(using PlanContext): IO[Option[String]] = {
-    val notificationContent =
-      s"Your report on video [${videoTitle}] and comment [${commentContent}] has been processed with status ${status}."
-    for {
-      _ <- IO(logger.info(s"发送通知给 reporterID: ${reporterID}"))
-      result <- sendNotification(token, reporterID, notificationContent)
-    } yield result
   }
 
 }

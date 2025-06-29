@@ -1,11 +1,6 @@
 package Impl
 
-
-import APIs.UserService.QueryUserInfoMessage
-import Objects.UserService.UserRole
-import APIs.UserService.QueryUserRoleMessage
-import Objects.UserService.UserInfo
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.{QueryUserInfoMessage, QueryUserRoleMessage, GetUIDByTokenMessage}
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -24,8 +19,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
-import APIs.UserService.{QueryUserInfoMessage, QueryUserRoleMessage, getUIDByTokenMessage}
 import Objects.UserService.{UserRole, UserInfo}
 import io.circe._
 import io.circe.syntax._
@@ -40,7 +33,7 @@ case class SendMessageMessagePlanner(
     isNotification: Boolean,
     override val planContext: PlanContext
 ) extends Planner[Option[String]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[String]] = {
     for {
@@ -87,7 +80,7 @@ case class SendMessageMessagePlanner(
   }
 
   private def validateToken()(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   private def checkNotificationPermission(senderID: Int)(using PlanContext): IO[Option[String]] = {

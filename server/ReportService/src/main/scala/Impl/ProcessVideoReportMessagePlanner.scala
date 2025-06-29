@@ -6,14 +6,14 @@ import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Objects.ReportService.ReportStatus
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.VideoService.DeleteVideoMessage
+import APIs.VideoService.ChangeVideoStatusMessage
+import Objects.VideoService.VideoStatus
 import Utils.NotifyProcess.sendNotification
 import cats.effect.IO
 import org.slf4j.LoggerFactory
-import Objects.VideoService.VideoStatus
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -34,17 +34,17 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.VideoService.DeleteVideoMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class ProcessVideoReportMessagePlanner(
     token: String,
     reportID: Int,
-    status: ReportStatus
-)(override val planContext: PlanContext) extends Planner[String] {
+    status: ReportStatus,
+    override val planContext: PlanContext
+) extends Planner[String] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[String] = {
     for {
@@ -63,7 +63,8 @@ case class ProcessVideoReportMessagePlanner(
       videoTitle <- validateVideo(videoID)
 
       // Step 4: 如果需要删除视频
-      _ <- deleteVideoIfNeeded(videoID)
+      _ <- privatizeVideoIfNeeded(videoID)
+      _ <- sendNotificationToPublisher(publisherID, videoTitle)
 
       // Step 5: 更新举报记录状态
       _ <- updateReportStatus()
@@ -77,7 +78,7 @@ case class ProcessVideoReportMessagePlanner(
 
   private def getUserIDByToken()(using PlanContext): IO[Int] = {
     logger.info("Fetching user ID by token")
-    getUIDByTokenMessage(token).send.flatMap {
+    GetUIDByTokenMessage(token).send.flatMap {
       case Some(userID) => IO.pure(userID)
       case None =>
         IO(logger.error("Token verification failed")) *>
@@ -138,13 +139,13 @@ case class ProcessVideoReportMessagePlanner(
     }
   }
 
-  private def deleteVideoIfNeeded(videoID: Int)(using PlanContext): IO[Unit] = {
+  private def privatizeVideoIfNeeded(videoID: Int)(using PlanContext): IO[Unit] = {
     if (status == ReportStatus.Resolved) {
       logger.info(s"Deleting video with ID: ${videoID}")
-      DeleteVideoMessage(token, videoID).send.flatMap {
+      ChangeVideoStatusMessage(token, videoID, VideoStatus.Rejected).send.flatMap {
         case Some(error) =>
-          IO(logger.error(s"Failed to delete video: ${error}")) *>
-          IO.raiseError(new Exception("Failed to delete video"))
+          IO(logger.error(s"Failed to privatize video: ${error}")) *>
+          IO.raiseError(new Exception("Failed to privatize video"))
         case None => IO.unit
       }
     } else IO.unit

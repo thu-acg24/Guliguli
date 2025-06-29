@@ -5,7 +5,7 @@ import Objects.ReportService.ReportVideo
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
 import Objects.ReportService.ReportStatus
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -28,7 +28,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -55,8 +55,8 @@ case class QueryVideoReportsMessagePlanner(
 
   // 子步骤1.1 校验Token有效性并获取用户ID
   private def validateToken()(using PlanContext): IO[Option[Int]] = {
-    IO(logger.info("调用 getUIDByTokenMessage 接口校验Token及获取用户ID")) >>
-    getUIDByTokenMessage(token).send
+    IO(logger.info("调用 GetUIDByTokenMessage 接口校验Token及获取用户ID")) >>
+    GetUIDByTokenMessage(token).send
   }
 
   // 子步骤1.2 检查用户是否具备审核员权限

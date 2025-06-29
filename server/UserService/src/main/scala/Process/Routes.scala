@@ -97,7 +97,7 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "getUIDByTokenMessage" =>
+      case "GetUIDByTokenMessage" =>
         IO(
           decode[GetUIDByTokenMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for getUIDByTokenMessage[${err.getMessage}]")
@@ -125,7 +125,7 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "changeBanStatusMessage" =>
+      case "ChangeBanStatusMessage" =>
         IO(
           decode[ChangeBanStatusMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for changeBanStatusMessage[${err.getMessage}]")

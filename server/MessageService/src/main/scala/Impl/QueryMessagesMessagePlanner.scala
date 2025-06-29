@@ -5,7 +5,7 @@ package Impl
  * 实现 Planner[List[Message]]，用于查询用户私信记录
  */
 import Objects.MessageService.Message
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -27,7 +27,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -40,13 +39,13 @@ case class QueryMessagesMessagePlanner(
                                         override val planContext: PlanContext
                                       ) extends Planner[List[Message]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[Message]] = {
     for {
       // Step 1: Validate token and get userID
       _ <- IO(logger.info(s"开始验证Token: ${token}"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      userIDOpt <- GetUIDByTokenMessage(token).send
       userID <- validateToken(userIDOpt)
 
       // Step 2: Query messages if token is valid, else return an empty list

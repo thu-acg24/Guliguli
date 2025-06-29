@@ -14,8 +14,6 @@ import Common.Object.SqlParameter
 import cats.effect.IO
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.API.{PlanContext}
 
 case object NotifyProcess {
   private val logger = LoggerFactory.getLogger(getClass)

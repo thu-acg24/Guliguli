@@ -1,7 +1,7 @@
 package Impl
 
 
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -25,7 +25,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -41,7 +41,7 @@ case class ChangeLikeMessagePlanner(
     for {
       // Step 1: Validate the token and get user ID
       _ <- IO(logger.info(s"[Step 1] Validating token: $token"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      userIDOpt <- GetUIDByTokenMessage(token).send
       result <- userIDOpt match {
         case None =>
           // Token is invalid

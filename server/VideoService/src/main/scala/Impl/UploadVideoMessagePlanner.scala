@@ -3,7 +3,7 @@ package Impl
 
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -26,8 +26,8 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
-import APIs.UserService.{QueryUserRoleMessage, getUIDByTokenMessage}
+import APIs.UserService.GetUIDByTokenMessage
+import APIs.UserService.{QueryUserRoleMessage, GetUIDByTokenMessage}
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -61,12 +61,14 @@ case class UploadVideoMessagePlanner(
       _ <- IO(logger.info("Step 2: 校验视频信息完整性"))
       validationError <- IO(validateVideoInfo())
       _ <- validationError.fold(IO.unit)(_ => IO(logger.info(s"视频信息校验失败: ${validationError.get}")))
-      if validationError.isDefined then IO.pure(Some("Invalid Video Information")) else IO.unit
+      if (validationError.isDefined) {
+        IO.pure(Some("Invalid Video Information"))
+      } else { IO.unit }
 
       // Step 3: Check if the user has upload permissions
       _ <- IO(logger.info("Step 3: 检查用户是否有上传权限"))
       hasPermission <- checkUserPermission(uploaderId)
-      if !hasPermission then IO(logger.info("用户没有权限上传视频")) >> IO.pure(Some("Permission Denied")) else IO.unit
+      if (!hasPermission) IO(logger.info("用户没有权限上传视频")) >> IO.pure(Some("Permission Denied")) else IO.unit
 
       // Step 4: Store video information in the database
       _ <- IO(logger.info("Step 4: 添加视频到数据库"))
@@ -76,7 +78,7 @@ case class UploadVideoMessagePlanner(
   }
 
   private def validateToken()(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send.map { optionalUserId =>
+    GetUIDByTokenMessage(token).send.map { optionalUserId =>
       IO(logger.info(s"Token验证结果: $optionalUserId"))
       optionalUserId
     }

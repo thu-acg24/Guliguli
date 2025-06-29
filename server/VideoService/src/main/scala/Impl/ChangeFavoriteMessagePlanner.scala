@@ -1,7 +1,7 @@
 package Impl
 
 
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -25,7 +25,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
@@ -69,7 +69,7 @@ case class ChangeFavoriteMessagePlanner(
 
   private def validateToken()(using PlanContext): IO[Option[Int]] = {
     logger.info("[validateToken] Validating token")
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   private def validateVideoStatus(videoID: Int)(using PlanContext): IO[Option[Json]] = {

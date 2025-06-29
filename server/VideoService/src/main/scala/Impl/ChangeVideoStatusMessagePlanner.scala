@@ -6,7 +6,7 @@ import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -29,8 +29,8 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
-import APIs.UserService.{QueryUserRoleMessage, getUIDByTokenMessage}
+import APIs.UserService.GetUIDByTokenMessage
+import APIs.UserService.{QueryUserRoleMessage, GetUIDByTokenMessage}
 import Objects.VideoService.{Video, VideoStatus}
 import io.circe._
 import cats.implicits.*
@@ -95,8 +95,8 @@ case class ChangeVideoStatusMessagePlanner(
   // 校验用户的Token和权限
   private def validateTokenAndPermissions()(using PlanContext): IO[Option[Int]] = {
     for {
-      _ <- IO(logger.info(s"[Substep 1.1] 调用getUIDByTokenMessage校验Token是否合法..."))
-      maybeUID <- getUIDByTokenMessage(token).send
+      _ <- IO(logger.info(s"[Substep 1.1] 调用GetUIDByTokenMessage校验Token是否合法..."))
+      maybeUID <- GetUIDByTokenMessage(token).send
       _ <- IO(logger.info(s"[Substep 1.1] 解析到的用户ID为: ${maybeUID.getOrElse("无效的Token")}"))
       userRole <- maybeUID match {
         case None => IO.pure(None) // Token无效

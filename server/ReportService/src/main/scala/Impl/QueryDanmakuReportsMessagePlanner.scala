@@ -7,7 +7,7 @@ import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Objects.ReportService.{ReportDanmaku, ReportStatus}
 import Objects.UserService.UserRole
-import APIs.UserService.{getUIDByTokenMessage, QueryUserRoleMessage}
+import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import cats.effect.IO
 import io.circe.Json
 import org.slf4j.LoggerFactory
@@ -29,11 +29,11 @@ import Common.ServiceUtils.schemaName
 import Objects.ReportService.ReportDanmaku
 import APIs.UserService.QueryUserRoleMessage
 import Objects.ReportService.ReportStatus
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 
 case class QueryDanmakuReportsMessagePlanner(
                                               token: String,
@@ -64,8 +64,8 @@ case class QueryDanmakuReportsMessagePlanner(
 
   private def getUserIDFromToken()(using PlanContext): IO[Option[Int]] = {
     for {
-      _ <- IO(logger.info("[Step 1.3] 调用 getUIDByTokenMessage 验证 Token 合法性"))
-      maybeUid <- getUIDByTokenMessage(token).send
+      _ <- IO(logger.info("[Step 1.3] 调用 GetUIDByTokenMessage 验证 Token 合法性"))
+      maybeUid <- GetUIDByTokenMessage(token).send
       _ <- maybeUid match {
         case Some(uid) => IO(logger.info(s"[Step 1.4] Token合法，关联用户ID为: ${uid}"))
         case None => IO(logger.info("[Step 1.5] Token无效"))

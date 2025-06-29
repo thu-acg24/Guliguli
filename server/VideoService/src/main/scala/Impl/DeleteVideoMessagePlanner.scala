@@ -6,7 +6,7 @@ package Impl
  */
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -31,7 +31,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class DeleteVideoMessagePlanner(
@@ -73,7 +72,7 @@ case class DeleteVideoMessagePlanner(
    */
   private def validateToken(token: String)(using PlanContext): IO[Option[Int]] = {
     logger.info("开始校验Token的合法性")
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   /**

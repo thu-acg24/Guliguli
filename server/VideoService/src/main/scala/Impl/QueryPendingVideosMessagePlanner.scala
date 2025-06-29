@@ -5,7 +5,7 @@ import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -27,7 +27,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -59,7 +59,7 @@ case class QueryPendingVideosMessagePlanner(
   private def checkUserPermission(token: String)(using PlanContext): IO[Option[UserRole]] = {
     for {
       _ <- IO(logger.info(s"[checkUserPermission]: 校验Token：${token}"))
-      uidOpt <- getUIDByTokenMessage(token).send
+      uidOpt <- GetUIDByTokenMessage(token).send
 
       userRoleOpt <- uidOpt match {
         case Some(uid) =>

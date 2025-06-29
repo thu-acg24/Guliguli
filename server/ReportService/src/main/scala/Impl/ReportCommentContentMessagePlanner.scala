@@ -3,7 +3,7 @@ package Impl
 
 import Objects.CommentService.Comment
 import APIs.CommentService.QueryCommentByIDMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -27,7 +27,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -43,7 +43,7 @@ case class ReportCommentContentMessagePlanner(
     for {
       // Step 1: 校验 token 是否有效并获取 userID
       _ <- IO(logger.info(s"Validating token: ${token}"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      userIDOpt <- GetUIDByTokenMessage(token).send
       userID <- userIDOpt match {
         case Some(uid) => IO.pure(uid)
         case None =>
