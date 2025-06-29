@@ -12,7 +12,7 @@ package Impl
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -34,7 +34,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -47,13 +47,13 @@ case class UpdateFeedbackFavoriteMessagePlanner(
   override val planContext: PlanContext
 ) extends Planner[Option[String]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[String]] = {
     for {
       // Step 1: Validate Token and get User ID
       _ <- IO(logger.info(s"Validating token: '$token'"))
-      maybeUserID <- getUIDByTokenMessage(token).send
+      maybeUserID <- GetUIDByTokenMessage(token).send
       userID <- maybeUserID match {
         case Some(id) => IO.pure(id)
         case None =>

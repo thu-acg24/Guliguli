@@ -156,8 +156,8 @@ WHERE video_id = ? AND visible = true;
     videoIDs match {
       case Nil => IO.pure(List.empty)
       case ids =>
-        IO(logger.info(s"开始根据ID获取视频完整信息，共 ${ids.length} 个"))
-          .flatMap(_ => IO.traverse(ids)(fetchSingleVideo))
+        IO(logger.info(s"开始根据ID获取视频完整信息，共 ${ids.length} 个")) *>
+          ids.traverse(fetchSingleVideo)
     }
   }
 
