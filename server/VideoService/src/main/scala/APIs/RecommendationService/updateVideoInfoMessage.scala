@@ -19,45 +19,45 @@ import java.util.UUID
 import Objects.RecommendationService.VideoInfo
 
 /**
- * updateVideoInfoMessage
+ * UpdateVideoInfoMessage
  * desc: 修改视频元数据。
  * @param token: String (用户认证token，用于验证用户合法性。)
  * @param info: VideoInfo:1086 (包含视频数据信息的对象。)
  * @return result: String (操作结果。None表示成功，Some(String)包含错误信息。)
  */
 
-case class updateVideoInfoMessage(
+case class UpdateVideoInfoMessage(
   token: String,
   info: VideoInfo
 ) extends API[Option[String]](RecommendationServiceCode)
 
 
 
-case object updateVideoInfoMessage{
+case object UpdateVideoInfoMessage{
     
   import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
   // Circe 默认的 Encoder 和 Decoder
-  private val circeEncoder: Encoder[updateVideoInfoMessage] = deriveEncoder
-  private val circeDecoder: Decoder[updateVideoInfoMessage] = deriveDecoder
+  private val circeEncoder: Encoder[UpdateVideoInfoMessage] = deriveEncoder
+  private val circeDecoder: Decoder[UpdateVideoInfoMessage] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[updateVideoInfoMessage] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[UpdateVideoInfoMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[updateVideoInfoMessage] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[updateVideoInfoMessage]() {})) } 
+  private val jacksonDecoder: Decoder[UpdateVideoInfoMessage] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[UpdateVideoInfoMessage]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given updateVideoInfoMessageEncoder: Encoder[updateVideoInfoMessage] = Encoder.instance { config =>
+  given UpdateVideoInfoMessageEncoder: Encoder[UpdateVideoInfoMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given updateVideoInfoMessageDecoder: Decoder[updateVideoInfoMessage] = Decoder.instance { cursor =>
+  given UpdateVideoInfoMessageDecoder: Decoder[UpdateVideoInfoMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
