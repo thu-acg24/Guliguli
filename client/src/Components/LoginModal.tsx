@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { setUserToken } from "Globals/GlobalStore"
+import {LoginMessage} from "Plugins/UserService/APIs/LoginMessage";
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -7,6 +9,28 @@ interface LoginModalProps {
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [message, setMessage] = useState("");
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        try {
+            new LoginMessage(username, password).send(
+                (tokenAndResult: string[]) => {
+                    const [token, err] = tokenAndResult;
+                    if (token.length === 0) setMessage(err);
+                    else {
+                        setUserToken(token);
+                        onClose();
+                    }
+                }, (e) => {
+                    setMessage(e || '登录失败：未知错误！');
+                }
+            );
+        } catch (e) {
+            setMessage(e.message || '登录失败：未知错误！');
+        }
+    }
 
     return (
         <div className="modal" onClick={onClose}>
@@ -16,21 +40,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     <div className="modal-close" onClick={onClose}>&times;</div>
                 </div>
                 <div className="modal-body">
-                    <form className="login-form">
+                    <form className="login-form" onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label className="form-label">用户名</label>
-                            <input type="text" className="form-input" placeholder="请输入用户名" />
+                            <input type="text" className="form-input" placeholder="请输入用户名"
+                                   value={username} onChange={(e) => setUsername(e.target.value)}/>
                         </div>
                         <div className="form-group">
                             <label className="form-label">密码</label>
-                            <input type="password" className="form-input" placeholder="请输入密码" />
+                            <input type="password" className="form-input" placeholder="请输入密码"
+                                   value={password} onChange={(e) => setPassword(e.target.value)}/>
                         </div>
-                        <button type="button" className="login-btn" onClick={() => {
-                            // API call would go here for login
-                            // Example: fetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) })
-                            alert('登录功能待实现');
-                            onClose();
-                        }}>
+                        {message && <div>{message}</div>} TODO: Add CSS
+                        <button type="submit" className="login-btn">
                             登录
                         </button>
                         <div className="register-link">
