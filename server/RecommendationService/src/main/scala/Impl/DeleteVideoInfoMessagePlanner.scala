@@ -1,7 +1,7 @@
 package Impl
 
 
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -20,7 +20,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 
 case class DeleteVideoInfoMessagePlanner(
                                           token: String,
@@ -28,7 +27,7 @@ case class DeleteVideoInfoMessagePlanner(
                                           override val planContext: PlanContext
                                         ) extends Planner[Option[String]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
     for {
@@ -50,18 +49,16 @@ case class DeleteVideoInfoMessagePlanner(
                 IO.pure(Some("Permission Denied"))
             } else {
               // Step 3: Delete video metadata
-              _ <- IO(logger.info(s"Deleting video metadata for video ID: ${videoID}"))
-              deleteVideoResult <- deleteVideoMetadata
+              IO(logger.info(s"Deleting video metadata for video ID: ${videoID}"))
+              val deleteVideoResult =
 
               // Step 4: Return result
-              _ <- IO(logger.info("Returning result after deletion operation"))
-              IO.pure {
-                if (deleteVideoResult)
-                  None
-                else {
-                  logger.warn("Failed to delete video information")
-                  Some("Unable to delete video information")
-                }
+              IO(logger.info("Returning result after deletion operation"))
+              deleteVideoMetadata.flatMap {
+                case true => IO.pure(None)
+                case false =>
+                  IO(logger.warn("Failed to delete video information")) >>
+                  IO.pure(Some("Unable to delete video information"))
               }
             }
           } yield result
@@ -71,7 +68,7 @@ case class DeleteVideoInfoMessagePlanner(
 
   private def getUIDByToken(using PlanContext): IO[Option[Int]] = {
     logger.info("Calling API to validate token and get user ID")
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   private def checkUploader(userID: Int)(using PlanContext): IO[Boolean] = {
