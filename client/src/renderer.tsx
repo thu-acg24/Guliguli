@@ -1,16 +1,20 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client';
 import { HashRouter, Route, Routes } from 'react-router-dom'
-import LoginPage, {loginPagePath} from "Pages/LoginPage";
-import RegisterPage, {registerPagePath} from "Pages/RegisterPage";
+// import LoginPage, {loginPagePath} from "Pages/LoginPage";
+import MainPage, { mainPagePath } from "Pages/MainPage";
+// import RegisterPage, {registerPagePath} from "Pages/RegisterPage";
+// import BookPage, {bookPagePath} from "Pages/BookPage";
 
 const Layout = () => {
     return (
-        <HashRouter>
+        <HashRouter>Main
             <Routes>
-                <Route path="/" element={<LoginPage />} />
-                <Route path={registerPagePath} element={<RegisterPage />} />
-                <Route path={loginPagePath} element={<LoginPage />} />
+                <Route path="/" element={<MainPage />} />
+                {/* <Route path={registerPagePath} element={<RegisterPage />} /> */}
+                {/* <Route path={loginPagePath} element={<LoginPage />} />
+                <Route path={bookPagePath} element={<BookPage />} /> */}
+                <Route path={mainPagePath} element={<MainPage />} />
             </Routes>
         </HashRouter>
     )
