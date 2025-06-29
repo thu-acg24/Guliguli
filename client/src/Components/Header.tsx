@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import iconSrc from "../icon.png";
 import LoginModal from "./LoginModal";
 
-const mainPagePath = "/";
+import { mainPagePath } from "../Pages/MainPage";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();

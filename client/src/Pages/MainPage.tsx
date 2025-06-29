@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../Components/Header";
 
-export const mainPagePath = "/"
+export const mainPagePath = "/mainpage"
 const MainPage: React.FC = () => {
     const navigate = useNavigate();
     const [showCategoryModal, setShowCategoryModal] = useState(false);
