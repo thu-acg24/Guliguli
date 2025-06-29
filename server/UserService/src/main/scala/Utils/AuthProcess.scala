@@ -17,7 +17,6 @@ import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Utils.AuthProcess.hashPassword
 import io.circe.Json
 import java.util.UUID
 import Common.API.PlanContext
@@ -29,17 +28,7 @@ case object AuthProcess {
   
   def hashPassword(password: String)(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"开始生成密码的哈希值"))
-      passwordHash <- IO {
-        try {
-          BCrypt.hashpw(password, BCrypt.gensalt())
-        } catch {
-          case e: Exception =>
-            val errorMessage = s"哈希密码失败，错误信息: ${e.getMessage}"
-            logger.error(errorMessage)
-            throw new RuntimeException(errorMessage, e)
-        }
-      }
+      passwordHash <- IO(BCrypt.hashpw(password, BCrypt.gensalt()))
       _ <- IO(logger.info(s"密码哈希值生成成功，哈希值长度: ${passwordHash.length}"))
     } yield passwordHash
   }
@@ -108,11 +97,8 @@ case object AuthProcess {
             // Logging the retrieval of stored hash
             _ <- IO(logger.info(s"成功获取用户 ${userID} 的哈希密码，开始验证密码"))
   
-            // 2.2 Hash the input password for comparison
-            hashedInput <- hashPassword(inputPassword)
-  
-            // 2.3 Compare the hashed input password with the stored hash
-            isMatch <- IO(storedHash == hashedInput)
+            // 2.2 Compare input password with the stored hash
+            isMatch <- IO(BCrypt.checkpw(inputPassword, storedHash))
   
             // Log the success or failure of the password match
             _ <- if (isMatch)
@@ -165,6 +151,16 @@ case object AuthProcess {
                 } else {
                   IO {
                     logger.info(s"Token已过期，过期时间: ${expirationTime}, 当前时间: ${now}")
+                    val deleteTokenSQL =
+                      s"DELETE FROM ${schemaName}.token_table WHERE token = ?"
+                    val deleteTokenParams = List(SqlParameter("String", token))
+                    writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
+                      case Right(_) =>
+                        IO(logger.info(s"Outdated token '${token}' successfully removed from TokenTable."))
+                      case Left(e) =>
+                        val errorMessage = s"Failed to delete outdated token '${token}' from TokenTable: ${e.getMessage}"
+                        IO(logger.error(errorMessage))
+                    }
                     None
                   }
                 }
@@ -187,7 +183,7 @@ case object AuthProcess {
     logger.info(s"开始生成Token，输入的userID为：${userID}")
   
     // 校验输入参数 userID 是否有效
-    if (userID <= 0) {
+    if (userID < 0) {
       logger.error(s"userID 参数无效，值为：${userID}")
       IO.pure(None)
     } else {
