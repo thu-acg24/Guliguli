@@ -61,15 +61,15 @@ case class ModifyPasswordMessagePlanner(
       // Step 2: Validate old password
       oldPasswordValidation <- validateOldPassword(userID)
       result <- oldPasswordValidation match {
-        case Some(error) =>
+        case Some(errInfo) =>
           // Old password validation failed
-          IO(logger.info(s"旧密码验证失败，错误信息: ${error}")) *> IO.pure(Some(error))
+          IO(logger.info(s"旧密码验证失败，错误信息: ${errInfo}")) *> IO.pure(Some(errInfo))
 
         case None =>
           // Old password is valid, proceed to hash new password
           hashNewPassword.flatMap {
-            case Left(error) =>
-              IO(logger.info(s"新密码生成哈希失败，错误信息: ${error}")) *> IO.pure(Some(error))
+            case Left(errInfo) =>
+              IO(logger.info(s"新密码生成哈希失败，错误信息: ${errInfo}")) *> IO.pure(Some(errInfo))
 
             case Right(newPasswordHash) =>
               // Step 4: Update User Table with new hash

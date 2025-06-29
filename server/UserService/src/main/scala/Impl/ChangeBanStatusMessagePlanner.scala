@@ -46,7 +46,7 @@ case class ChangeBanStatusMessagePlanner(
     operations.foldLeft(IO.pure(None: Option[String])) { (acc, op) =>
       acc.flatMap {
         case None => op // 如果之前没有错误，执行下一个操作
-        case error => IO.pure(error) // 如果已有错误，直接返回
+        case result => IO.pure(result) // 如果已有错误，直接返回
       }
     }
   }
@@ -75,12 +75,12 @@ case class ChangeBanStatusMessagePlanner(
   private def validateUserRole()(using PlanContext): IO[Option[String]] = {
     QueryUserRoleMessage(token).send.flatMap { userRoleOpt =>
       userRoleOpt match {
-        case Some(role) if role == UserRole.Auditor || role == UserRole.Admin =>
+        case Some(UserRole.Auditor) | Some(UserRole.Admin) =>
           IO.pure(None)
-        case Some(_) =>
-          IO.pure(Some("权限不足"))
+        case Some(role) =>
+          IO.pure(Some(s"错误：角色'${role.toString}'无权访问"))
         case None =>
-          IO.pure(Some("token不合法"))
+          IO.pure(Some(s"token不合法: $token"))
       }
     }
   }

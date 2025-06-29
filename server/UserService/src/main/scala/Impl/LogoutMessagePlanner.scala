@@ -50,19 +50,10 @@ case class LogoutMessagePlanner(
           IO(logger.info(s"[Step 1.1] Token '${token}' is invalid. Returning an error."))
             .as(Some("Invalid Token"))
 
-        case Some(userID) =>
+        case Some(_) =>
           // If token is valid, proceed to invalidate it
-          invalidateCurrentToken(userID)
+          invalidateToken(token)
       }
     } yield result
-  }
-
-  private def invalidateCurrentToken(userID: Int)(using PlanContext): IO[Option[String]] = {
-    for {
-      _ <- IO(logger.info(s"[Step 2] Token is valid. Invalidating token for user ID: ${userID}"))
-      invalidateResult <- invalidateToken(token)
-
-      _ <- IO(logger.info(s"[Step 3] Token invalidation completed. Result: '${invalidateResult.getOrElse("Success")}'"))
-    } yield invalidateResult
   }
 }

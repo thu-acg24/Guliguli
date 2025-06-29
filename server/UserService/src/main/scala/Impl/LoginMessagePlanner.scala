@@ -52,7 +52,6 @@ case class LoginMessagePlanner(
         case Some(userJson) =>
           for {
             userID <- IO(decodeField[Int](userJson, "user_id"))
-            passwordHash <- IO(decodeField[String](userJson, "password_hash"))
 
             // Step 2: Validate the password
             _ <- IO(logger.info(s"开始验证用户ID为${userID}的密码"))

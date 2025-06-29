@@ -67,9 +67,9 @@ case class ModifyUserInfoMessagePlanner(
    * Validate the fields in UserInfo (e.g., check username and avatarPath for proper format).
    */
   private def validateNewField(newField: UserInfo): Option[String] = {
-    if (newField.username.length > 50) {
-      logger.error(s"Username '${newField.username}' exceeds max length of 50")
-      Some("Invalid Field Value: Username too long")
+    if (newField.username.length > 20) {
+      logger.error(s"Username '${newField.username}' exceeds max length of 20")
+      Some("Invalid Field Value: Username exceeds max length of 20")
     } else if (!newField.avatarPath.matches("^[a-zA-Z0-9/_-]*$")) { // Example regex for avatar validation
       logger.error(s"Avatar path '${newField.avatarPath}' contains invalid characters")
       Some("Invalid Field Value: Avatar path format error")

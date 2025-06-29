@@ -52,7 +52,7 @@ case class ChangeUserRoleMessagePlanner(
     operations.foldLeft(IO.pure(None: Option[String])) { (acc, op) =>
       acc.flatMap {
         case None => op // 如果之前没有错误，执行下一个操作
-        case error => IO.pure(error) // 如果已有错误，直接返回
+        case result => IO.pure(result) // 如果已有错误，直接返回
       }
     }
   }

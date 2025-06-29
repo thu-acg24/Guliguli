@@ -47,8 +47,8 @@ case class ChangeFollowStatusMessagePlanner(
           case None =>
             if (isFollow) handleFollow(userId, followeeID)
             else handleUnfollow(userId, followeeID)
-          case Some(error) =>
-            IO.pure(Some(error))
+          case result =>
+            IO.pure(result)
         }
       case None => IO.pure(Some("Invalid Token"))
     }
