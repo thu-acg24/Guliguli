@@ -4,7 +4,7 @@ package Impl
 import Objects.VideoService.{Video, VideoStatus}
 import Objects.DanmakuService.Danmaku
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -30,7 +30,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -73,7 +73,7 @@ case class PublishDanmakuMessagePlanner(
 
   private def validateToken(token: String)(using PlanContext): IO[Option[Int]] = {
     IO(logger.info(s"调用getUIDByTokenMessage校验token: ${token}")) >>
-      getUIDByTokenMessage(token).send
+      GetUIDByTokenMessage(token).send
   }
 
   private def validateVideoID(videoID: Int)(using PlanContext): IO[Option[Video]] = {
