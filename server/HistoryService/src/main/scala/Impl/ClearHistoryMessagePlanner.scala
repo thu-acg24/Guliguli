@@ -1,7 +1,7 @@
 package Impl
 
 
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -25,7 +25,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -33,7 +33,7 @@ case class ClearHistoryMessagePlanner(
                                        token: String,
                                        override val planContext: PlanContext
                                      ) extends Planner[Option[String]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
     for {
@@ -65,8 +65,8 @@ case class ClearHistoryMessagePlanner(
   // 验证用户Token并获取用户ID
   private def validateTokenAndFetchUserID(token: String)(using PlanContext): IO[Option[Int]] = {
     for {
-      _ <- IO(logger.info(s"调用 getUIDByTokenMessage 根据用户Token获取用户ID"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      _ <- IO(logger.info(s"调用 GetUIDByTokenMessage 根据用户Token获取用户ID"))
+      userIDOpt <- GetUIDByTokenMessage(token).send
     } yield userIDOpt
   }
 

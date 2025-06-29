@@ -8,7 +8,7 @@ package Impl
  * 2. 删除指定的视频历史记录.
  * 3. 返回操作处理结果。
  */
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -30,7 +30,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -67,8 +67,8 @@ case class DeleteHistoryMessagePlanner(
    */
   private def validateUserIdentity(token: String)(using PlanContext): IO[Option[Int]] = {
     for {
-      _ <- IO(logger.info(s"Calling getUIDByTokenMessage with token: ${token}"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      _ <- IO(logger.info(s"Calling GetUIDByTokenMessage with token: ${token}"))
+      userIDOpt <- GetUIDByTokenMessage(token).send
       _ <- IO(logger.info(s"Validation result for token '${token}': ${userIDOpt.fold("Invalid token")(userID => s"Valid UserID=$userID")}"))
     } yield userIDOpt
   }

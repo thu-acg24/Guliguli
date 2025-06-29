@@ -4,7 +4,7 @@ package Impl
 import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -28,7 +28,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -37,7 +37,7 @@ case class AddBrowseHistoryMessagePlanner(
                                            videoID: Int,
                                            override val planContext: PlanContext
                                          ) extends Planner[Option[String]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
     for {
@@ -47,24 +47,27 @@ case class AddBrowseHistoryMessagePlanner(
         case None =>
           val errorMsg = "Invalid Token"
           IO(logger.info(s"Token validation failed: ${errorMsg}")) *> IO(Some(errorMsg))
+          //返回错误信息
         case Some(userId) =>
-          _ <- IO(logger.info(s"Validated user token, userId: ${userId}"))
+          IO(logger.info(s"Validated user token, userId: ${userId}")) *>
           IO(logger.info("Step 2: Validate videoID and retrieve video information")) *>
           getVideoInfo(videoID).flatMap {
             case None =>
               val errorMsg = "Invalid video ID"
               IO(logger.info(s"Video validation failed: ${errorMsg}")) *> IO(Some(errorMsg))
+              //返回未找到视频
             case Some(video) =>
               IO(logger.info(s"Video validated successfully: videoID=${video.videoID}, title=${video.title}")) *>
               IO(logger.info("Step 3: Add browse history to the database")) *>
               addOrUpdateHistory(userId, video.videoID).map(_ => None)
+              //添加到记录里。
           }
       }
     } yield result
   }
 
   private def getUserIdByToken()(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send.tapWith { userIdOption =>
+    GetUIDByTokenMessage(token).send.flatTap { userIdOption =>
       IO {
         userIdOption match {
           case Some(userId) => logger.info(s"Retrieved user ID: ${userId} for token: ${token}")
@@ -75,7 +78,7 @@ case class AddBrowseHistoryMessagePlanner(
   }
 
   private def getVideoInfo(videoID: Int)(using PlanContext): IO[Option[Video]] = {
-    QueryVideoInfoMessage(None, videoID).send.tapWith { videoOption =>
+    QueryVideoInfoMessage(None, videoID).send.flatTap { videoOption =>
       IO {
         videoOption match {
           case Some(video) => logger.info(s"Retrieved video info: ${video}")

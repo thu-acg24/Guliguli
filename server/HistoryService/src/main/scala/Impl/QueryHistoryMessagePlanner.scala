@@ -6,7 +6,7 @@ package Impl
  * 返回从新到旧第rangeL条到第rangeR条记录（均包含）。
  */
 import Objects.HistoryService.HistoryRecord
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -30,7 +30,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
@@ -40,7 +40,7 @@ case class QueryHistoryMessagePlanner(
                                        rangeR: Int,
                                        override val planContext: PlanContext
                                      ) extends Planner[Option[List[HistoryRecord]]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[List[HistoryRecord]]] = {
     for {
@@ -56,11 +56,11 @@ case class QueryHistoryMessagePlanner(
 
   /**
    * Step 1: 验证用户Token是否合法。
-   * 调用公共方法getUIDByTokenMessage验证Token是否有效。
+   * 调用公共方法GetUIDByTokenMessage验证Token是否有效。
    */
   private def validateToken(token: String)(using PlanContext): IO[Option[Int]] = {
     logger.info(s"调用API获取用户ID，参数Token: ${token}")
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   /**
