@@ -2,9 +2,9 @@
 import * as os from 'os'
 import { exec } from 'child_process'
 
-import create from 'zustand'
-import { persist } from 'zustand/middleware'
-import { encryptionLocalStorage } from 'Plugins/CommonUtils/Functions/DefaultStorage'
+import { create } from 'zustand'
+import {createJSONStorage, persist} from 'zustand/middleware'
+import {encryptionLocalStorage} from 'Plugins/CommonUtils/Functions/DefaultStorage'
 
 const macAddressIDStore = create(
     persist(
@@ -13,7 +13,7 @@ const macAddressIDStore = create(
         }),
         {
             name: 'macAddressIDStore',
-            getStorage: () => encryptionLocalStorage,
+            storage: createJSONStorage(() => encryptionLocalStorage),
         }
     )
 )

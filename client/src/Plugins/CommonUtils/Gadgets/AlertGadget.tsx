@@ -1,5 +1,5 @@
 import React from 'react'
-import create from 'zustand'
+import { create } from 'zustand'
 import { Dialog } from '@mui/material'
 import { wrapStore } from 'Plugins/CommonUtils/Components/DialogStack'
 import { Alert } from 'antd'

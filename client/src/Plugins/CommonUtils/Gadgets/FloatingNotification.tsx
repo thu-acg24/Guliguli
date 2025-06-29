@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import create from 'zustand'
+import { create } from 'zustand'
 import { AlertColor } from '@mui/material/Alert/Alert'
 import { Fade, Paper, Stack, Typography } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'

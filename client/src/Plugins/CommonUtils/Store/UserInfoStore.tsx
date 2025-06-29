@@ -1,5 +1,5 @@
-import create from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { encryptionSessionStorage } from 'Plugins/CommonUtils/Store/DefaultStorage'
 
 export class UserInfo {
@@ -22,7 +22,7 @@ const userInfoStore = create(
         }),
         {
             name: 'userInfoStore',
-            getStorage: () => encryptionSessionStorage,
+            storage: createJSONStorage(() => encryptionSessionStorage),
         }
     )
 )
@@ -35,7 +35,7 @@ const tokenStore = create(
         }),
         {
             name: 'tokenStore',
-            getStorage: () => encryptionSessionStorage,
+            storage: createJSONStorage(() => encryptionSessionStorage),
         }
     )
 )

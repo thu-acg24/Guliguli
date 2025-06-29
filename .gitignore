@@ -1,0 +1,12 @@
+**/node_modules
+**/yarn.lock
+**/.idea
+**/.vscode
+**/.webpack
+**/yarn.lock
+**/dist/
+**/build/
+**.js.map
+**.css.map
+**/.env
+**/.DS_Store
