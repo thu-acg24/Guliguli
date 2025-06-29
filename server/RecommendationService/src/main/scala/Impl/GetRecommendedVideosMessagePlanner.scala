@@ -41,7 +41,7 @@ case class GetRecommendedVideosMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[List[Video]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[Video]] = {
     for {

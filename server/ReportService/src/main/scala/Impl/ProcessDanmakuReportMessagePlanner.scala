@@ -2,7 +2,7 @@ package Impl
 
 
 import APIs.DanmakuService.{DeleteDanmakuMessage, QueryDanmakuByIDMessage}
-import APIs.UserService.{getUIDByTokenMessage, QueryUserRoleMessage}
+import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
@@ -37,23 +37,24 @@ import APIs.DanmakuService.QueryDanmakuByIDMessage
 import Objects.VideoService.Video
 import APIs.UserService.QueryUserRoleMessage
 import APIs.DanmakuService.DeleteDanmakuMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 
 case class ProcessDanmakuReportMessagePlanner(
                                                token: String,
                                                reportID: Int,
-                                               status: ReportStatus
-                                             )(using val planContext: PlanContext) extends Planner[Option[String]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+                                               status: ReportStatus,
+                                               override val planContext: PlanContext
+                                             ) extends Planner[Option[String]] {
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Option[String]] = {
     for {
       // Step 1: 校验token是否有效
       _ <- IO(logger.info(s"开始校验用户Token: ${token}"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      userIDOpt <- GetUIDByTokenMessage(token).send
       result <- userIDOpt match {
         case None =>
           IO(logger.error("用户Token无效")) *> IO.pure(Some("Unauthorized Access"))

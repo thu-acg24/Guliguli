@@ -5,7 +5,7 @@ import Objects.VideoService.VideoStatus
 import Objects.VideoService.Video
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -26,9 +26,9 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Objects.VideoService.{Video, VideoStatus}
-import APIs.UserService.{QueryUserRoleMessage, getUIDByTokenMessage}
+import APIs.UserService.{QueryUserRoleMessage, GetUIDByTokenMessage}
 import io.circe.Json
 import io.circe._
 import io.circe.syntax._
@@ -59,7 +59,7 @@ case class QueryVideoInfoMessagePlanner(
       case Some(tkn) =>
         for {
           _ <- IO(logger.info(s"[Step 1.1] Validating token: $tkn"))
-          userID <- getUIDByTokenMessage(tkn).send
+          userID <- GetUIDByTokenMessage(tkn).send
           _ <- IO(logger.info(s"[Step 1.2] Fetched userID: $userID"))
 
           role <- userID match {

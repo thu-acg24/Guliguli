@@ -3,7 +3,7 @@ package Impl
 
 import APIs.UserService.QueryUserInfoMessage
 import Objects.UserService.UserInfo
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -21,13 +21,12 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
 
 case class QueryUserInContactMessagePlanner(
                                              token: String,
                                              override val planContext: PlanContext
                                            ) extends Planner[List[UserInfo]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[UserInfo]] = {
     for {
@@ -52,7 +51,7 @@ case class QueryUserInContactMessagePlanner(
   }
 
   private def validateAndRetrieveUserID()(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send
+    GetUIDByTokenMessage(token).send
   }
 
   private def retrieveContactUserIDs(userID: Int)(using PlanContext): IO[List[Int]] = {

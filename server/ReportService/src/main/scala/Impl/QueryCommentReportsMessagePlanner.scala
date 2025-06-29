@@ -5,7 +5,7 @@ import Objects.ReportService.ReportComment
 import Objects.UserService.UserRole
 import APIs.UserService.QueryUserRoleMessage
 import Objects.ReportService.ReportStatus
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -28,7 +28,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import io.circe._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
@@ -57,8 +57,8 @@ case class QueryCommentReportsMessagePlanner(
 
   private def validateUserTokenAndRole()(using PlanContext): IO[Boolean] = {
     for {
-      _ <- IO(logger.info("调用getUIDByTokenMessage验证Token合法性"))
-      userIDOpt <- getUIDByTokenMessage(token).send
+      _ <- IO(logger.info("调用GetUIDByTokenMessage验证Token合法性"))
+      userIDOpt <- GetUIDByTokenMessage(token).send
       isAuditor <- userIDOpt match {
         case Some(userID) =>
           IO(logger.info(s"Token合法，对应的用户ID为：${userID}")) >>
