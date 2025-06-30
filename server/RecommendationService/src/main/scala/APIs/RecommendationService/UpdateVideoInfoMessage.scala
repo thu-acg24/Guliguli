@@ -23,13 +23,12 @@ import Objects.RecommendationService.VideoInfo
  * desc: 修改视频元数据。
  * @param token: String (用户认证token，用于验证用户合法性。)
  * @param info: VideoInfo:1086 (包含视频数据信息的对象。)
- * @return result: String (操作结果。None表示成功，Some(String)包含错误信息。)
  */
 
 case class UpdateVideoInfoMessage(
   token: String,
   info: VideoInfo
-) extends API[Option[String]](RecommendationServiceCode)
+) extends API[Unit](RecommendationServiceCode)
 
 
 

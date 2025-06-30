@@ -15,13 +15,12 @@ import scala.util.Try
  * desc: 删除视频元数据
  * @param token: String (用户验证Token，用于验证当前用户的身份权限)
  * @param videoID: Int (视频的唯一标识符，表示需要删除的视频)
- * @return result: String (删除操作的结果信息，如成功返回None，失败返回错误提示)
  */
 
 case class DeleteVideoInfoMessage(
   token: String,
   videoID: Int
-) extends API[Option[String]](RecommendationServiceCode)
+) extends API[Unit](RecommendationServiceCode)
 
 
 

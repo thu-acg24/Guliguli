@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户身份验证令牌)
  * @param videoID: Int (唯一标识要操作的视频的ID)
  * @param isLike: Boolean (是否是点赞操作，true为点赞，false为取消点赞)
- * @return result: String (操作返回结果，None表示成功，Some包含错误信息时表示失败)
  */
 
 case class UpdateFeedbackLikeMessage(
   token: String,
   videoID: Int,
   isLike: Boolean
-) extends API[Option[String]](RecommendationServiceCode)
+) extends API[Unit](RecommendationServiceCode)
 
 
 

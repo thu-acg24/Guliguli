@@ -31,7 +31,7 @@ case class SearchVideosMessage(
   searchString: String,
   rangeL: Int,
   rangeR: Int
-) extends API[Option[List[Video]]](RecommendationServiceCode)
+) extends API[List[Video]](RecommendationServiceCode)
 
 
 
