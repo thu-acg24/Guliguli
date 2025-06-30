@@ -1,41 +1,31 @@
 package Impl
 
 
-import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
-import Common.Object.SqlParameter
-import Common.ServiceUtils.schemaName
-import Objects.ReportService.ReportStatus
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
-import APIs.VideoService.QueryVideoInfoMessage
 import APIs.VideoService.ChangeVideoStatusMessage
+import APIs.VideoService.QueryVideoInfoMessage
+import Common.API.PlanContext
+import Common.API.Planner
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.ServiceUtils.schemaName
+import Objects.MessageService.Message
+import Objects.ReportService.ReportStatus
+import Objects.UserService.UserRole
+import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import Utils.NotifyProcess.sendNotification
 import cats.effect.IO
-import org.slf4j.LoggerFactory
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
+import cats.implicits.*
 import cats.implicits._
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Objects.MessageService.Message
-import Objects.VideoService.Video
-import Objects.UserService.UserRole
 import io.circe._
-import io.circe.syntax._
 import io.circe.generic.auto._
+import io.circe.syntax._
 import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import org.slf4j.LoggerFactory
 
 case class ProcessVideoReportMessagePlanner(
     token: String,

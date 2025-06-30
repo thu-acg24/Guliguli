@@ -1,15 +1,23 @@
 package Common.Serialize
 
+
 import Common.API.TraceID
-import Common.Object.SqlParameter
 import Common.Object.IDClass
+import Common.Object.SqlParameter
 import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.{DeserializationFeature, JsonDeserializer, JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import io.circe.{Json, ParsingFailure, parser}
+import io.circe.Json
+import io.circe.ParsingFailure
+import io.circe.parser
 import org.joda.time.DateTime
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 case object JacksonSerializeUtils {
 
@@ -45,7 +53,6 @@ case object JacksonSerializeUtils {
 
   }
 
-
   def serialize(o: AnyRef): String = {
     jacksonMapper.writeValueAsString(o)
   }
@@ -69,7 +76,6 @@ case object JacksonSerializeUtils {
   }
 
 }
-
 
 // IDClass Jackson 序列化
 class IDClassSerializer extends JsonSerializer[IDClass] {

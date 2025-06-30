@@ -1,9 +1,16 @@
 package Objects.VideoService
 
-import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
-import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
-import io.circe.{Decoder, Encoder}
+
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import io.circe.Decoder
+import io.circe.Encoder
 
 @JsonSerialize(`using` = classOf[VideoStatusSerializer])
 @JsonDeserialize(`using` = classOf[VideoStatusDeserializer])
@@ -14,7 +21,6 @@ enum VideoStatus(val desc: String):
   case Pending extends VideoStatus("待审核") // 待审核
   case Approved extends VideoStatus("审核通过") // 审核通过
   case Rejected extends VideoStatus("审核未通过") // 审核未通过
-
 
 object VideoStatus:
   given encode: Encoder[VideoStatus] = Encoder.encodeString.contramap[VideoStatus](toString)
@@ -38,7 +44,6 @@ object VideoStatus:
     case Approved => "审核通过"
     case Rejected => "审核未通过"
 
-
 // Jackson 序列化器
 class VideoStatusSerializer extends JsonSerializer[VideoStatus] {
   override def serialize(value: VideoStatus, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
@@ -52,4 +57,3 @@ class VideoStatusDeserializer extends JsonDeserializer[VideoStatus] {
     VideoStatus.fromString(p.getText)
   }
 }
-

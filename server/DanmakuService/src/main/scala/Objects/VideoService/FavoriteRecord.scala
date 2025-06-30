@@ -1,20 +1,20 @@
 package Objects.VideoService
 
 
-import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.syntax.*
-import io.circe.parser.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-import com.fasterxml.jackson.core.`type`.TypeReference
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
-
-import scala.util.Try
-
-import org.joda.time.DateTime
+import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.parser.*
+import io.circe.syntax.*
 import java.util.UUID
-
+import org.joda.time.DateTime
+import scala.util.Try
 
 /**
  * FavoriteRecord
@@ -32,16 +32,10 @@ case class FavoriteRecord(
 
   //process class code 预留标志位，不要删除
 
-
 }
-
 
 case object FavoriteRecord{
 
-    
-  import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-  // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[FavoriteRecord] = deriveEncoder
   private val circeDecoder: Decoder[FavoriteRecord] = deriveDecoder
 
@@ -65,10 +59,6 @@ case object FavoriteRecord{
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
-
   //process object code 预留标志位，不要删除
 
-
 }
-

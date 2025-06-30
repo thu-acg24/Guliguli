@@ -1,33 +1,23 @@
 package Impl
 
 
-import Utils.AuthProcess.validateToken
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI.*
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Utils.AuthProcess.validateToken
 import cats.effect.IO
-import org.slf4j.{Logger, LoggerFactory}
-import org.joda.time.DateTime
+import cats.implicits.*
+import io.circe.*
 import io.circe.Json
-import io.circe.*
-import io.circe.syntax.*
 import io.circe.generic.auto.*
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe.*
 import io.circe.syntax.*
-import io.circe.generic.auto.*
 import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI.*
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.AuthProcess.validateToken
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 case class ChangeFollowStatusMessagePlanner(
                                              token: String,

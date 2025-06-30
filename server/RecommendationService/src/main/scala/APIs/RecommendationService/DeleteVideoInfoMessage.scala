@@ -1,14 +1,16 @@
 package APIs.RecommendationService
 
+
 import Common.API.API
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.RecommendationServiceCode
 import com.fasterxml.jackson.core.`type`.TypeReference
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder, Json}
-
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
 import scala.util.Try
-
 
 /**
  * DeleteVideoInfoMessage
@@ -21,8 +23,6 @@ case class DeleteVideoInfoMessage(
   token: String,
   videoID: Int
 ) extends API[Unit](RecommendationServiceCode)
-
-
 
 case object DeleteVideoInfoMessage{
 
@@ -50,6 +50,4 @@ case object DeleteVideoInfoMessage{
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
 }
-

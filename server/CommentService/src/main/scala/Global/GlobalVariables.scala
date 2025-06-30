@@ -1,7 +1,7 @@
 package Global
 
-import Global.ServiceCenter.*
 
+import Global.ServiceCenter.*
 
 object GlobalVariables {
   lazy val serviceCode : String = CommentServiceCode

@@ -1,37 +1,26 @@
 package Impl
 
 
-import Objects.ReportService.ReportComment
-import Objects.UserService.UserRole
+import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
+import Common.API.PlanContext
+import Common.API.Planner
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.ServiceUtils.schemaName
+import Objects.ReportService.ReportComment
 import Objects.ReportService.ReportStatus
-import APIs.UserService.GetUIDByTokenMessage
-import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
-import Common.Object.SqlParameter
-import Common.ServiceUtils.schemaName
+import Objects.UserService.UserRole
 import cats.effect.IO
-import org.slf4j.LoggerFactory
+import cats.implicits.*
 import io.circe.Json
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import io.circe._
-import io.circe.syntax._
 import io.circe.generic.auto._
+import io.circe.syntax._
 import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import APIs.UserService.GetUIDByTokenMessage
-import io.circe._
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import org.slf4j.LoggerFactory
 
 case class QueryCommentReportsMessagePlanner(
                                               token: String,

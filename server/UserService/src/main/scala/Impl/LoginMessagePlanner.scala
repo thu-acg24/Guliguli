@@ -1,36 +1,24 @@
 package Impl
 
 
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
-import Utils.AuthProcess.{generateToken, validatePassword}
-import cats.effect.IO
-import io.circe.Json
-import org.slf4j.LoggerFactory
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.AuthProcess.validatePassword
 import Utils.AuthProcess.generateToken
 import Utils.AuthProcess.hashPassword
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Utils.AuthProcess.hashPassword
+import Utils.AuthProcess.validatePassword
+import cats.effect.IO
+import cats.implicits.*
+import io.circe.Json
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
 
 case class LoginMessagePlanner(
   usernameOrEmail: String,

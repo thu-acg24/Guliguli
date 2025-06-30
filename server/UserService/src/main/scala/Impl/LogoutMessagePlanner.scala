@@ -1,16 +1,18 @@
 package Impl
 
 
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
-import org.joda.time.DateTime
-import org.slf4j.LoggerFactory
 import cats.effect.IO
 import cats.implicits._
 import io.circe._
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
 
 case class LogoutMessagePlanner(
                                  token: String,

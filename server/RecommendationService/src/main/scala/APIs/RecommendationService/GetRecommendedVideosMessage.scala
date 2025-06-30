@@ -1,22 +1,23 @@
 package APIs.RecommendationService
 
+
 import Common.API.API
-import Global.ServiceCenter.RecommendationServiceCode
-
-import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.syntax.*
-import io.circe.parser.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-import com.fasterxml.jackson.core.`type`.TypeReference
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
-
-import scala.util.Try
-
-import org.joda.time.DateTime
-import java.util.UUID
+import Global.ServiceCenter.RecommendationServiceCode
 import Objects.VideoService.Video
+import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.parser.*
+import io.circe.syntax.*
+import java.util.UUID
+import org.joda.time.DateTime
+import scala.util.Try
 
 /**
  * GetRecommendedVideosMessage
@@ -31,13 +32,8 @@ case class GetRecommendedVideosMessage(
   userID: Option[Int] = None
 ) extends API[List[Video]](RecommendationServiceCode)
 
-
-
 case object GetRecommendedVideosMessage{
-    
-  import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
-  // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[GetRecommendedVideosMessage] = deriveEncoder
   private val circeDecoder: Decoder[GetRecommendedVideosMessage] = deriveDecoder
 
@@ -61,6 +57,4 @@ case object GetRecommendedVideosMessage{
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
 }
-

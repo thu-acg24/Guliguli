@@ -1,44 +1,34 @@
 package Impl
 
 
-import Objects.VideoService.VideoStatus
-import Objects.MessageService.Message
-import Objects.CommentService.Comment
-import Objects.VideoService.Video
+import APIs.CommentService.DeleteCommentMessage
 import APIs.CommentService.QueryCommentByIDMessage
-import Objects.UserService.UserRole
-import Utils.NotifyProcess.sendNotification
+import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.GetUIDByTokenMessage
-import APIs.CommentService.DeleteCommentMessage
-import Objects.ReportService.ReportStatus
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
-import cats.effect.IO
-import org.slf4j.LoggerFactory
-import io.circe.Json
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
+import Objects.CommentService.Comment
+import Objects.MessageService.Message
 import Objects.ReportService.ReportStatus
+import Objects.UserService.UserRole
+import Objects.VideoService.Video
+import Objects.VideoService.VideoStatus
+import Utils.NotifyProcess.sendNotification
+import cats.effect.IO
+import cats.implicits.*
 import cats.implicits._
+import io.circe.Json
 import io.circe._
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
 
 case class ProcessCommentReportMessagePlanner(
     token: String,

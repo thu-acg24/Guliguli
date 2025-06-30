@@ -1,10 +1,15 @@
 package Global
 
-import io.circe.{Decoder, Encoder, Json, HCursor}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.generic.auto.*
+
 import Common.Serialize.JacksonSerializeUtils
 import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.HCursor
+import io.circe.Json
+import io.circe.generic.auto.*
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
 import scala.util.Try
 
 /** 配置文件 */

@@ -1,5 +1,6 @@
 package Common
 
+
 import scala.util.matching.Regex
 
 object SqlUtils {

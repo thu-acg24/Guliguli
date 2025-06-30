@@ -1,46 +1,33 @@
 package Impl
 
 
-import APIs.DanmakuService.{DeleteDanmakuMessage, QueryDanmakuByIDMessage}
-import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
+import APIs.DanmakuService.DeleteDanmakuMessage
+import APIs.DanmakuService.QueryDanmakuByIDMessage
+import APIs.UserService.GetUIDByTokenMessage
+import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.DanmakuService.Danmaku
+import Objects.MessageService.Message
 import Objects.ReportService.ReportStatus
 import Objects.UserService.UserRole
-import Objects.VideoService.{Video, VideoStatus}
+import Objects.VideoService.Video
+import Objects.VideoService.VideoStatus
 import Utils.NotifyProcess.sendNotification
 import cats.effect.IO
+import cats.implicits.*
 import io.circe.Json
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import io.circe.syntax._
-import io.circe.generic.auto._
-import cats.implicits.*
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.VideoService.VideoStatus
-import Objects.MessageService.Message
-import APIs.DanmakuService.QueryDanmakuByIDMessage
-import Objects.VideoService.Video
-import APIs.UserService.QueryUserRoleMessage
-import APIs.DanmakuService.DeleteDanmakuMessage
-import APIs.UserService.GetUIDByTokenMessage
-import io.circe._
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import APIs.UserService.GetUIDByTokenMessage
 
 case class ProcessDanmakuReportMessagePlanner(
                                                token: String,

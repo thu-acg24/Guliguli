@@ -1,9 +1,16 @@
 package Objects.UserService
 
-import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
-import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
-import io.circe.{Decoder, Encoder}
+
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import io.circe.Decoder
+import io.circe.Encoder
 
 @JsonSerialize(`using` = classOf[UserRoleSerializer])
 @JsonDeserialize(`using` = classOf[UserRoleDeserializer])
@@ -14,7 +21,6 @@ enum UserRole(val desc: String):
   case Admin extends UserRole("管理员") // 管理员
   case Auditor extends UserRole("审核员") // 审核员
   case Normal extends UserRole("普通用户") // 普通用户
-
 
 object UserRole:
   given encode: Encoder[UserRole] = Encoder.encodeString.contramap[UserRole](toString)
@@ -38,7 +44,6 @@ object UserRole:
     case Auditor => "审核员"
     case Normal => "普通用户"
 
-
 // Jackson 序列化器
 class UserRoleSerializer extends JsonSerializer[UserRole] {
   override def serialize(value: UserRole, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
@@ -52,4 +57,3 @@ class UserRoleDeserializer extends JsonDeserializer[UserRole] {
     UserRole.fromString(p.getText)
   }
 }
-

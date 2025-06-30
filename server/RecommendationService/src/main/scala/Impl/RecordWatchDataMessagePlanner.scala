@@ -1,39 +1,25 @@
 package Impl
 
 
-import Objects.VideoService.VideoStatus
-import Objects.VideoService.Video
-import APIs.VideoService.QueryVideoInfoMessage
 import APIs.UserService.GetUIDByTokenMessage
-import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
-import Common.Object.SqlParameter
-import Common.ServiceUtils.schemaName
-import cats.effect.IO
-import org.slf4j.LoggerFactory
-import org.joda.time.DateTime
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import cats.implicits._
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Objects.VideoService.VideoStatus
-import Objects.VideoService.Video
 import APIs.VideoService.QueryVideoInfoMessage
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Objects.VideoService.Video
+import Objects.VideoService.VideoStatus
 import cats.effect.IO
-import org.slf4j.LoggerFactory
-import org.joda.time.DateTime
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
 import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import cats.implicits._
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
 
 case class RecordWatchDataMessagePlanner(
   token: String,

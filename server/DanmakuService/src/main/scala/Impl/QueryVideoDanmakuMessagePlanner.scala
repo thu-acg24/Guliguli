@@ -1,35 +1,24 @@
 package Impl
 
 
+import APIs.VideoService.QueryVideoInfoMessage
+import Common.API.PlanContext
+import Common.API.Planner
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.ServiceUtils.schemaName
+import Objects.DanmakuService.Danmaku
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
-import APIs.VideoService.QueryVideoInfoMessage
-import Objects.DanmakuService.Danmaku
-import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
-import Common.Object.SqlParameter
-import Common.ServiceUtils.schemaName
 import cats.effect.IO
+import cats.implicits.*
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.DanmakuService.Danmaku
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class QueryVideoDanmakuMessagePlanner(videoID: Int, token: Option[String], override val planContext: PlanContext) extends Planner[Option[List[Danmaku]]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)

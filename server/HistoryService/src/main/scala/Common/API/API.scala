@@ -1,11 +1,14 @@
 package Common.API
 
+
 import Common.DBAPI.DidRollbackException
 import Common.ServiceUtils.getURI
 import cats.data.NonEmptyList
 import cats.effect.*
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
 import io.circe.syntax.*
-import io.circe.{Decoder, Encoder, Json}
 import org.http4s.*
 import org.http4s.Uri.Path
 import org.http4s.circe.*
@@ -13,14 +16,14 @@ import org.http4s.circe.CirceEntityDecoder.*
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
-import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
-import org.typelevel.log4cats.{Logger, LoggerFactory}
-
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+import org.typelevel.log4cats.slf4j.Slf4jLogger
+import scala.compiletime.erasedValue
 import scala.concurrent.duration.DurationInt
 
 implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
-
-import scala.compiletime.erasedValue
 
 /** API的基本类型，保存了API返回的数据类型 ReturnType */
 abstract class API[T: Decoder](targetService: String):

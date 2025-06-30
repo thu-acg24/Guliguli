@@ -1,36 +1,26 @@
 package Impl
 
+
+import Common.API.PlanContext
+import Common.API.Planner
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.ServiceUtils.schemaName
+import Objects.UserService.UserInfo
+import Utils.AuthProcess.validateToken
+import cats.effect.IO
+import cats.implicits.*
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
+
 /**
  * Planner for ModifyUserInfoMessage: 根据用户Token校验身份后，更新用户表中newField对应字段的值，用于用户信息修改功能点
  */
-
-
-import Objects.UserService.UserInfo
-import Utils.AuthProcess.validateToken
-import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
-import Common.Object.SqlParameter
-import Common.ServiceUtils.schemaName
-import cats.effect.IO
-import org.slf4j.LoggerFactory
-import org.joda.time.DateTime
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.AuthProcess.validateToken
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class ModifyUserInfoMessagePlanner(
                                          token: String,

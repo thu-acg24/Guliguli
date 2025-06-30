@@ -1,9 +1,11 @@
 package Common.Object
 
-import io.circe.generic.semiauto.deriveEncoder
-import io.circe.{Decoder, Encoder, HCursor}
 
-// Define the SqlParam case class
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.HCursor
+import io.circe.generic.semiauto.deriveEncoder
+
 case class SqlParameter(dataType: String, value: String)
 
 object SqlParameter {

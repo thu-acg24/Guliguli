@@ -1,12 +1,14 @@
 package Process
 
-import Global.ServerConfig
+
 import Global.DBConfig
-import cats.effect.{IO, Resource}
+import Global.ServerConfig
+import cats.effect.IO
+import cats.effect.Resource
 import io.circe.generic.auto.*
 import io.circe.parser.decode
-
-import scala.io.{BufferedSource, Source}
+import scala.io.BufferedSource
+import scala.io.Source
 
 object ProcessUtils {
   /** 读取config文件 */
@@ -45,4 +47,3 @@ object ProcessUtils {
   }
   
 }
-

@@ -1,12 +1,12 @@
 package Common
 
-import Global.GlobalVariables.serviceCode
+
 import Global.GlobalVariables
+import Global.GlobalVariables.serviceCode
 import Global.ServiceCenter.fullNameMap
 import cats.effect.IO
 import com.comcast.ip4s.Port
 import org.http4s.Uri
-
 
 object ServiceUtils{
   def getURI(serviceCode: String): IO[Uri] =
@@ -24,7 +24,6 @@ object ServiceUtils{
       throw new IllegalArgumentException(s"Invalid port for serviceCode: $serviceCode")
     )
 
-
   def serviceName(serviceCode: String): String = {
     val fullName = fullNameMap(serviceCode)
     val end = fullName.indexOf("（")
@@ -35,7 +34,6 @@ object ServiceUtils{
     serviceCode.drop(1).toInt +
       (if (serviceCode.head == 'A') 10000 else if (serviceCode.head == 'D') 20000 else 30000)
   }
-
 
   lazy val servicePort: Int = portMap(serviceCode)
   lazy val serviceFullName: String = fullNameMap(serviceCode)

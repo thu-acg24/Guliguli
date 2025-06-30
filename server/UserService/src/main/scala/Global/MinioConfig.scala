@@ -1,8 +1,10 @@
 package Global
 
+
 import Global.ServiceCenter.*
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import io.minio.MinioClient
-import com.typesafe.config.{Config, ConfigFactory}
 import java.io.File
 
 case class MinioConfig(

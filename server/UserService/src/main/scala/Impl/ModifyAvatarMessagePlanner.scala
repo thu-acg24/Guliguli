@@ -1,15 +1,14 @@
 package Impl
 
-/**
- * Planner for ModifyUserInfoMessage: 根据用户Token校验身份后，更新用户表中newField对应字段的值，用于用户信息修改功能点
- */
 
-
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI.*
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Global.GlobalVariables.minioClient
 import Objects.UserService.UserInfo
 import Utils.AuthProcess.validateToken
 import cats.effect.IO
@@ -18,11 +17,14 @@ import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import org.joda.time.DateTime
-import org.slf4j.LoggerFactory
-import Global.GlobalVariables.minioClient
 import io.minio.http.Method
 import java.util.concurrent.TimeUnit
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
+
+/**
+ * Planner for ModifyUserInfoMessage: 根据用户Token校验身份后，更新用户表中newField对应字段的值，用于用户信息修改功能点
+ */
 
 case class ModifyAvatarMessagePlanner(
                                          token: String,

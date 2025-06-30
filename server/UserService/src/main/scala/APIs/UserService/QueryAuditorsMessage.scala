@@ -1,22 +1,23 @@
 package APIs.UserService
 
+
 import Common.API.API
-import Global.ServiceCenter.UserServiceCode
-
-import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.syntax.*
-import io.circe.parser.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-import com.fasterxml.jackson.core.`type`.TypeReference
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
-
-import scala.util.Try
-
-import org.joda.time.DateTime
-import java.util.UUID
+import Global.ServiceCenter.UserServiceCode
 import Objects.UserService.UserInfo
+import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.parser.*
+import io.circe.syntax.*
+import java.util.UUID
+import org.joda.time.DateTime
+import scala.util.Try
 
 /**
  * QueryAuditorsMessage
@@ -29,13 +30,8 @@ case class QueryAuditorsMessage(
   token: String
 ) extends API[List[UserInfo]](UserServiceCode)
 
-
-
 case object QueryAuditorsMessage{
-    
-  import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
-  // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[QueryAuditorsMessage] = deriveEncoder
   private val circeDecoder: Decoder[QueryAuditorsMessage] = deriveDecoder
 
@@ -59,6 +55,4 @@ case object QueryAuditorsMessage{
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
 }
-

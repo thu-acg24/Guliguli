@@ -1,9 +1,16 @@
 package Objects.ReportService
 
-import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
-import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
-import io.circe.{Decoder, Encoder}
+
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import io.circe.Decoder
+import io.circe.Encoder
 
 @JsonSerialize(`using` = classOf[ReportStatusSerializer])
 @JsonDeserialize(`using` = classOf[ReportStatusDeserializer])
@@ -14,7 +21,6 @@ enum ReportStatus(val desc: String):
   case Pending extends ReportStatus("待处理") // 待处理
   case Resolved extends ReportStatus("已处理") // 已处理
   case Rejected extends ReportStatus("驳回") // 驳回
-
 
 object ReportStatus:
   given encode: Encoder[ReportStatus] = Encoder.encodeString.contramap[ReportStatus](toString)
@@ -38,7 +44,6 @@ object ReportStatus:
     case Resolved => "已处理"
     case Rejected => "驳回"
 
-
 // Jackson 序列化器
 class ReportStatusSerializer extends JsonSerializer[ReportStatus] {
   override def serialize(value: ReportStatus, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
@@ -52,4 +57,3 @@ class ReportStatusDeserializer extends JsonDeserializer[ReportStatus] {
     ReportStatus.fromString(p.getText)
   }
 }
-

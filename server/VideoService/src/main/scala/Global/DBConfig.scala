@@ -1,12 +1,14 @@
 package Global
 
 
-import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import Common.Serialize.JacksonSerializeUtils
 import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
 import scala.util.Try
-
 
 case class DBConfig(
                      /** 数据库地址，例如：jdbc:postgresql://localhost:5432/db */

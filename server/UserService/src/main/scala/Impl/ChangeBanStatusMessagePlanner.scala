@@ -1,19 +1,22 @@
 package Impl
 
+
 import APIs.UserService.QueryUserRoleMessage
-import Objects.UserService.UserRole
-import Common.API.{PlanContext, Planner}
+import Common.API.PlanContext
+import Common.API.Planner
 import Common.DBAPI.*
 import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import Objects.UserService.UserRole
 import cats.effect.IO
 import cats.implicits.*
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import io.circe.*
-import io.circe.syntax.*
-import io.circe.generic.auto.*
 
 case class ChangeBanStatusMessagePlanner(
                                           token: String,
@@ -65,7 +68,6 @@ case class ChangeBanStatusMessagePlanner(
       }
     }
   }
-
 
   private def updateBanStatus()(using PlanContext): IO[Unit] = {
     val sql =

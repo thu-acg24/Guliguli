@@ -1,22 +1,23 @@
 package APIs.UserService
 
+
 import Common.API.API
-import Global.ServiceCenter.UserServiceCode
-
-import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.syntax.*
-import io.circe.parser.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-import com.fasterxml.jackson.core.`type`.TypeReference
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
-
-import scala.util.Try
-
-import org.joda.time.DateTime
-import java.util.UUID
+import Global.ServiceCenter.UserServiceCode
 import Objects.UserService.UserRole
+import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.parser.*
+import io.circe.syntax.*
+import java.util.UUID
+import org.joda.time.DateTime
+import scala.util.Try
 
 /**
  * QueryUserRoleMessage
@@ -29,13 +30,8 @@ case class QueryUserRoleMessage(
   token: String
 ) extends API[UserRole](UserServiceCode)
 
-
-
 case object QueryUserRoleMessage{
-    
-  import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
-  // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[QueryUserRoleMessage] = deriveEncoder
   private val circeDecoder: Decoder[QueryUserRoleMessage] = deriveDecoder
 
@@ -59,6 +55,4 @@ case object QueryUserRoleMessage{
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
 }
-

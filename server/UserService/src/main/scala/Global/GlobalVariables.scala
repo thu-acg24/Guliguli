@@ -1,9 +1,9 @@
 package Global
 
+
+import Global.MinioConfig
 import Global.ServiceCenter.*
 import io.minio.MinioClient
-import Global.MinioConfig
-
 
 object GlobalVariables {
   lazy val serviceCode : String = UserServiceCode

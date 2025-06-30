@@ -1,7 +1,12 @@
 package Common
 
+
 import cats.effect.IO
-import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.Decoder
+import io.circe.DecodingFailure
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.JsonObject
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 

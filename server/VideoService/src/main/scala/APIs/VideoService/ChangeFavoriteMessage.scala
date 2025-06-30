@@ -1,22 +1,22 @@
 package APIs.VideoService
 
+
 import Common.API.API
-import Global.ServiceCenter.VideoServiceCode
-
-import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.syntax.*
-import io.circe.parser.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-import com.fasterxml.jackson.core.`type`.TypeReference
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
-
-import scala.util.Try
-
-import org.joda.time.DateTime
+import Global.ServiceCenter.VideoServiceCode
+import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.Json
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.parser.*
+import io.circe.syntax.*
 import java.util.UUID
-
+import org.joda.time.DateTime
+import scala.util.Try
 
 /**
  * ChangeFavoriteMessage
@@ -32,13 +32,8 @@ case class ChangeFavoriteMessage(
   isFav: Boolean
 ) extends API[Unit](VideoServiceCode)
 
-
-
 case object ChangeFavoriteMessage{
-    
-  import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
-  // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[ChangeFavoriteMessage] = deriveEncoder
   private val circeDecoder: Decoder[ChangeFavoriteMessage] = deriveDecoder
 
@@ -62,6 +57,4 @@ case object ChangeFavoriteMessage{
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
 }
-

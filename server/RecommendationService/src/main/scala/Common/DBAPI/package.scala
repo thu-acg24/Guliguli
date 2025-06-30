@@ -1,19 +1,30 @@
 package Common
 
-import Common.API.{PlanContext, TraceID}
+package object DBAPI {
+
+
+import Common.API.PlanContext
+import Common.API.TraceID
+import Common.Object.ParameterList
+import Common.Object.SqlParameter
+import DBAPI.EndTransactionMessage
+import DBAPI.InitSchemaMessage
+import DBAPI.ReadDBRowsMessage
+import DBAPI.ReadDBValueMessage
+import DBAPI.StartTransactionMessage
+import DBAPI.WriteDBListMessage
+import DBAPI.WriteDBMessage
 import Global.DBConfig
-import Common.Object.{ParameterList, SqlParameter}
-import DBAPI.{EndTransactionMessage, InitSchemaMessage, ReadDBRowsMessage, ReadDBValueMessage, StartTransactionMessage, WriteDBListMessage, WriteDBMessage}
 import cats.effect.*
-import io.circe.{Decoder, Encoder, HCursor, Json}
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.HCursor
+import io.circe.Json
 import io.circe.generic.auto.*
-import org.joda.time.DateTime
 import io.circe.parser.decode
 import org.http4s.client.Client
+import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-
-
-package object DBAPI {
 
   def startTransaction[A](block: PlanContext ?=> IO[A])(using encoder: Encoder[A], ctx: PlanContext): IO[A] = {
     given newContext: PlanContext = ctx.copy(transactionLevel = ctx.transactionLevel + 1)

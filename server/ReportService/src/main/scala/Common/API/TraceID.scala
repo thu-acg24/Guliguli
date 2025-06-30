@@ -1,8 +1,8 @@
 package Common.API
 
+
 import io.circe.*
 import io.circe.generic.semiauto.*
-
 
 case class TraceID(id:String):
   override def toString: String = id

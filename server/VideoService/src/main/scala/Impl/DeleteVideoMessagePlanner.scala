@@ -1,37 +1,28 @@
 package Impl
 
 
+import APIs.UserService.GetUIDByTokenMessage
+import APIs.UserService.QueryUserRoleMessage
+import Common.API.PlanContext
+import Common.API.Planner
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.decodeDateTime
+import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.ServiceUtils.schemaName
+import Objects.UserService.UserRole
+import cats.effect.IO
+import cats.implicits.*
+import io.circe.Json
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
+
 /**
  * Planner for DeleteVideoMessage: 根据用户Token校验权限后，根据videoID删除视频记录
  */
-import Objects.UserService.UserRole
-import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.GetUIDByTokenMessage
-import Common.API.{PlanContext, Planner}
-import Common.DBAPI._
-import Common.Object.SqlParameter
-import Common.ServiceUtils.schemaName
-import cats.effect.IO
-import org.slf4j.LoggerFactory
-import io.circe.Json
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class DeleteVideoMessagePlanner(
     token: String,

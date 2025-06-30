@@ -1,18 +1,18 @@
 package Process
 
+
 import Process.Routes.service
 import cats.effect.*
 import com.comcast.ip4s.*
+import java.nio.channels.ClosedChannelException
 import org.http4s.*
 import org.http4s.ember.server.*
 import org.http4s.implicits.*
 import org.http4s.server.middleware.CORS
 import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
-
-import java.nio.channels.ClosedChannelException
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.concurrent.duration.*
-
 
 object Server extends IOApp:
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]

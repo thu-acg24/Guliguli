@@ -1,10 +1,11 @@
 package Common.Serialize
 
+
 import Common.Object.IDClass
 import cats.syntax.traverse.*
-import io.circe.parser.parse
 import io.circe.*
-import org.joda.time.DateTime // Import Cats' Either syntax
+import io.circe.parser.parse
+import org.joda.time.DateTime
 
 object CustomColumnTypes {
   given encodeIDClassBase[T <: IDClass]: Encoder[T] = Encoder.instance { idClass =>

@@ -1,16 +1,20 @@
 
 package Process
 
-import Common.API.{API, PlanContext, TraceID}
-import Common.DBAPI.{initSchema, writeDB}
+
+import Common.API.API
+import Common.API.PlanContext
+import Common.API.TraceID
+import Common.DBAPI.initSchema
+import Common.DBAPI.writeDB
 import Common.ServiceUtils.schemaName
+import Global.DBConfig
+import Global.GlobalVariables
 import Global.ServerConfig
+import Process.ProcessUtils.server2DB
 import cats.effect.IO
 import io.circe.generic.auto.*
 import java.util.UUID
-import Global.DBConfig
-import Process.ProcessUtils.server2DB
-import Global.GlobalVariables
 
 object Init {
   def init(config: ServerConfig): IO[Unit] = {
