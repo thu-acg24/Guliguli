@@ -27,7 +27,7 @@ import java.util.UUID
 
 case class GetUIDByTokenMessage(
   token: String
-) extends API[Option[Int]](UserServiceCode)
+) extends API[Int](UserServiceCode)
 
 
 

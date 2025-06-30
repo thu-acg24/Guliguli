@@ -27,7 +27,7 @@ import Objects.DanmakuService.Danmaku
 
 case class QueryDanmakuByIDMessage(
   danmakuID: Int
-) extends API[Option[Danmaku]](DanmakuServiceCode)
+) extends API[Danmaku](DanmakuServiceCode)
 
 
 

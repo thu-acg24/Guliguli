@@ -24,14 +24,13 @@ import Objects.ReportService.ReportStatus
  * @param token: String (用户认证的Token，用于校验用户身份和权限。)
  * @param reportID: Int (举报记录的唯一标识ID。)
  * @param status: ReportStatus:1016 (举报记录的新状态，例如待处理、已处理或驳回。)
- * @return result: String (操作结果，返回空值代表成功，或返回错误信息。)
  */
 
 case class ProcessVideoReportMessage(
   token: String,
   reportID: Int,
   status: ReportStatus
-) extends API[String](ReportServiceCode)
+) extends API[Unit](ReportServiceCode)
 
 
 

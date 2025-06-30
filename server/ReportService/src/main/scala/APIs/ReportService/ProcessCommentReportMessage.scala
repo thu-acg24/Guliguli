@@ -24,14 +24,13 @@ import Objects.ReportService.ReportStatus
  * @param token: String (用户身份验证的令牌)
  * @param reportID: Int (举报记录的唯一标识符)
  * @param status: ReportStatus:1016 (举报记录的新状态)
- * @return result: String (操作结果，若成功则返回None，或返回错误信息)
  */
 
 case class ProcessCommentReportMessage(
   token: String,
   reportID: Int,
   status: ReportStatus
-) extends API[Option[String]](ReportServiceCode)
+) extends API[Unit](ReportServiceCode)
 
 
 
