@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户登录的Token，用于校验身份)
  * @param followeeID: Int (被关注的目标用户ID)
  * @param isFollow: Boolean (操作类型，true表示关注，false表示取消关注)
- * @return result: String (操作结果，返回None表示成功，Some(String)表示失败的错误信息)
  */
 
 case class ChangeFollowStatusMessage(
   token: String,
   followeeID: Int,
   isFollow: Boolean
-) extends API[Option[String]](UserServiceCode)
+) extends API[Unit](UserServiceCode)
 
 
 

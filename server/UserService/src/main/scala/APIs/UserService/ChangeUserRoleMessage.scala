@@ -24,14 +24,13 @@ import Objects.UserService.UserRole
  * @param token: String (用户登录后获取的唯一身份标识，用于校验用户身份。)
  * @param userID: Int (目标用户的唯一标识符，用于指定需要更改角色的用户。)
  * @param newRole: UserRole:1084 (指定角色的新值，用于将用户设置为审核员或普通用户。)
- * @return result: String (操作结果，返回错误信息或成功状态。)
  */
 
 case class ChangeUserRoleMessage(
   token: String,
   userID: Int,
   newRole: UserRole
-) extends API[Option[String]](UserServiceCode)
+) extends API[Unit](UserServiceCode)
 
 
 

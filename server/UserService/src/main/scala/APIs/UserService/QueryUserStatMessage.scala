@@ -27,7 +27,7 @@ import Objects.UserService.UserStat
 
 case class QueryUserStatMessage(
   userID: Int
-) extends API[Option[UserStat]](UserServiceCode)
+) extends API[UserStat](UserServiceCode)
 
 
 

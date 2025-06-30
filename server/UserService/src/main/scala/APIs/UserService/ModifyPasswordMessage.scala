@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户的身份验证令牌)
  * @param oldPassword: String (用户的原始密码，用于验证身份)
  * @param newPassword: String (用户的新密码，用于更新密码哈希)
- * @return result: String (操作结果，若成功则返回None，否则返回具体错误信息)
  */
 
 case class ModifyPasswordMessage(
   token: String,
   oldPassword: String,
   newPassword: String
-) extends API[Option[String]](UserServiceCode)
+) extends API[Unit](UserServiceCode)
 
 
 

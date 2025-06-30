@@ -27,7 +27,7 @@ import Objects.UserService.UserInfo
 
 case class QueryAuditorsMessage(
   token: String
-) extends API[Option[List[UserInfo]]](UserServiceCode)
+) extends API[List[UserInfo]](UserServiceCode)
 
 
 

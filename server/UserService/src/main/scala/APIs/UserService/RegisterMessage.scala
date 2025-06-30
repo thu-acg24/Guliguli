@@ -24,14 +24,13 @@ import java.util.UUID
  * @param username: String (用户的用户名，用于注册身份标识)
  * @param email: String (用户的邮箱，用于注册身份标识)
  * @param password: String (明文密码，用于注册时计算用户的密码哈希值)
- * @return result: String (注册操作的执行结果，成功返回None，失败返回具体的错误信息)
  */
 
 case class RegisterMessage(
   username: String,
   email: String,
   password: String
-) extends API[Option[String]](UserServiceCode)
+) extends API[Unit](UserServiceCode)
 
 
 

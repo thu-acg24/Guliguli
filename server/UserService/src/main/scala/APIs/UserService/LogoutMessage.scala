@@ -22,12 +22,11 @@ import java.util.UUID
  * LogoutMessage
  * desc: 根据用户Token，移除当前用户登录状态，并销毁存储的Token。用于用户登出功能点。
  * @param token: String (用户登录Token，用于校验用户身份)
- * @return result: String (登出操作结果，错误信息或者空值)
  */
 
 case class LogoutMessage(
   token: String
-) extends API[Option[String]](UserServiceCode)
+) extends API[Unit](UserServiceCode)
 
 
 
