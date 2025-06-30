@@ -36,75 +36,50 @@ case class AddBrowseHistoryMessagePlanner(
                                            token: String,
                                            videoID: Int,
                                            override val planContext: PlanContext
-                                         ) extends Planner[Option[String]] {
+                                         ) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
+  override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info("Step 1: Validate user token and retrieve user ID"))
-      userIdOption <- getUserIdByToken()
-      result <- userIdOption match {
-        case None =>
-          val errorMsg = "Invalid Token"
-          IO(logger.info(s"Token validation failed: ${errorMsg}")) *> IO(Some(errorMsg))
-          //返回错误信息
-        case Some(userId) =>
-          IO(logger.info(s"Validated user token, userId: ${userId}")) *>
-          IO(logger.info("Step 2: Validate videoID and retrieve video information")) *>
-          getVideoInfo(videoID).flatMap {
-            case None =>
-              val errorMsg = "Invalid video ID"
-              IO(logger.info(s"Video validation failed: ${errorMsg}")) *> IO(Some(errorMsg))
-              //返回未找到视频
-            case Some(video) =>
-              IO(logger.info(s"Video validated successfully: videoID=${video.videoID}, title=${video.title}")) *>
-              IO(logger.info("Step 3: Add browse history to the database")) *>
-              addOrUpdateHistory(userId, video.videoID).map(_ => None)
-              //添加到记录里。
-          }
-      }
-    } yield result
+      userId<- getUserIdByToken()
+      _ <-IO(logger.info(s"Validated user token, userId: ${userId}"))
+      _ <-IO(logger.info("Step 2: Validate videoID and retrieve video information"))
+      video<-getVideoInfo(videoID)
+      _ <-IO(logger.info(s"Video validated successfully: videoID=${video.videoID}, title=${video.title}"))
+      _ <-IO(logger.info("Step 3: Add browse history to the database"))
+      _ <-addOrUpdateHistory(userId, video.videoID).map(_ => ())
+    } yield ()
   }
 
-  private def getUserIdByToken()(using PlanContext): IO[Option[Int]] = {
-    GetUIDByTokenMessage(token).send.flatTap { userIdOption =>
-      IO {
-        userIdOption match {
-          case Some(userId) => logger.info(s"Retrieved user ID: ${userId} for token: ${token}")
-          case None         => logger.info(s"Failed to retrieve user ID for token: ${token}")
-        }
+  private def getUserIdByToken()(using PlanContext): IO[Int] = {
+    GetUIDByTokenMessage(token).send.flatTap { userId =>
+      IO{logger.info(s"Retrieved user ID: ${userId} for token: ${token}")}
       }
-    }
   }
 
-  private def getVideoInfo(videoID: Int)(using PlanContext): IO[Option[Video]] = {
-    QueryVideoInfoMessage(None, videoID).send.flatTap { videoOption =>
-      IO {
-        videoOption match {
-          case Some(video) => logger.info(s"Retrieved video info: ${video}")
-          case None        => logger.info(s"No video found with ID: ${videoID}")
-        }
+  private def getVideoInfo(videoID: Int)(using PlanContext): IO[Video] = {
+    QueryVideoInfoMessage(None, videoID).send.flatTap { video =>
+      IO{logger.info(s"Retrieved video info: ${video}")}
       }
-    }
   }
 
   private def addOrUpdateHistory(userId: Int, videoId: Int)(using PlanContext): IO[Unit] = {
     val timestamp = DateTime.now()
     for {
       _ <- IO(logger.info(s"Step 3.1: Check if user ${userId} has already viewed video ${videoId}"))
-      existingHistoryOption <- checkExistingHistory(userId, videoId)
-      _ <- existingHistoryOption match {
-        case Some(_) =>
-          IO(logger.info(s"User ${userId} has viewed video ${videoId} before, updating timestamp")) *>
-            updateHistoryTimestamp(userId, videoId, timestamp)
-        case None =>
-          IO(logger.info(s"User ${userId} has not viewed video ${videoId} before, inserting new history record")) *>
-            insertNewHistoryRecord(userId, videoId, timestamp)
+      exists <- checkExistingHistory(userId, videoId)
+      _ <- if(exists){
+        IO(logger.info(s"User ${userId} has viewed video ${videoId} before, updating timestamp")) *>
+          updateHistoryTimestamp(userId, videoId, timestamp)
+      } else {
+           IO(logger.info(s"User ${userId} has not viewed video ${videoId} before, inserting new history record")) *>
+             insertNewHistoryRecord(userId, videoId, timestamp)
       }
     } yield ()
   }
 
-  private def checkExistingHistory(userId: Int, videoId: Int)(using PlanContext): IO[Option[Unit]] = {
+  private def checkExistingHistory(userId: Int, videoId: Int)(using PlanContext): IO[Boolean] = {
     val sql =
       s"""
          |SELECT 1
@@ -114,10 +89,10 @@ case class AddBrowseHistoryMessagePlanner(
     readDBJsonOptional(sql, List(
       SqlParameter("Int", userId.toString),
       SqlParameter("Int", videoId.toString)
-    )).map(_.map(_ => ()))
+    )).map(_.isDefined)
   }
 
-  private def updateHistoryTimestamp(userId: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[String] = {
+  private def updateHistoryTimestamp(userId: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
          |UPDATE ${schemaName}.history_record_table
@@ -128,10 +103,10 @@ case class AddBrowseHistoryMessagePlanner(
       SqlParameter("DateTime", timestamp.getMillis.toString),
       SqlParameter("Int", userId.toString),
       SqlParameter("Int", videoId.toString)
-    ))
+    )).as(())
   }
 
-  private def insertNewHistoryRecord(userId: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[String] = {
+  private def insertNewHistoryRecord(userId: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
          |INSERT INTO ${schemaName}.history_record_table (user_id, video_id, timestamp)
@@ -141,6 +116,6 @@ case class AddBrowseHistoryMessagePlanner(
       SqlParameter("Int", userId.toString),
       SqlParameter("Int", videoId.toString),
       SqlParameter("DateTime", timestamp.getMillis.toString)
-    ))
+    )).as(())
   }
 }
