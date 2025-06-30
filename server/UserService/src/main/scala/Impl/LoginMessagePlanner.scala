@@ -36,50 +36,31 @@ case class LoginMessagePlanner(
   usernameOrEmail: String,
   password: String,
   override val planContext: PlanContext
-) extends Planner[List[String]] {
+) extends Planner[String] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[List[String]] = {
+  override def plan(using PlanContext): IO[String] = {
     for {
       // Step 1: Query user information from UserTable
       _ <- IO(logger.info(s"查询用户信息，输入的usernameOrEmail为：${usernameOrEmail}"))
-      userOpt <- getUserByUsernameOrEmail()
-      response <- userOpt match {
-        case None =>
-          IO(logger.info("用户未找到")).as(List("", "User not found"))
-
-        case Some(userJson) =>
-          for {
-            userID <- IO(decodeField[Int](userJson, "user_id"))
-
-            // Step 2: Validate the password
-            _ <- IO(logger.info(s"开始验证用户ID为${userID}的密码"))
-            isPasswordValid <- validatePassword(userID, password).map(_.isEmpty) // None indicates success
-            _ <- IO(logger.info(s"密码验证结果：${isPasswordValid}"))
-
-            response <- if (!isPasswordValid) {
-              IO(logger.info("密码验证失败")).as(List("", "Invalid login credentials"))
-            } else {
-
-              // Step 3: Check if the user is banned
-              IO(logger.info(s"检查用户是否被封禁，用户ID为${userID}"))
-              val isBanned = decodeField[Boolean](userJson, "is_banned")
-              IO(logger.info(s"用户封禁状态：${isBanned}"))
-
-              if (isBanned) {
-                IO(logger.info("用户账户已被封禁")).as(List("", "Account has been banned"))
-              } else {
-                // Step 4: Generate Token
-                generateTokenResponse(userID)
-              }
-            }
-          } yield response
+      userJson <- getUserByUsernameOrEmail()
+      userID <- IO(decodeField[Int](userJson, "user_id"))
+      // Step 2: Validate the password
+      _ <- IO(logger.info(s"开始验证用户ID为${userID}的密码"))
+      _ <- validatePassword(userID, password)
+      _ <- IO(logger.info(s"检查用户是否被封禁，用户ID为$userID"))
+      isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
+      response <- if (isBanned) {
+        IO(logger.info("用户账户已被封禁")) *>
+        IO.raiseError(new RuntimeException("用户已被封禁"))
+      } else {
+        generateTokenResponse(userID)
       }
     } yield response
   }
 
-  private def getUserByUsernameOrEmail()(using PlanContext): IO[Option[Json]] = {
+  private def getUserByUsernameOrEmail()(using PlanContext): IO[Json] = {
     val sql =
       s"""
         SELECT user_id, password_hash, is_banned
@@ -92,18 +73,24 @@ case class LoginMessagePlanner(
     )
 
     readDBJsonOptional(sql, params)
+      .flatMap {
+        case None =>
+          IO(logger.info(s"未找到用户信息，登陆凭证 $usernameOrEmail")) *>
+          IO.raiseError(new RuntimeException(s"未找到用户信息"))
+        case Some(json) =>
+          IO.pure(json)
+      }
+      .handleErrorWith { ex =>
+        IO(logger.info(s"获取用户数据时发生错误，登录凭证 $usernameOrEmail，错误信息${ex.getMessage}")) *>
+        IO.raiseError(new RuntimeException(s"获取用户数据时发生错误，错误信息${ex.getMessage}"))
+      }
   }
 
-  private def generateTokenResponse(userID: Int)(using PlanContext): IO[List[String]] = {
+  private def generateTokenResponse(userID: Int)(using PlanContext): IO[String] = {
     for {
       _ <- IO(logger.info(s"为用户ID ${userID} 生成Token"))
-      tokenOpt <- generateToken(userID)
-      response <- tokenOpt match {
-        case None =>
-          IO(logger.info("Token生成失败")).as(List("", "Token generation failed"))
-        case Some(token) =>
-          IO(logger.info(s"Token生成成功, Token为：${token}")).as(List(token, ""))
-      }
+      token <- generateToken(userID)
+      response <- IO(logger.info(s"Token生成成功, Token为：${token}")).as(token)
     } yield response
   }
 }

@@ -30,21 +30,15 @@ import Common.ServiceUtils.schemaName
 case class GetUIDByTokenMessagePlanner(
                                         token: String,
                                         override val planContext: PlanContext
-                                      ) extends Planner[Option[Int]] {
+                                      ) extends Planner[Int] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[Int]] = {
+  override def plan(using PlanContext): IO[Int] = {
     for {
       _ <- IO(logger.info(s"[Step 1] 开始解析Token: $token"))
-      // 调用validateToken解析Token，获取用户ID
-      userIDOpt <- validateToken(token)
-
-      // 针对解析结果进行日志记录和返回处理
-      _ <- userIDOpt match {
-        case Some(userID) => IO(logger.info(s"[Step 2] Token有效，对应的userID为: $userID"))
-        case None         => IO(logger.info(s"[Step 2] Token无效，无对应的用户ID，返回None"))
-      }
-    } yield userIDOpt
+      userID <- validateToken(token)
+      _ <- IO(logger.info(s"[Step 2] Token有效，对应的userID为: $userID"))
+    } yield userID
   }
 }

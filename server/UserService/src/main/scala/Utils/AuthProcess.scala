@@ -34,212 +34,137 @@ case object AuthProcess {
   }
   
   
-  def invalidateToken(token: String)(using PlanContext): IO[Option[String]] = {
+  def invalidateToken(token: String)(using PlanContext): IO[Unit] = {
   // val logger = LoggerFactory.getLogger("TokenLogger")  // 同文后端处理: logger 统一
-  
     val checkTokenSQL =
-      s"SELECT token FROM ${schemaName}.token_table WHERE token = ?"
-  
+      s"SELECT token FROM $schemaName.token_table WHERE token = ?"
     val deleteTokenSQL =
-      s"DELETE FROM ${schemaName}.token_table WHERE token = ?"
-  
+      s"DELETE FROM $schemaName.token_table WHERE token = ?"
     val checkTokenParams = List(SqlParameter("String", token))
     val deleteTokenParams = List(SqlParameter("String", token))
   
     for {
       // Step 1: Check if the Token exists in TokenTable
       _ <- IO(logger.info(s"Checking if token '${token}' exists in the database."))
-      tokenExists <- readDBJsonOptional(checkTokenSQL, checkTokenParams)
-      result <- tokenExists match {
-        case Some(_) =>
-          IO(logger.info(s"Token '${token}' exists. Proceeding with deletion...")) >>
-            writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
-              case Right(_) =>
-                IO(logger.info(s"Token '${token}' successfully removed from TokenTable.")) >> IO(None)
-              case Left(e) =>
-                val errorMessage = s"Failed to delete Token '${token}' from TokenTable: ${e.getMessage}"
-                IO(logger.error(errorMessage)) >> IO(Some("Database Error"))
-            }
-        case None =>
-          val warningMessage = s"Token '${token}' does not exist in TokenTable."
-          IO(logger.warn(warningMessage)) >> IO(Some("Session Not Found"))
+      tokenExists <- readDBBoolean(checkTokenSQL, checkTokenParams)
+      _ <- if (!tokenExists) {
+        IO(logger.warn(s"Token '${token}' does not exist in TokenTable.")) *>
+        IO.raiseError(new RuntimeException("登出失败，已登出"))
+      } else IO.unit
+      _ <- IO(logger.info(s"Token '${token}' exists. Proceeding with deletion..."))
+      _ <- writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
+        case Right(_) =>
+          IO(logger.info(s"Token '${token}' successfully removed from TokenTable."))
+        case Left(e) =>
+          IO(logger.error(s"Failed to delete Token '${token}' from TokenTable: ${e.getMessage}")) *>
+          IO.raiseError(new RuntimeException(s"删除Token失败：${e.getMessage}"))
       }
-    } yield result
+    } yield()
   }
   
-  def validatePassword(userID: Int, inputPassword: String)(using PlanContext): IO[Option[String]] = {
+  def validatePassword(userID: Int, inputPassword: String)(using PlanContext): IO[Unit] = {
   // val logger = LoggerFactory.getLogger("ValidatePassword")  // 同文后端处理: logger 统一
-  
     val sql =
       s"""
         SELECT password_hash
-        FROM ${schemaName}.user_table
+        FROM $schemaName.user_table
         WHERE user_id = ?;
       """
-  
     for {
       // Step 1: Attempt to retrieve the password hash from the database
       _ <- IO(logger.info(s"开始从数据库获取用户ID为${userID}的哈希密码"))
       resultOpt <- readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
-      response <- resultOpt match {
+      json <- resultOpt match {
         case None =>
-          // Step 1.2: User ID not found
-          val infoMessage = s"用户ID ${userID} 不存在"
-          IO(logger.info(infoMessage)) *>
-            IO.pure(Some("Invalid User"))
-  
-        case Some(json) =>
-          // Step 2: Compare input password with stored hash
-          for {
-            // 2.1 Decode the stored hash from the database result
-            storedHash <- IO(decodeField[String](json, "password_hash"))
-  
-            // Logging the retrieval of stored hash
-            _ <- IO(logger.info(s"成功获取用户 ${userID} 的哈希密码，开始验证密码"))
-  
-            // 2.2 Compare input password with the stored hash
-            isMatch <- IO(BCrypt.checkpw(inputPassword, storedHash))
-  
-            // Log the success or failure of the password match
-            _ <- if (isMatch)
-              IO(logger.info(s"用户ID ${userID} 的密码匹配成功"))
-            else
-              IO(logger.info(s"用户ID ${userID} 的密码验证失败"))
-  
-            // Prepare the response: None for success, Some("Invalid Password") for failure
-            result <- IO(if (isMatch) None else Some("Invalid Password"))
-  
-          } yield result
+          IO(logger.info(s"用户ID ${userID} 不存在")) *>
+          IO.raiseError(new RuntimeException("用户不存在？"))
+        case Some(json) => IO(json)
       }
-    } yield response
+      storedHash <- IO(decodeField[String](json, "password_hash"))
+      _ <- IO(logger.info(s"成功获取用户 ${userID} 的哈希密码，开始验证密码"))
+      isMatch <- IO(BCrypt.checkpw(inputPassword, storedHash))
+      _ <- if (isMatch) {
+        IO(logger.info(s"用户ID ${userID} 的密码匹配成功"))
+      } else {
+        IO(logger.info(s"用户ID ${userID} 的密码验证失败")) *>
+        IO.raiseError(new RuntimeException(s"用户密码验证失败"))
+      }
+    } yield()
   }
   
   
-  def validateToken(token: String)(using PlanContext): IO[Option[Int]] = {
+  def validateToken(token: String)(using PlanContext): IO[Int] = {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
-  
-    // 日志信息，记录token校验开始
-    IO(logger.info(s"开始校验Token: ${token}")) >>
-    {
-      val querySQL = 
+    val querySQL =
         s"""
-           SELECT user_id, expiration_time
-           FROM ${schemaName}.token_table
-           WHERE token = ?
-         """
-      val queryParams = List(SqlParameter("String", token))
-  
-      // 执行数据库查询
-      for {
-        _ <- IO(logger.info(s"[Step 1] 执行查询Token的用户信息与过期时间，SQL: ${querySQL}"))
-        tokenRecord <- readDBJsonOptional(querySQL, queryParams)
-  
-        // 校验Token的有效性
-        result <- tokenRecord match {
-          case Some(record) =>
-            for {
-              userID <- IO(decodeField[Int](record, "user_id"))
-              expirationTime <- IO(new DateTime(decodeField[Long](record, "expiration_time")))
-              now <- IO(DateTime.now())
-  
-              validationResult <-
-                if (now.isBefore(expirationTime)) {
-                  IO {
-                    logger.info(s"Token有效，返回用户ID: ${userID}")
-                    Some(userID)
-                  }
-                } else {
-                  IO {
-                    logger.info(s"Token已过期，过期时间: ${expirationTime}, 当前时间: ${now}")
-                    val deleteTokenSQL =
-                      s"DELETE FROM ${schemaName}.token_table WHERE token = ?"
-                    val deleteTokenParams = List(SqlParameter("String", token))
-                    writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
-                      case Right(_) =>
-                        IO(logger.info(s"Outdated token '${token}' successfully removed from TokenTable."))
-                      case Left(e) =>
-                        val errorMessage = s"Failed to delete outdated token '${token}' from TokenTable: ${e.getMessage}"
-                        IO(logger.error(errorMessage))
-                    }
-                    None
-                  }
-                }
-            } yield validationResult
-  
+           |SELECT user_id, expiration_time
+           |FROM $schemaName.token_table
+           |WHERE token = ?
+         """.stripMargin
+    val queryParams = List(SqlParameter("String", token))
+    // 日志信息，记录token校验开始
+    for {
+      _ <- IO(logger.info(s"开始校验Token: ${token}"))
+      _ <- IO(logger.info(s"[Step 1] 执行查询Token的用户信息与过期时间，SQL: ${querySQL}"))
+      record <- readDBJsonOptional(querySQL, queryParams)
+        .handleErrorWith { ex =>
+          IO(logger.error(s"[validateToken] 查询Token时发生错误：${ex.getMessage}")) *>
+          IO.raiseError(new RuntimeException(s"查询Token时发生错误：${ex.getMessage}"))
+        }.flatMap {
+          case Some(record) => IO(record)
           case None =>
-            IO {
-              logger.info(s"Token不存在，返回None")
-              None
-            }
+            IO(logger.info(s"查询的Token ${token}不存在")) *>
+            IO.raiseError(new RuntimeException(s"Token不存在"))
         }
-      } yield result
-    }
+      userID <- IO(decodeField[Int](record, "user_id"))
+      expirationTime <- IO(new DateTime(decodeField[Long](record, "expiration_time")))
+      now <- IO(DateTime.now())
+      result <- if (now.isBefore(expirationTime)) {
+          IO(logger.info(s"Token有效，返回用户ID: ${userID}")).as(userID)
+        } else {
+          val deleteTokenSQL = s"DELETE FROM $schemaName.token_table WHERE token = ?"
+          val deleteTokenParams = List(SqlParameter("String", token))
+          IO(logger.info(s"Token已过期，过期时间: ${expirationTime}, 当前时间: ${now}")) *>
+          writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
+            case Right(_) =>
+              IO(logger.info(s"Outdated token '${token}' successfully removed from TokenTable."))
+            case Left(e) =>
+              val errorMessage = s"Failed to delete outdated token '${token}' from TokenTable: ${e.getMessage}"
+              IO(logger.error(errorMessage))
+          } *>
+          IO.raiseError(new RuntimeException(s"Token已过期，请重新登录"))
+        }
+    } yield result
   }
   
   
-  def generateToken(userID: Int)(using PlanContext): IO[Option[String]] = {
+  def generateToken(userID: Int)(using PlanContext): IO[String] = {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
-  
-    logger.info(s"开始生成Token，输入的userID为：${userID}")
-  
-    // 校验输入参数 userID 是否有效
-    if (userID < 0) {
-      logger.error(s"userID 参数无效，值为：${userID}")
-      IO.pure(None)
-    } else {
-      for {
-        _ <- IO(logger.info(s"userID 参数校验通过，值为：${userID}"))
-  
-        // 生成用户 Token
-        generatedToken <- IO {
-          val randomPart = UUID.randomUUID().toString.replaceAll("-", "")
-          val token = s"${randomPart}_${userID}"
-          logger.info(s"生成的Token为：${token}")
-          token
-        }
-  
-        // 校验Token基本格式（假设唯一性和安全性在UUID层面已满足需求）
-        _ <- IO(logger.info(s"对生成的Token基本校验完成：${generatedToken}"))
-  
-        // 准备保存到数据库
-        expirationTime <- IO {
-          val exp = new DateTime().plusHours(24) // 设置过期时间为24小时后
-          logger.info(s"设置的Token过期时间为：${exp}")
-          exp
-        }
-  
-        writeParams <- IO {
-          List(
-            SqlParameter("String", generatedToken),
-            SqlParameter("Int", userID.toString),
-            SqlParameter("DateTime", expirationTime.getMillis.toString)
-          )
-        }
-  
-        writeSQL <- IO {
-          s"""
-            INSERT INTO ${schemaName}.token_table (token, user_id, expiration_time)
-            VALUES (?, ?, ?);
-          """
-        }
-  
-        _ <- IO(logger.info(s"准备将生成的Token保存到数据库中，SQL为：${writeSQL}"))
-  
-        writeResult <- writeDB(writeSQL, writeParams).attempt
-  
-        result <- writeResult match {
-          case Right(_) =>
-            IO {
-              logger.info(s"成功将Token保存到数据库，Token为：${generatedToken}")
-              Some(generatedToken)
-            }
-          case Left(e) =>
-            IO {
-              logger.error(s"写入数据库时发生错误：${e.getMessage}")
-              None
-            }
-        }
-      } yield result
-    }
+    val expirationTime = new DateTime().plusHours(24)
+    val randomPart = UUID.randomUUID().toString
+    val generatedToken = s"${randomPart}_${userID}"
+    val writeSQL = s"""
+      |INSERT INTO $schemaName.token_table (token, user_id, expiration_time)
+      |VALUES (?, ?, ?);
+      """.stripMargin
+    val writeParams = List(
+      SqlParameter("String", generatedToken),
+      SqlParameter("Int", userID.toString),
+      SqlParameter("DateTime", expirationTime.getMillis.toString)
+    )
+    for {
+      _ <- IO(logger.info(s"开始生成Token，输入的userID为：${userID}"))
+      _ <- IO(logger.info(s"生成的Token为：${generatedToken}"))
+      _ <- IO(logger.info(s"设置的Token过期时间为：$expirationTime"))
+      _ <- IO(logger.info(s"准备将生成的Token保存到数据库中，SQL为：$writeSQL"))
+      writeResult <- writeDB(writeSQL, writeParams).attempt
+      _ <- writeResult match {
+        case Right(_) =>
+          IO(logger.info(s"成功将Token保存到数据库，Token为：$generatedToken"))
+        case Left(e) =>
+          IO(logger.error(s"写入数据库时发生错误：${e.getMessage}")) *>
+          IO.raiseError(new RuntimeException(s"写入数据库时发生错误：${e.getMessage}"))
+      }
+    } yield generatedToken
   }
 }

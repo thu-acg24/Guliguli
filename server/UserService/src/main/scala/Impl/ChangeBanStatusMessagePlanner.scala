@@ -46,14 +46,12 @@ case class ChangeBanStatusMessagePlanner(
     readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
       .flatMap {
         case Some(_) => IO.unit // 查询到目标用户
-        case None => {
-            logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=${userID})")
-            throw RuntimeException(s"未在数据库中找到目标用户")
-          }
-      }.handleErrorWith { ex => {
-          logger.error(s"[ChangeBanStatus] 获取用户(userID=${userID})信息时失败: ${ex.getMessage}")
-          throw RuntimeException(s"获取用户信息时失败: ${ex.getMessage}")
-        }
+        case None =>
+            IO(logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=${userID})")) *>
+            IO.raiseError(new RuntimeException(s"未在数据库中找到目标用户"))
+      }.handleErrorWith { ex =>
+          IO(logger.error(s"[ChangeBanStatus] 获取用户(userID=${userID})信息时失败: ${ex.getMessage}")) *>
+          IO.raiseError(new RuntimeException(s"获取用户信息时失败: ${ex.getMessage}"))
       }
   }
 
@@ -61,10 +59,9 @@ case class ChangeBanStatusMessagePlanner(
     QueryUserRoleMessage(token).send.flatMap { userRoleOpt =>
       userRoleOpt match {
         case Some(UserRole.Auditor) | Some(UserRole.Admin) => IO.unit
-        case Some(role) => {
-          logger.info(s"[ChangeBanStatus] 错误：角色'${role.toString}'无权访问")
-          throw RuntimeException(s"错误：角色'${role.toString}'无权访问")
-        }
+        case Some(role) =>
+          IO(logger.info(s"[ChangeBanStatus] 错误：角色'${role.toString}'无权访问")) *>
+          IO.raiseError(new RuntimeException(s"错误：角色'${role.toString}'无权访问"))
       }
     }
   }
@@ -86,12 +83,12 @@ WHERE user_id = ?
         SqlParameter("DateTime", currentTimeMillis),
         SqlParameter("Int", userID.toString)
       )
-    ).map(_ => {
+    ).map(_ =>
       logger.info(s"[ChangeBanStatus] 成功更新用户(userID=${userID})封禁状态为: ${isBan}")
-    })
-    .handleErrorWith { ex => {
-      logger.error(s"[ChangeBanStatus] 更新用户(userID=${userID})封禁状态失败: ${ex.getMessage}")
-      throw RuntimeException(s"更新用户封禁状态失败: ${ex.getMessage}")
-    }}
+    )
+    .handleErrorWith { ex =>
+      IO(logger.error(s"[ChangeBanStatus] 更新用户(userID=${userID})封禁状态失败: ${ex.getMessage}")) *>
+      IO.raiseError(new RuntimeException(s"更新用户封禁状态失败: ${ex.getMessage}"))
+    }
   }
 }

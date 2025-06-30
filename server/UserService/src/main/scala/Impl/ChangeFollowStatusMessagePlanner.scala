@@ -34,103 +34,106 @@ case class ChangeFollowStatusMessagePlanner(
                                              followeeID: Int,
                                              isFollow: Boolean,
                                              override val planContext: PlanContext
-                                           ) extends Planner[Option[String]] {
+                                           ) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
-    IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow")) >>
-    // 我们的接口定义形式注定无法使用简单的 for comprehension（需要使用EitherT之类的东西，还不如flatMap嵌套），因为返回None的场景和一般场景不同。
-    // 可以提前return但是IO返回值不支持！！！！废物啊！！！
-    validateToken(token).flatMap {
-      case Some(userId) =>
-        checkUserExists(followeeID).flatMap {
-          case None =>
-            if (isFollow) handleFollow(userId, followeeID)
-            else handleUnfollow(userId, followeeID)
-          case result =>
-            IO.pure(result)
-        }
-      case None => IO.pure(Some("Invalid Token"))
-    }
+  override def plan(using planContext: PlanContext): IO[Unit] = {
+    for {
+      _ <- IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow"))
+      userID <- validateToken(token)
+      _ <- checkUserExists(followeeID)
+      _ <- if (isFollow) handleFollow(userID, followeeID) else handleUnfollow(userID, followeeID)
+    } yield()
   }
 
   // 可以改成公共方法。
-  def checkUserExists(userID: Int)(using PlanContext): IO[Option[String]] = {
+  private def checkUserExists(userID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
     SELECT 1
-    FROM ${schemaName}.user_table
+    FROM $schemaName.user_table
     WHERE user_id = ?
            """.stripMargin
 
     readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
       .flatMap {
-        case Some(_) => IO.pure(None) // 查询到目标用户
+        case Some(_) => IO.unit // 查询到目标用户
         case None =>
-          IO(logger.info(s"[ChangeFollowStatus] 未在数据库中找到目标用户(userID=${userID})")) >>
-            IO.pure(Some("目标用户不存在"))
+          IO(logger.info(s"[ChangeFollowStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
+          IO.raiseError(new RuntimeException("未在数据库中找到目标用户"))
       }
       .handleErrorWith { ex =>
-        IO(logger.error(s"[ChangeFollowStatus] 查询目标用户(userID=${userID})时发生错误: ${ex.getMessage}")) >>
-          IO.pure(Some("查询目标用户时发生错误"))
+        IO(logger.error(s"[ChangeFollowStatus] 查询目标用户(userID=$userID)时发生错误: ${ex.getMessage}")) *>
+        IO.raiseError(new RuntimeException(s"查询目标用户时发生错误: ${ex.getMessage}"))
       }
   }
 
-  private def handleFollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Option[String]] = {
-    logger.info(s"Handling follow action for followerID=${followerID} and followeeID=${followeeID}.")
-
+  private def handleFollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Unit] = {
     val checkSQL =
       s"""
          SELECT 1
-         FROM ${schemaName}.follow_relation_table
+         FROM $schemaName.follow_relation_table
          WHERE follower_id = ? AND followee_id = ?;
        """
     val insertSQL =
       s"""
-         INSERT INTO ${schemaName}.follow_relation_table (follower_id, followee_id, timestamp)
+         INSERT INTO $schemaName.follow_relation_table (follower_id, followee_id, timestamp)
          VALUES (?, ?, ?);
        """
     val params = List(SqlParameter("Int", followerID.toString), SqlParameter("Int", followeeID.toString))
 
     for {
-      alreadyExists <- readDBBoolean(checkSQL, params)
-      result <- if (alreadyExists) {
-        logger.info(s"Follow relation already exists between followerID=${followerID} and followeeID=${followeeID}.")
-        IO.pure(Some("Already following the user"))
+      _ <- IO(logger.info(s"Handling follow action for followerID=$followerID and followeeID=$followeeID."))
+      alreadyExists <- readDBBoolean(checkSQL, params).handleErrorWith { ex =>
+          IO(logger.error(s"[ChangeFollowStatus] 查询关注关系时发生错误：${ex.getMessage}")) *>
+          IO.raiseError(new RuntimeException(s"查询关注关系时发生错误：${ex.getMessage}"))
+        }
+      _ <- IO(if (alreadyExists) {
+        logger.info(s"Follow relation already exists between followerID=$followerID and followeeID=$followeeID.")
       } else {
-        logger.info(s"Inserting new follow relation for followerID=${followerID} and followeeID=${followeeID}.")
         val timestamp = DateTime.now().getMillis.toString
-        writeDB(insertSQL, params :+ SqlParameter("DateTime", timestamp)).map(_ => None)
-      }
-    } yield result
+        IO(logger.info(s"Inserting new follow relation for followerID=$followerID and followeeID=$followeeID.")) *>
+        writeDB(insertSQL, params :+ SqlParameter("DateTime", timestamp))
+          .handleErrorWith { ex =>
+            IO(logger.error(s"[ChangeFollowStatus] 将关注关系插入数据库时发生错误：${ex.getMessage}")) *>
+            IO.raiseError(new RuntimeException(s"将关注关系插入数据库时发生错误：${ex.getMessage}"))
+          }
+      })
+    } yield()
   }
 
-  private def handleUnfollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Option[String]] = {
-    logger.info(s"Handling unfollow action for followerID=${followerID} and followeeID=${followeeID}.")
+  private def handleUnfollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Unit] = {
 
     val checkSQL =
       s"""
          SELECT 1
-         FROM ${schemaName}.follow_relation_table
+         FROM $schemaName.follow_relation_table
          WHERE follower_id = ? AND followee_id = ?;
        """
     val deleteSQL =
       s"""
-         DELETE FROM ${schemaName}.follow_relation_table
+         DELETE FROM $schemaName.follow_relation_table
          WHERE follower_id = ? AND followee_id = ?;
        """
     val params = List(SqlParameter("Int", followerID.toString), SqlParameter("Int", followeeID.toString))
 
     for {
-      exists <- readDBBoolean(checkSQL, params)
-      result <- if (!exists) {
-        logger.info(s"No follow relation exists between followerID=${followerID} and followeeID=${followeeID}.")
-        IO.pure(Some("Not following the user"))
-      } else {
-        logger.info(s"Deleting follow relation between followerID=${followerID} and followeeID=${followeeID}.")
-        writeDB(deleteSQL, params).map(_ => None)
+      _ <- IO(logger.info(s"Handling unfollow action for followerID=$followerID and followeeID=$followeeID."))
+      exists <- readDBBoolean(checkSQL, params).handleErrorWith { ex =>
+        logger.error(s"[ChangeFollowStatus] 查询关注关系时发生错误：${ex.getMessage}")
+        throw RuntimeException(s"查询关注关系时发生错误：${ex.getMessage}")
       }
-    } yield result
+      _ <- if (!exists) {
+          IO(logger.info(s"No follow relation exists between followerID=$followerID and followeeID=$followeeID."))
+        } else {
+          IO(logger.info(s"Deleting follow relation between followerID=$followerID and followeeID=$followeeID.")) >>
+          writeDB(deleteSQL, params)
+            .handleErrorWith { ex =>
+              IO(logger.error(s"[ChangeFollowStatus] 删除关注关系时发生错误：${ex.getMessage}")) *>
+              IO.raiseError(RuntimeException(s"删除关注关系时发生错误：${ex.getMessage}"))
+            }
+        }
+    } yield ()
   }
 }
