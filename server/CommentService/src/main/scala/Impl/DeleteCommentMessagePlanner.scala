@@ -1,7 +1,7 @@
 package Impl
 
 
-import APIs.UserService.{QueryUserRoleMessage, getUIDByTokenMessage}
+import APIs.UserService.{QueryUserRoleMessage, GetUIDByTokenMessage}
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
@@ -18,31 +18,16 @@ import org.joda.time.DateTime
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Objects.VideoService.VideoStatus
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import APIs.UserService.QueryUserRoleMessage
-import APIs.UserService.getUIDByTokenMessage
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import APIs.UserService.getUIDByTokenMessage
 
 case class DeleteCommentMessagePlanner(
                                          token: String,
                                          commentID: Int,
                                          override val planContext: PlanContext
-                                       ) extends Planner[Option[String]] {
+                                       ) extends Planner[String] {
 
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[String] = {
     for {
       // Step 1: 校验token是否有效并获取用户ID
       _ <- IO(logger.info(s"Step 1: 验证token[$token]是否合法"))
@@ -74,11 +59,11 @@ case class DeleteCommentMessagePlanner(
     } yield result
   }
 
-  private def getUserID(token: String)(using PlanContext): IO[Option[Int]] = {
-    getUIDByTokenMessage(token).send
+  private def getUserID(token: String)(using PlanContext): IO[Int] = {
+    GetUIDByTokenMessage(token).send
   }
 
-  private def validateCommentExistsAndFetchAuthor(commentID: Int)(using PlanContext): IO[Option[(Int, Int)]] = {
+  private def validateCommentExistsAndFetchAuthor(commentID: Int)(using PlanContext): IO[(Int, Int)] = {
     logger.info(s"验证评论是否存在并获取作者ID和对应视频ID, commentID: ${commentID}")
     val sql =
       s"""
@@ -92,7 +77,7 @@ WHERE comment_id = ?;
       case Some(json) =>
         val authorID = decodeField[Int](json, "author_id")
         val videoID = decodeField[Int](json, "video_id")
-        Some((authorID, videoID))
+        (authorID, videoID)
     }
   }
 

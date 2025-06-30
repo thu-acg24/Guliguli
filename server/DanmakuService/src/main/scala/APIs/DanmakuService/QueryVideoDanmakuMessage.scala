@@ -22,12 +22,12 @@ import Objects.DanmakuService.Danmaku
  * QueryVideoDanmakuMessage
  * desc: 用于查询视频弹幕功能点
  * @param videoID: Int (视频的唯一标识符。)
- * @return danmakus: Danmaku:1042 (与指定视频相关的弹幕记录列表。)
+ * @return danmaku: List[Danmaku] (与指定视频相关的弹幕记录列表。)
  */
 
 case class QueryVideoDanmakuMessage(
   videoID: Int
-) extends API[Option[List[Danmaku]]](DanmakuServiceCode)
+) extends API[List[Danmaku]](DanmakuServiceCode)
 
 
 

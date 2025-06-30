@@ -25,7 +25,6 @@ import java.util.UUID
  * @param receiverID: Int (接收方的用户ID。)
  * @param messageContent: String (发送的私信或通知的内容。)
  * @param isNotification: Boolean (此消息是否为通知类型。)
- * @return result: String (操作结果，字符串描述错误信息或通知成功。)
  */
 
 case class SendMessageMessage(
@@ -33,7 +32,7 @@ case class SendMessageMessage(
   receiverID: Int,
   messageContent: String,
   isNotification: Boolean
-) extends API[Option[String]](MessageServiceCode)
+) extends API[Unit](MessageServiceCode)
 
 
 
