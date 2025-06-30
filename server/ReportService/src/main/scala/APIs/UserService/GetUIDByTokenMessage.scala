@@ -22,7 +22,7 @@ import java.util.UUID
  * GetUIDByTokenMessage
  * desc: 根据用户Token，返回该Token对应的用户ID，Token不合法则返回None。
  * @param token: String (用户的会话Token，用于校验身份。)
- * @return userID: Int (Token解析后的用户ID。若Token无效则返回None。)
+ * @return userID: Int (Token解析后的用户ID)
  */
 
 case class GetUIDByTokenMessage(

@@ -24,14 +24,13 @@ import Objects.VideoService.VideoStatus
  * @param token: String (用户身份凭证，用于校验权限)
  * @param videoID: Int (视频ID，用于定位要修改状态的视频)
  * @param status: VideoStatus:1022 (目标审核状态，例如待审核、审核通过或审核拒绝)
- * @return result: String (操作结果，返回错误信息或空值表示成功)
  */
 
 case class ChangeVideoStatusMessage(
   token: String,
   videoID: Int,
   status: VideoStatus
-) extends API[Option[String]](VideoServiceCode)
+) extends API[Unit](VideoServiceCode)
 
 
 
