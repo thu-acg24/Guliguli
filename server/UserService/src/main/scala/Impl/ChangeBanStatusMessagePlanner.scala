@@ -20,7 +20,7 @@ case class ChangeBanStatusMessagePlanner(
                                           userID: Int,
                                           isBan: Boolean,
                                           override val planContext: PlanContext
-                                        ) extends Planner[Option[String]] {
+                                        ) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
@@ -58,10 +58,7 @@ case class ChangeBanStatusMessagePlanner(
   }
 
   private def validateUserRole()(using PlanContext): IO[Unit] = {
-    QueryUserRoleMessage(token).send.handleError(e =>{
-      logger.info(s"[ChangeBanStatus] ${e.getMessage}")
-      throw e
-    }).flatMap { userRoleOpt =>
+    QueryUserRoleMessage(token).send.flatMap { userRoleOpt =>
       userRoleOpt match {
         case Some(UserRole.Auditor) | Some(UserRole.Admin) => IO.unit
         case Some(role) => {
