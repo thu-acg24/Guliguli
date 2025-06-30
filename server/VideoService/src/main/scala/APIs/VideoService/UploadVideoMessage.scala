@@ -39,7 +39,7 @@ case class UploadVideoMessage(
   description: String,
   tag: List[String],
   duration: Int
-) extends API[Option[String]](VideoServiceCode)
+) extends API[Unit](VideoServiceCode)
 
 
 

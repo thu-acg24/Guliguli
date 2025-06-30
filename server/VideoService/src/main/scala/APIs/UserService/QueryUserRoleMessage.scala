@@ -27,7 +27,7 @@ import Objects.UserService.UserRole
 
 case class QueryUserRoleMessage(
   token: String
-) extends API[Option[UserRole]](UserServiceCode)
+) extends API[UserRole](UserServiceCode)
 
 
 

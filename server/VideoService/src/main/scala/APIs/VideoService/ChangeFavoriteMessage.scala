@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户身份认证Token)
  * @param videoID: Int (视频唯一标识符)
  * @param isFav: Boolean (表示是否收藏(true表示新增收藏，false表示取消收藏))
- * @return result: String (操作结果，None表示成功，Some(String)表示错误信息)
  */
 
 case class ChangeFavoriteMessage(
   token: String,
   videoID: Int,
   isFav: Boolean
-) extends API[Option[String]](VideoServiceCode)
+) extends API[Unit](VideoServiceCode)
 
 
 

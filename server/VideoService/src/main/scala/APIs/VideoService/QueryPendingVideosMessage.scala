@@ -27,7 +27,7 @@ import Objects.VideoService.Video
 
 case class QueryPendingVideosMessage(
   token: String
-) extends API[Option[List[Video]]](VideoServiceCode)
+) extends API[List[Video]](VideoServiceCode)
 
 
 
