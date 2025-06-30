@@ -31,7 +31,7 @@ case class ChangeBanStatusMessage(
   token: String,
   userID: Int,
   isBan: Boolean
-) extends API[Option[String]](UserServiceCode)
+) extends API[Unit](UserServiceCode)
 
 
 
