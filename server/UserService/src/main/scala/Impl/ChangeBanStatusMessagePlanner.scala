@@ -37,12 +37,12 @@ case class ChangeBanStatusMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
-    IO(logger.info(s"[ChangeBanStatus] 开始处理封禁状态修改请求，验证用户权限"))
     val operations = List {
       validateUserRole() // Step 1: 校验用户角色权限
       checkUserExists(userID) // Step 2: 检查目标用户是否存在
       updateBanStatus() // Step 3: 根据检查结果，更新封禁状态或返回错误
     }
+    IO(logger.info(s"[ChangeBanStatus] 开始处理封禁状态修改请求")) >>
     operations.foldLeft(IO.pure(None: Option[String])) { (acc, op) =>
       acc.flatMap {
         case None => op // 如果之前没有错误，执行下一个操作

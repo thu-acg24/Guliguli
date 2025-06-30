@@ -8,5 +8,5 @@
 **/build/
 **.js.map
 **.css.map
-**/.env
+**/*.env
 **/.DS_Store

@@ -64,15 +64,12 @@ case class ModifyUserInfoMessagePlanner(
   }
 
   /**
-   * Validate the fields in UserInfo (e.g., check username and avatarPath for proper format).
+   * Validate the fields in UserInfo (e.g., check username for proper format).
    */
   private def validateNewField(newField: UserInfo): Option[String] = {
     if (newField.username.length > 20) {
       logger.error(s"Username '${newField.username}' exceeds max length of 20")
       Some("Invalid Field Value: Username exceeds max length of 20")
-    } else if (!newField.avatarPath.matches("^[a-zA-Z0-9/_-]*$")) { // Example regex for avatar validation
-      logger.error(s"Avatar path '${newField.avatarPath}' contains invalid characters")
-      Some("Invalid Field Value: Avatar path format error")
     } else {
       None
     }
@@ -85,13 +82,12 @@ case class ModifyUserInfoMessagePlanner(
     val querySQL =
       s"""
          UPDATE ${schemaName}.user_table
-         SET username = ?, avatar_path = ?, is_banned = ?, updated_at = ?
+         SET username = ?, is_banned = ?, updated_at = ?
          WHERE user_id = ?
        """.stripMargin
 
     val queryParams = List(
       SqlParameter("String", newField.username),
-      SqlParameter("String", newField.avatarPath),
       SqlParameter("Boolean", newField.isBanned.toString),
       SqlParameter("DateTime", DateTime.now().getMillis.toString),
       SqlParameter("Int", userID.toString)

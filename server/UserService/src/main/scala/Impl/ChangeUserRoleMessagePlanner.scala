@@ -49,6 +49,7 @@ case class ChangeUserRoleMessagePlanner(
       validateNewRoleValidity()
       updateUserRoleInDB()
     }
+    IO(logger.info(s"[ChangeUserRole] 开始处理修改用户权限请求")) >>
     operations.foldLeft(IO.pure(None: Option[String])) { (acc, op) =>
       acc.flatMap {
         case None => op // 如果之前没有错误，执行下一个操作

@@ -39,8 +39,9 @@ case class ChangeFollowStatusMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[String]] = {
-    IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow"))
+    IO(logger.info(s"Start processing with token=$token, followeeID=$followeeID, isFollow=$isFollow")) >>
     // 我们的接口定义形式注定无法使用简单的 for comprehension（需要使用EitherT之类的东西，还不如flatMap嵌套），因为返回None的场景和一般场景不同。
+    // 可以提前return但是IO返回值不支持！！！！废物啊！！！
     validateToken(token).flatMap {
       case Some(userId) =>
         checkUserExists(followeeID).flatMap {
