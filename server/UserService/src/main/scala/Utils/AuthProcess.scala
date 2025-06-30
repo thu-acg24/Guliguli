@@ -33,35 +33,6 @@ case object AuthProcess {
     } yield passwordHash
   }
   
-  
-  def invalidateToken(token: String)(using PlanContext): IO[Unit] = {
-  // val logger = LoggerFactory.getLogger("TokenLogger")  // 同文后端处理: logger 统一
-    val checkTokenSQL =
-      s"SELECT token FROM $schemaName.token_table WHERE token = ?"
-    val deleteTokenSQL =
-      s"DELETE FROM $schemaName.token_table WHERE token = ?"
-    val checkTokenParams = List(SqlParameter("String", token))
-    val deleteTokenParams = List(SqlParameter("String", token))
-  
-    for {
-      // Step 1: Check if the Token exists in TokenTable
-      _ <- IO(logger.info(s"Checking if token '${token}' exists in the database."))
-      tokenExists <- readDBBoolean(checkTokenSQL, checkTokenParams)
-      _ <- if (!tokenExists) {
-        IO(logger.warn(s"Token '${token}' does not exist in TokenTable.")) *>
-        IO.raiseError(new RuntimeException("登出失败，已登出"))
-      } else IO.unit
-      _ <- IO(logger.info(s"Token '${token}' exists. Proceeding with deletion..."))
-      _ <- writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
-        case Right(_) =>
-          IO(logger.info(s"Token '${token}' successfully removed from TokenTable."))
-        case Left(e) =>
-          IO(logger.error(s"Failed to delete Token '${token}' from TokenTable: ${e.getMessage}")) *>
-          IO.raiseError(new RuntimeException(s"删除Token失败：${e.getMessage}"))
-      }
-    } yield()
-  }
-  
   def validatePassword(userID: Int, inputPassword: String)(using PlanContext): IO[Unit] = {
   // val logger = LoggerFactory.getLogger("ValidatePassword")  // 同文后端处理: logger 统一
     val sql =

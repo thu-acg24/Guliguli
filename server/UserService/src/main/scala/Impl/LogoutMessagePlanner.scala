@@ -1,7 +1,6 @@
 package Impl
 
 
-import Utils.AuthProcess.{validateToken, invalidateToken}
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -11,49 +10,38 @@ import org.slf4j.LoggerFactory
 import cats.effect.IO
 import cats.implicits._
 import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.AuthProcess.validateToken
-import Utils.AuthProcess.invalidateToken
-import Utils.AuthProcess.invalidateToken
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class LogoutMessagePlanner(
                                  token: String,
                                  override val planContext: PlanContext
-                               ) extends Planner[Option[String]] {
+                               ) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
+    val checkTokenSQL =
+      s"SELECT token FROM $schemaName.token_table WHERE token = ?"
+    val deleteTokenSQL =
+      s"DELETE FROM $schemaName.token_table WHERE token = ?"
+    val checkTokenParams = List(SqlParameter("String", token))
+    val deleteTokenParams = List(SqlParameter("String", token))
+
     for {
-      // Step 1. Validate the token
-      _ <- IO(logger.info(s"[Step 1] Validating token: '${token}'"))
-      validationResult <- validateToken(token)
-
-      // Step 2. Process token validation result
-      result <- validationResult match {
-        case None =>
-          // If token is invalid, return specific error message
-          IO(logger.info(s"[Step 1.1] Token '${token}' is invalid. Returning an error."))
-            .as(Some("Invalid Token"))
-
-        case Some(_) =>
-          // If token is valid, proceed to invalidate it
-          invalidateToken(token)
+      // Step 1: Check if the Token exists in TokenTable
+      _ <- IO(logger.info(s"Checking if token '${token}' exists in the database."))
+      tokenExists <- readDBBoolean(checkTokenSQL, checkTokenParams)
+      _ <- if (!tokenExists) {
+        IO(logger.warn(s"Token '${token}' does not exist in TokenTable.")) *>
+          IO.raiseError(new RuntimeException("登出失败，已登出"))
+      } else IO.unit
+      _ <- IO(logger.info(s"Token '${token}' exists. Proceeding with deletion..."))
+      _ <- writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
+        case Right(_) =>
+          IO(logger.info(s"Token '${token}' successfully removed from TokenTable."))
+        case Left(e) =>
+          IO(logger.error(s"Failed to delete Token '${token}' from TokenTable: ${e.getMessage}")) *>
+            IO.raiseError(new RuntimeException(s"删除Token失败：${e.getMessage}"))
       }
-    } yield result
+    } yield()
   }
 }
