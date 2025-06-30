@@ -16,41 +16,32 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.CommentService.Comment
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class QueryCommentByIDMessagePlanner(
     commentID: Int,
     override val planContext: PlanContext
-) extends Planner[Option[Comment]] {
+) extends Planner[Comment] {
 
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[Comment]] = {
+  override def plan(using PlanContext): IO[Comment] = {
     for {
       // Step 1: Check if the commentID exists
       _ <- IO(logger.info(s"[QueryCommentByID] 校验 commentID=${commentID} 是否存在"))
       exists <- checkCommentExists(commentID)
       result <- if (!exists) {
         // Step 1.2: If commentID does not exist, return None
-        IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 不存在，返回 None")) *> IO(None)
+        IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 不存在")) >>
+          IO.raiseError(IllegalArgumentException("commentID=${commentID} 不存在"))
       } else {
-        // Step 2: Retrieve comment details
-        _ <- IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 存在，开始获取评论详细信息"))
-        comment <- fetchCommentDetails(commentID)
-        // Step 3: Wrap result and return
-        IO(logger.info(s"[QueryCommentByID] 封装返回结果完成")) *> IO(comment)
+        for {
+          // Step 2: Retrieve comment details
+          _ <- IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 存在，开始获取评论详细信息"))
+          maybeComment <- fetchCommentDetails(commentID)
+          comment <- maybeComment.liftTo[IO](IllegalArgumentException("commentID=${commentID} 不存在"))
+          // Step 3: Wrap result and return
+          _ <- IO(logger.info(s"[QueryCommentByID] 封装返回结果完成"))
+        } yield comment
       }
     } yield result
   }

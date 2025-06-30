@@ -3,7 +3,7 @@ package Impl
 
 import Objects.CommentService.Comment
 import APIs.CommentService.QueryCommentByIDMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -16,87 +16,30 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.implicits._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class UpdateLikeCommentMessagePlanner(
     token: String,
     commentID: Int,
     isLike: Boolean,
     override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate token and retrieve userID
       _ <- IO(logger.info(s"[Step 1] Validating token: ${token}"))
-      userIDOption <- getUIDByTokenMessage(token).send
-      userIDValidation <- validateToken(userIDOption)
+      userID <- GetUIDByTokenMessage(token).send
 
-      // If token validation fails, immediately return
-      result <- userIDValidation match {
-        case Some(error) =>
-          IO(logger.error(s"[Step 1.1] Token validation failed: $error")) *> IO.pure(Some(error))
-        case None =>
-          for {
-            userID <- IO(userIDOption.get) // `.get` safe here since validation already passed
-
-            // Step 2: Validate comment existence
-            _ <- IO(logger.info(s"[Step 2] Validating existence of comment with ID: ${commentID}"))
-            commentOption <- QueryCommentByIDMessage(commentID).send
-            commentValidation <- validateCommentExistence(commentOption)
-
-            // If comment validation fails, return directly
-            result <- commentValidation match {
-              case Some(error) =>
-                IO(logger.error(s"[Step 2.1] Comment validation failed: $error")) *> IO.pure(Some(error))
-              case None =>
-                // Step 3: Determine if like or unlike operation
-                for {
-                  comment <- IO(commentOption.get)
-                  _ <- if isLike then performLikeOperation(userID, comment) else performUnlikeOperation(userID, comment)
-
-                  // Step 4: Log success and return None
-                  _ <- IO(logger.info(s"[Step 4] Successfully updated like status for commentID=${commentID}"))
-                } yield None
-            }
-          } yield result
-      }
-    } yield result
+      // Step 2: Validate comment existence
+      _ <- IO(logger.info(s"[Step 2] Validating existence of comment with ID: ${commentID}"))
+      comment <- QueryCommentByIDMessage(commentID).send
+      // Step 3: Determine if like or unlike operation
+      _ <- if isLike then performLikeOperation(userID, comment) else performUnlikeOperation(userID, comment)
+      // Step 4: Log success and return None
+      _ <- IO(logger.info(s"[Step 4] Successfully updated like status for commentID=${commentID}"))
+    } yield ()
   }
-
-  private def validateToken(userIDOption: Option[Int])(using PlanContext): IO[Option[String]] =
-    IO {
-      userIDOption match {
-        case None =>
-          logger.warn("[Validate Token] Token is invalid")
-          Some("Invalid Token")
-        case Some(_) => None
-      }
-    }
-
-  private def validateCommentExistence(commentOption: Option[Comment])(using PlanContext): IO[Option[String]] =
-    IO {
-      commentOption match {
-        case None =>
-          logger.warn(s"[Validate Comment Existence] CommentID ${commentID} not found in database")
-          Some("Comment Not Found")
-        case Some(_) => None
-      }
-    }
 
   private def performLikeOperation(userID: Int, comment: Comment)(using PlanContext): IO[Unit] = {
     val sqlCheckRecord = s"SELECT * FROM ${schemaName}.like_comment_record_table WHERE user_id = ? AND comment_id = ?;"

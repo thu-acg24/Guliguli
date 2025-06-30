@@ -20,16 +20,6 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import org.joda.time.DateTime
 import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.VideoService.Video
-import APIs.VideoService.QueryVideoInfoMessage
-import io.circe._
-import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class QueryVideoCommentsMessagePlanner(
@@ -62,11 +52,8 @@ case class QueryVideoCommentsMessagePlanner(
    * @return IO[Unit], raises an error if the video does not exist.
    */
   private def validateVideoExists(videoId: Int)(using PlanContext): IO[Unit] = {
-    QueryVideoInfoMessage(None, videoId).send.flatMap {
-      case Some(video) =>
-        IO(logger.info(s"Video with videoId=${videoId} exists. Title: '${video.title}'"))
-      case None =>
-        IO.raiseError(new IllegalArgumentException(s"Video with videoId=${videoId} does not exist."))
+    QueryVideoInfoMessage(None, videoId).send.flatMap { video =>
+        IO(logger.info(s"Video with videoId=${videoId} exists. Title: '${video.title}'")) >> IO.unit
     }
   }
 
@@ -79,38 +66,39 @@ case class QueryVideoCommentsMessagePlanner(
    * @return List of Comment objects.
    */
   private def queryPaginatedComments(videoId: Int, rangeL: Int, rangeR: Int)(using PlanContext): IO[List[Comment]] = {
-    val sql =
-      s"""
-         |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, timestamp
-         |FROM ${schemaName}.comment_table
-         |WHERE video_id = ?
-         |ORDER BY timestamp DESC
-         |LIMIT ? OFFSET ?;
+    for {
+      sql <- IO {
+        s"""
+           |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, timestamp
+           |FROM ${schemaName}.comment_table
+           |WHERE video_id = ?
+           |ORDER BY timestamp DESC
+           |LIMIT ? OFFSET ?;
        """.stripMargin
+      }
+      // Calculate LIMIT and OFFSET based on provided range values
+      limit <- IO.pure(rangeR - rangeL)
+      offset <- IO.pure(rangeL)
 
-    // Calculate LIMIT and OFFSET based on provided range values
-    val limit = rangeR - rangeL
-    val offset = rangeL
-
-    readDBRows(
-      sql,
-      List(
+      rows <- readDBRows(
+        sql,
+        List(
         SqlParameter("Int", videoId.toString),
         SqlParameter("Int", limit.toString),
         SqlParameter("Int", offset.toString)
-      )
-    ).map { rows =>
-      rows.map { json =>
-        Comment(
-          commentID = decodeField[Int](json, "comment_id"),
-          content = decodeField[String](json, "content"),
-          videoID = decodeField[Int](json, "video_id"),
-          authorID = decodeField[Int](json, "author_id"),
-          replyToID = decodeField[Option[Int]](json, "reply_to_id"),
-          likes = decodeField[Int](json, "likes"),
-          timestamp = decodeField[DateTime](json, "timestamp")
         )
-      }
-    }
+      )
+      result <- IO(rows.map { json =>
+      Comment (
+        commentID = decodeField[Int] (json, "comment_id"),
+        content = decodeField[String] (json, "content"),
+        videoID = decodeField[Int] (json, "video_id"),
+        authorID = decodeField[Int] (json, "author_id"),
+        replyToID = decodeField[Option[Int]] (json, "reply_to_id"),
+        likes = decodeField[Int] (json, "likes"),
+        timestamp = decodeField[DateTime] (json, "timestamp")
+      )
+    })
+    } yield result
   }
 }

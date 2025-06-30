@@ -6,7 +6,7 @@ import Objects.CommentService.Comment
 import Objects.VideoService.Video
 import APIs.CommentService.QueryCommentByIDMessage
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.UserService.getUIDByTokenMessage
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -18,20 +18,6 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import cats.implicits.*
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import APIs.UserService.getUIDByTokenMessage
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class PublishCommentMessagePlanner(
                                          token: String,
@@ -39,20 +25,18 @@ case class PublishCommentMessagePlanner(
                                          commentContent: String,
                                          replyToCommentID: Option[Int],
                                          override val planContext: PlanContext
-                                       ) extends Planner[Option[String]] {
+                                       ) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: 校验token是否有效并获取用户ID
       _ <- IO(logger.info(s"校验token是否有效: token=${token}"))
-      userIDOpt <- getUIDByTokenMessage(token).send
-      userID <- validateToken(userIDOpt)
+      userID <- GetUIDByTokenMessage(token).send
 
       // Step 2: 校验视频是否存在
       _ <- IO(logger.info(s"校验视频是否存在: videoID=${videoID}"))
-      videoOpt <- QueryVideoInfoMessage(None, videoID).send
-      _ <- validateVideo(videoOpt)
+      _ <- QueryVideoInfoMessage(None, videoID).send
 
       // Step 3: 校验回复的目标评论是否存在（如果存在replyToCommentID）
       _ <- IO(logger.info(s"校验目标评论是否存在: replyToCommentID=${replyToCommentID}"))
@@ -64,39 +48,15 @@ case class PublishCommentMessagePlanner(
 
       // Step 5: 组装评论数据并存储到数据库
       _ <- IO(logger.info("组装数据并插入到数据库"))
-      insertionResult <- insertComment(userID, videoID, commentContent, replyToCommentID)
-    } yield insertionResult
-  }
-
-  private def validateToken(userIDOpt: Option[Int])(using PlanContext): IO[Int] = {
-    userIDOpt match {
-      case Some(userID) => IO.pure(userID)
-      case None =>
-        IO {
-          logger.error(s"无效的token: ${token}")
-        } >> IO.raiseError(new IllegalArgumentException("Invalid Token"))
-    }
-  }
-
-  private def validateVideo(videoOpt: Option[Video])(using PlanContext): IO[Unit] = {
-    videoOpt match {
-      case Some(_) => IO.unit
-      case None =>
-        IO {
-          logger.error(s"视频ID不存在: videoID=${videoID}")
-        } >> IO.raiseError(new IllegalArgumentException("Video Not Found"))
-    }
+      _ <- insertComment(userID, videoID, commentContent, replyToCommentID)
+    } yield ()
   }
 
   private def validateTargetComment(replyToCommentID: Option[Int])(using PlanContext): IO[Unit] = {
     replyToCommentID match {
       case Some(commentID) =>
         QueryCommentByIDMessage(commentID).send.flatMap {
-          case Some(_) => IO.unit
-          case None =>
-            IO {
-              logger.error(s"目标评论ID不存在: replyToCommentID=${commentID}")
-            } >> IO.raiseError(new IllegalArgumentException("Target Comment Not Found"))
+          _ => IO.unit
         }
       case None => IO.unit
     }
@@ -117,7 +77,7 @@ case class PublishCommentMessagePlanner(
                              videoID: Int,
                              commentContent: String,
                              replyToCommentID: Option[Int]
-                           )(using PlanContext): IO[Option[String]] = {
+                           )(using PlanContext): IO[String] = {
     val timestamp = DateTime.now()
     val sql =
       s"""
@@ -136,12 +96,6 @@ case class PublishCommentMessagePlanner(
         SqlParameter("Int", replyToCommentID.map(_.toString).getOrElse("null")),
         SqlParameter("DateTime", timestamp.getMillis.toString)
       )
-    ).map {
-      case "Operation(s) done successfully" =>
-        None
-      case _ =>
-        logger.error(s"评论插入失败: userID=${userID}, videoID=${videoID}, replyToCommentID=${replyToCommentID}")
-        Some("Failed to publish comment")
-    }
+    )
   }
 }
