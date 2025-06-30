@@ -53,7 +53,7 @@ lazy val root = (project in file("."))
   )
 
 val http4sVersion = "1.0.0-M44"
-val circeVersion = "0.14.10"
+val circeVersion = "0.14.14"
 Compile / run / fork := true
 
 libraryDependencies ++= Seq(
@@ -71,33 +71,33 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-yaml" % "1.15.0",
 
   // 日志库
-  "org.typelevel" %% "log4cats-core" % "2.7.0",
-  "org.typelevel" %% "log4cats-slf4j" % "2.7.0",
-  "ch.qos.logback" % "logback-classic" % "1.5.16",
+  "org.typelevel" %% "log4cats-core" % "2.7.1",
+  "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
+  "ch.qos.logback" % "logback-classic" % "1.5.18",
 
   // STTP 客户端（现在主要是azure再用）
-  "com.softwaremill.sttp.client3" %% "core" % "3.10.3",
-  "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.10.3",
-  "com.softwaremill.sttp.client3" %% "fs2" % "3.10.3",
-  "com.softwaremill.sttp.client3" %% "circe" % "3.10.3",
+  "com.softwaremill.sttp.client3" %% "core" % "3.11.0",
+  "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.11.0",
+  "com.softwaremill.sttp.client3" %% "fs2" % "3.11.0",
+  "com.softwaremill.sttp.client3" %% "circe" % "3.11.0",
 
   // FS2 库
-  "co.fs2" %% "fs2-core" % "3.11.0", // 添加 fs2 核心库
-  "co.fs2" %% "fs2-io" % "3.11.0", // fs2 IO 支持
+  "co.fs2" %% "fs2-core" % "3.12.0", // 添加 fs2 核心库
+  "co.fs2" %% "fs2-io" % "3.12.0", // fs2 IO 支持
 
   // 其他库
-  "joda-time" % "joda-time" % "2.12.7",
-  "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.0.202109080827-r",
-  "com.zaxxer" % "HikariCP" % "5.1.0",
-  "org.postgresql" % "postgresql" % "42.7.2",
+  "joda-time" % "joda-time" % "2.14.0",
+  "org.eclipse.jgit" % "org.eclipse.jgit" % "7.3.0.202506031305-r",
+  "com.zaxxer" % "HikariCP" % "6.3.0",
+  "org.postgresql" % "postgresql" % "42.7.7",
 
   //  "org.scalameta" %% "scalameta" % "4.13.2",
 )
 
 // 引入 jackson 辅助 json 序列化
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.2",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.2"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.1",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.19.1"
 )
 
 // 引入mindrot进行密码加密
