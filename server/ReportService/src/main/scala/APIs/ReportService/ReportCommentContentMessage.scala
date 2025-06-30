@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户的身份校验令牌)
  * @param commentID: Int (被举报的评论ID)
  * @param reason: String (举报理由)
- * @return result: String (操作结果，若举报失败返回错误描述，若成功返回None)
  */
 
 case class ReportCommentContentMessage(
   token: String,
   commentID: Int,
   reason: String
-) extends API[Option[String]](ReportServiceCode)
+) extends API[Unit](ReportServiceCode)
 
 
 

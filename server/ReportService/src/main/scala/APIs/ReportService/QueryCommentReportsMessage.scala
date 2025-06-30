@@ -27,7 +27,7 @@ import Objects.ReportService.ReportComment
 
 case class QueryCommentReportsMessage(
   token: String
-) extends API[Option[List[ReportComment]]](ReportServiceCode)
+) extends API[List[ReportComment]](ReportServiceCode)
 
 
 

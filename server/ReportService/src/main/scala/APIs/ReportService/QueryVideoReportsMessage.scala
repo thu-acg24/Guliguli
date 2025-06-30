@@ -27,7 +27,7 @@ import Objects.ReportService.ReportVideo
 
 case class QueryVideoReportsMessage(
   token: String
-) extends API[Option[List[ReportVideo]]](ReportServiceCode)
+) extends API[List[ReportVideo]](ReportServiceCode)
 
 
 

@@ -27,7 +27,7 @@ import java.util.UUID
 
 case class SearchVideosCountMessage(
   searchString: String
-) extends API[Option[Int]](RecommendationServiceCode)
+) extends API[Int](RecommendationServiceCode)
 
 
 

@@ -23,13 +23,12 @@ import Objects.RecommendationService.VideoInfo
  * desc: 新增视频元数据
  * @param token: String (用户的身份验证令牌)
  * @param info: VideoInfo:1086 (视频的元数据信息，例如标题、描述、标签等)
- * @return result: String (返回操作结果，成功或包含详细错误信息)
  */
 
 case class AddVideoInfoMessage(
   token: String,
   info: VideoInfo
-) extends API[Option[String]](RecommendationServiceCode)
+) extends API[Unit](RecommendationServiceCode)
 
 
 

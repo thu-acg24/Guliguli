@@ -27,7 +27,7 @@ import Objects.CommentService.Comment
 
 case class QueryCommentByIDMessage(
   commentID: Int
-) extends API[Option[Comment]](CommentServiceCode)
+) extends API[Comment](CommentServiceCode)
 
 
 

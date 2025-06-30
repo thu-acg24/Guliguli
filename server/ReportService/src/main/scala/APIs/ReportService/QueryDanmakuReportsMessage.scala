@@ -27,7 +27,7 @@ import Objects.ReportService.ReportDanmaku
 
 case class QueryDanmakuReportsMessage(
   token: String
-) extends API[Option[List[ReportDanmaku]]](ReportServiceCode)
+) extends API[List[ReportDanmaku]](ReportServiceCode)
 
 
 

@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户登录的身份标识Token)
  * @param videoID: Int (需要记录观看行为的视频ID)
  * @param watchDuration: Float (用户的观看时长，单位为秒)
- * @return result: String (操作结果，返回错误信息或成功标志)
  */
 
 case class RecordWatchDataMessage(
   token: String,
   videoID: Int,
   watchDuration: Float
-) extends API[Option[String]](RecommendationServiceCode)
+) extends API[Unit](RecommendationServiceCode)
 
 
 

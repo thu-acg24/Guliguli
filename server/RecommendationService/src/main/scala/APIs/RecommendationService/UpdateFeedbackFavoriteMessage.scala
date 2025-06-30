@@ -24,14 +24,13 @@ import java.util.UUID
  * @param token: String (用户的鉴权Token，用于验证用户身份)
  * @param videoID: Int (需要操作的目标视频ID)
  * @param isFavorite: Boolean (标志是否收藏该视频，true为收藏，false为取消收藏)
- * @return result: String (操作结果。如果为空则表示成功，其他值表示失败原因)
  */
 
 case class UpdateFeedbackFavoriteMessage(
   token: String,
   videoID: Int,
   isFavorite: Boolean
-) extends API[Option[String]](RecommendationServiceCode)
+) extends API[Unit](RecommendationServiceCode)
 
 
 

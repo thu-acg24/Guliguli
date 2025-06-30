@@ -29,7 +29,7 @@ import Objects.VideoService.Video
 case class QueryVideoInfoMessage(
   token: Option[String] = None,
   videoId: Int
-) extends API[Option[Video]](VideoServiceCode)
+) extends API[Video](VideoServiceCode)
 
 
 
