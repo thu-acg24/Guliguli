@@ -104,7 +104,4 @@ libraryDependencies ++= Seq(
 libraryDependencies += "org.mindrot" % "jbcrypt" % "0.4"
 libraryDependencies += "io.minio" % "minio" % "8.5.17"
 
-libraryDependencies ++= Seq(
-  "com.typesafe" % "config" % "1.4.3",
-  "org.scalaj" %% "scalaj-http" % "2.4.2" // 可选，用于环境变量验证
-)
+libraryDependencies += "com.typesafe" % "config" % "1.4.3"
