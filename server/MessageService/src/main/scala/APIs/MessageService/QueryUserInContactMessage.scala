@@ -22,7 +22,7 @@ import Objects.UserService.UserInfo
  * QueryUserInContactMessage
  * desc: 根据用户Token验证身份后，查询所有与当前用户有私信记录（发送或接收）的联系人列表。
  * @param token: String (用户的身份验证令牌。)
- * @return contacts: UserInfo:1100 (与当前用户有私信联系的用户信息列表，包括基本信息如昵称与头像路径。)
+ * @return contacts: List[UserInfo] (与当前用户有私信联系的用户信息列表，包括基本信息如昵称与头像路径。)
  */
 
 case class QueryUserInContactMessage(
