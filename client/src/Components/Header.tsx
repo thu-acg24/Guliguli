@@ -24,7 +24,7 @@ const Header: React.FC = () => {
                         try {
                             const result = JSON.parse(info);
                             // 如果能获取到userID且不为null，说明token有效
-                            resolve(result.userID !== undefined && result.userID !== null);
+                            resolve(result && result.userID !== undefined && result.userID !== null);
                         } catch {
                             resolve(false);
                         }
