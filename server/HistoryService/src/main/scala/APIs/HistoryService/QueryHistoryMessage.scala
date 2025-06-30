@@ -31,7 +31,7 @@ case class QueryHistoryMessage(
   token: String,
   rangeL: Int,
   rangeR: Int
-) extends API[Option[List[HistoryRecord]]](HistoryServiceCode)
+) extends API[List[HistoryRecord]](HistoryServiceCode)
 
 
 
