@@ -23,129 +23,93 @@ case class ChangeLikeMessagePlanner(
                                      videoID: Int,
                                      isLike: Boolean,
                                      override val planContext: PlanContext
-                                   ) extends Planner[Option[String]] {
+                                   ) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
-      // Step 1: Validate the token and get user ID
-      _ <- IO(logger.info(s"[Step 1] Validating token: $token"))
-      userIDOpt <- GetUIDByTokenMessage(token).send
-      result <- userIDOpt match {
-        case None =>
-          // Token is invalid
-          IO(logger.error("[Step 1.1] Invalid Token")) >>
-          IO.pure(Some("Invalid Token"))
+      // Step 1: Validate Token
+      userID <- validateToken()
+      _ <- IO(logger.info(s"UserID: ${userID}"))
 
-        case Some(userID) =>
-          IO(logger.info(f"[Step 1.2] Valid token. Retrieved userID=$userID")) >>
-          validateAndProcess(userID)
-      }
+      // Step 2: Validate videoID existence and status
+      videoStatus <- validateVideoStatus(videoID)
+      _ <- IO(logger.info(s"VideoStatus: ${videoStatus}"))
+
+      // Step 3: Proceed based on video validation result
+      result <- updateLikeRecord(userID, videoID, isLike)
     } yield result
   }
 
-  private def validateAndProcess(userID: Int)(using PlanContext): IO[Option[String]] = {
-    for {
-      // Step 2: Validate Video ID
-      _ <- IO(logger.info(s"[Step 2] Validating videoID: $videoID"))
-      videoStatusOpt <- getVideoStatus(videoID)
-      result <- videoStatusOpt match {
-        case None =>
-          // Video does not exist or is not public
-          IO(logger.error("[Step 2.1] Video Not Found")) >>
-          IO.pure(Some("Video Not Found"))
+  private def validateToken()(using PlanContext): IO[Int] = {
+    IO(logger.info("[validateToken] Validating token")) >>
+    GetUIDByTokenMessage(token).send
+  }
 
-        case Some("Public") =>
-          // Video is valid, process like or dislike
-          IO(logger.info("[Step 2.2] Video is public. Proceeding to Like/Dislike operation")) >>
-          processLikeOrDislike(userID)
-
-        case Some(otherStatus) =>
-          // Video status is not valid for processing
-          IO(logger.error(s"[Step 2.3] Invalid Video Status: $otherStatus")) >>
-          IO.pure(Some("Video Not Found"))
+  private def validateVideoStatus(videoID: Int)(using PlanContext): IO[Json] = {
+    IO(logger.info("[validateVideoStatus] Validating videoID existence and status")) >>
+    {
+      val sql = s"SELECT status FROM ${schemaName}.video_table WHERE video_id = ?;"
+      readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
+        case Some(json) =>
+          val status = decodeField[String](json, "status")
+          if (status == "Approved") json else throw IllegalArgumentException("找不到视频")
+        case None => throw IllegalArgumentException("找不到视频")
       }
-    } yield result
-  }
-
-  private def getVideoStatus(videoID: Int)(using PlanContext): IO[Option[String]] = {
-    val sql = s"SELECT status FROM ${schemaName}.video_table WHERE video_id = ?"
-    val params = List(SqlParameter("Int", videoID.toString))
-    readDBJsonOptional(sql, params).map(_.map(decodeField[String](_, "status")))
-  }
-
-  private def processLikeOrDislike(userID: Int)(using PlanContext): IO[Option[String]] = {
-    if (isLike) {
-      likeAction(userID, videoID)
-    } else {
-      dislikeAction(userID, videoID)
     }
   }
 
-  private def likeAction(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
-    for {
-      // Check if the like record already exists
-      _ <- IO(logger.info(s"[Step 3.1.1] Checking existing like record for userID=$userID, videoID=$videoID"))
-      existingLike <- checkLikeRecord(userID, videoID)
-      result <- if (existingLike) {
-        IO(logger.info("[Step 3.1.2] Already Liked")) >>
-        IO.pure(Some("Already Liked"))
-      } else {
-        for {
-          _ <- IO(logger.info("[Step 3.1.3] Inserting new like record"))
-          _ <- insertLikeRecord(userID, videoID)
-          _ <- IO(logger.info("[Step 3.1.4] Incrementing like count in VideoTable"))
-          _ <- updateVideoLikeCount(videoID, increment = true)
-        } yield None
+  private def updateLikeRecord(userID: Int, videoID: Int, isLike: Boolean)(using PlanContext): IO[Unit] = {
+    if (isLike) {
+      addLikeRecord(userID, videoID)
+    } else {
+      removeLikeRecord(userID, videoID)
+    }
+  }
+
+  private def addLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
+    IO(logger.info(s"[addLikeRecord] Adding like record for userID=${userID}, videoID=${videoID}")) >> {
+      val checkSql = s"SELECT * FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?;"
+      readDBJsonOptional(checkSql, List(
+        SqlParameter("Int", userID.toString),
+        SqlParameter("Int", videoID.toString)
+      )).flatMap {
+        case Some(_) => IO(logger.info("Already Liked")) >> IO.unit
+        case None =>
+          val insertSql = s"INSERT INTO ${schemaName}.like_record_table (user_id, video_id, timestamp) VALUES (?, ?, ?);"
+          val updateSql = s"UPDATE ${schemaName}.video_table SET likes = likes + 1 WHERE video_id = ?;"
+          for {
+            timestamp <- IO(DateTime.now().getMillis.toString)
+            _ <- writeDB(insertSql, List(
+                SqlParameter("Int", userID.toString),
+                SqlParameter("Int", videoID.toString),
+                SqlParameter("DateTime", timestamp)
+              ))
+            _ <- writeDB(updateSql, List(SqlParameter("Int", videoID.toString)))
+          } yield ()
       }
-    } yield result
+    }
   }
 
-  private def dislikeAction(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
-    for {
-      // Check if the like record exists
-      _ <- IO(logger.info(s"[Step 3.2.1] Checking existing like record for userID=$userID, videoID=$videoID"))
-      existingLike <- checkLikeRecord(userID, videoID)
-      result <- if (!existingLike) {
-        IO(logger.info("[Step 3.2.2] Not Liked Yet")) >>
-        IO.pure(Some("Not Liked Yet"))
-      } else {
-        for {
-          _ <- IO(logger.info("[Step 3.2.3] Deleting like record"))
-          _ <- deleteLikeRecord(userID, videoID)
-          _ <- IO(logger.info("[Step 3.2.4] Decrementing like count in VideoTable"))
-          _ <- updateVideoLikeCount(videoID, increment = false)
-        } yield None
+  private def removeLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
+    IO(logger.info(s"[removeLikeRecord] Removing like record for userID=${userID}, videoID=${videoID}")) >> {
+      val checkSql = s"SELECT * FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?;"
+      readDBJsonOptional(checkSql, List(
+        SqlParameter("Int", userID.toString),
+        SqlParameter("Int", videoID.toString)
+      )).flatMap {
+        case None => IO(logger.info("Not Liked Yet")) >> IO.unit
+        case Some(_) =>
+          val deleteSql = s"DELETE FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?;"
+          val updateSql = s"UPDATE ${schemaName}.video_table SET likes = likes - 1 WHERE video_id = ?;"
+          for {
+            _ <- writeDB(deleteSql, List(
+              SqlParameter("Int", userID.toString),
+              SqlParameter("Int", videoID.toString)
+            ))
+            _ <- writeDB(updateSql, List(SqlParameter("Int", videoID.toString)))
+          } yield ()
       }
-    } yield result
-  }
-
-  private def checkLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Boolean] = {
-    val sql = s"SELECT 1 FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ? LIMIT 1"
-    val params = List(SqlParameter("Int", userID.toString), SqlParameter("Int", videoID.toString))
-    readDBJsonOptional(sql, params).map(_.isDefined)
-  }
-
-  private def insertLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    val sql = s"INSERT INTO ${schemaName}.like_record_table (user_id, video_id, timestamp) VALUES (?, ?, ?)"
-    writeDB(sql, List(
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", videoID.toString),
-      SqlParameter("DateTime", DateTime.now.getMillis.toString)
-    )).void
-  }
-
-  private def deleteLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    val sql = s"DELETE FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?"
-    writeDB(sql, List(
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", videoID.toString)
-    )).void
-  }
-
-  private def updateVideoLikeCount(videoID: Int, increment: Boolean)(using PlanContext): IO[Unit] = {
-    val operator = if (increment) "+" else "-"
-    val sql = s"UPDATE ${schemaName}.video_table SET likes = likes $operator 1 WHERE video_id = ?"
-    writeDB(sql, List(SqlParameter("Int", videoID.toString))).void
+    }
   }
 }

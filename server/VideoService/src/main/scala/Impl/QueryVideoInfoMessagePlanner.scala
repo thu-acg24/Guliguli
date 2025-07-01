@@ -26,17 +26,17 @@ case class QueryVideoInfoMessagePlanner(
                                          token: Option[String],
                                          videoId: Int,
                                          override val planContext: PlanContext
-                                       ) extends Planner[Option[Video]] {
+                                       ) extends Planner[Video] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[Video]] = {
+  override def plan(using PlanContext): IO[Video] = {
     for {
       // Step 1: Validate token to ensure user access authorization
       userInfo <- validateToken()
       // Step 2: Validate if the video ID is valid and accessible
-      videoValidation <- validateVideoID(userInfo)
+      _ <- validateVideoID(userInfo)
       // Step 3: Query video information if validation passes
-      videoInfo <- if (videoValidation) queryVideoInfo() else IO.pure(None)
+      videoInfo <- queryVideoInfo()
       _ <- IO(logger.info(s"[Plan Completed] Video query result: $videoInfo"))
     } yield videoInfo
   }
@@ -49,22 +49,15 @@ case class QueryVideoInfoMessagePlanner(
           userID <- GetUIDByTokenMessage(tkn).send
           _ <- IO(logger.info(s"[Step 1.2] Fetched userID: $userID"))
 
-          role <- userID match {
-            case Some(_) =>
-              for {
-                userRole <- QueryUserRoleMessage(tkn).send
-                _ <- IO(logger.info(s"[Step 1.3] Fetched userRole: $userRole"))
-              } yield userRole
-            case None =>
-              IO(logger.info("[Step 1.3] Invalid token, unable to fetch user role")) *> IO.pure(None)
-          }
-        } yield (userID, role)
+          role <- QueryUserRoleMessage(tkn).send
+          _ <- IO(logger.info(s"[Step 1.3] Fetched userRole: $role"))
+        } yield (Some(userID), Some(role))
       case None =>
         IO(logger.info("[Step 1.1] No token provided, skipping authentication")) *> IO.pure((None, None))
     }
   }
 
-  private def validateVideoID(userInfo: (Option[Int], Option[UserRole]))(using PlanContext): IO[Boolean] = {
+  private def validateVideoID(userInfo: (Option[Int], Option[UserRole]))(using PlanContext): IO[Unit] = {
     val (userID, role) = userInfo
     for {
       _ <- IO(logger.info(s"[Step 2] Validating videoID: $videoId"))
@@ -77,23 +70,25 @@ case class QueryVideoInfoMessagePlanner(
         List(SqlParameter("Int", videoId.toString))
       )
 
-      isValid <- videoQueryResult match {
+      _ <- videoQueryResult match {
         case Some(json) =>
           val uploaderID = decodeField[Int](json, "uploader_id")
           val status = VideoStatus.fromString(decodeField[String](json, "status"))
 
-          if (status == VideoStatus.Approved || (userID.contains(uploaderID) || role.contains(UserRole.Admin))) {
-            IO(logger.info("[Step 2.1] Video validation passed")) *> IO.pure(true)
+          if (status == VideoStatus.Approved || (userID.contains(uploaderID) || role.contains(UserRole.Auditor))) {
+            IO(logger.info("[Step 2.1] Video validation passed")) *> IO.unit
           } else {
-            IO(logger.info("[Step 2.1] Video is not public or user has no access permission")) *> IO.pure(false)
+            IO(logger.info("[Step 2.1] Video is not public or user has no access permission")) >>
+              IO.raiseError(IllegalArgumentException("Video does not exist"))
           }
         case None =>
-          IO(logger.info("[Step 2.1] Video does not exist")) *> IO.pure(false)
+          IO(logger.info("[Step 2.1] Video does not exist")) >>
+            IO.raiseError(IllegalArgumentException("Video does not exist"))
       }
-    } yield isValid
+    } yield ()
   }
 
-  private def queryVideoInfo()(using PlanContext): IO[Option[Video]] = {
+  private def queryVideoInfo()(using PlanContext): IO[Video] = {
     for {
       _ <- IO(logger.info(s"[Step 3] Querying detailed information for videoID: $videoId"))
       videoQueryResult <- readDBJsonOptional(
@@ -109,9 +104,10 @@ case class QueryVideoInfoMessagePlanner(
       video <- videoQueryResult match {
         case Some(json) =>
           IO(logger.info("[Step 3.1] Video information found, decoding into Video object")) *>
-            IO.pure(Some(decodeType[Video](json)))
+            IO(decodeType[Video](json))
         case None =>
-          IO(logger.info("[Step 3.1] No video details found in the database")) *> IO.pure(None)
+          IO(logger.info("[Step 3.1] No video details found in the database")) >>
+          IO.raiseError(IllegalArgumentException("Video does not exist"))
       }
     } yield video
   }
