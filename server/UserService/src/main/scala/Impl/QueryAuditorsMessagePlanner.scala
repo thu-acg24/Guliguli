@@ -24,26 +24,21 @@ import org.slf4j.LoggerFactory
 case class QueryAuditorsMessagePlanner(
   token: String, 
   override val planContext: PlanContext
-) extends Planner[Option[List[UserInfo]]] {
+) extends Planner[List[UserInfo]] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[List[UserInfo]]] = {
+  override def plan(using PlanContext): IO[List[UserInfo]] = {
     for {
       // Step 1: 验证用户角色权限
       _ <- IO(logger.info(s"[Step 1] 开始校验用户Token是否具有管理员权限"))
-      userRoleOpt <- validateUserRole(token)
+      userRole <- validateUserRole(token)
 
-      result <- userRoleOpt match {
-        case None =>
-          IO(logger.warn(s"[Step 1.1] 用户Token无效，未通过权限校验")) *>
-            IO.pure(None) // 返回None表示校验失败
-
-        case Some(role) if role != UserRole.Admin =>
+      result <- userRole match {
+        case role if role != UserRole.Admin =>
           IO(logger.warn(s"[Step 1.2] 用户角色无权限，当前角色：${role}")) *>
-            IO.pure(None) // 返回None表示非Admin无权限
-
-        case Some(_) =>
+            IO.raiseError(SecurityException("不具有管理员权限")) // 返回None表示非Admin无权限
+        case _ =>
           // Step 2: 查询审核员列表
           IO(logger.info(s"[Step 2] 用户角色校验通过，开始查询所有审核员")) *>
             fetchAuditors()
@@ -56,7 +51,7 @@ case class QueryAuditorsMessagePlanner(
    * @param token 用户登录后的Token
    * @return Option[UserRole] - 如果Token无效，返回None；否则返回对应的用户角色
    */
-  private def validateUserRole(token: String)(using PlanContext): IO[Option[UserRole]] = {
+  private def validateUserRole(token: String)(using PlanContext): IO[UserRole] = {
     IO(logger.info(s"调用权限校验API: QueryUserRoleMessage(token=${token})")) *>
       QueryUserRoleMessage(token).send
   }
@@ -65,7 +60,7 @@ case class QueryAuditorsMessagePlanner(
    * 从数据库查询所有`user_role`为`Auditor`的用户信息
    * @return Option[List[UserInfo]] - 返回查询结果列表，满足条件的用户的所有信息
    */
-  private def fetchAuditors()(using PlanContext): IO[Option[List[UserInfo]]] = {
+  private def fetchAuditors()(using PlanContext): IO[List[UserInfo]] = {
     val sql =
       s"""
          SELECT user_id, username, avatar_path, is_banned
@@ -76,10 +71,7 @@ case class QueryAuditorsMessagePlanner(
 
     for {
       _ <- IO(logger.info(s"[Step 2.1] SQL查询命令生成完成，准备执行。SQL: ${sql}, 参数: ${params}"))
-      rows <- readDBRows(sql, params).handleErrorWith { error =>
-        IO(logger.error(s"[Step 2.2] 查询数据库时发生错误: ${error.getMessage}")) *>
-          IO.pure(List.empty[Json]) // 返回空列表以避免程序中断
-      }
+      rows <- readDBRows(sql, params)
 
       // 将数据库行转为UserInfo对象
       auditors = rows.map { row =>
@@ -96,6 +88,6 @@ case class QueryAuditorsMessagePlanner(
            else
              IO(logger.info(s"[Step 2.3] 找到${auditors.length}位审核员"))
 
-    } yield Some(auditors)
+    } yield auditors
   }
 }

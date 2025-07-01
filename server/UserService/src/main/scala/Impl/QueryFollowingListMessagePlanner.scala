@@ -37,7 +37,7 @@ case class QueryFollowingListMessagePlanner(
          |""".stripMargin
     val param = List(
       SqlParameter("Int", userID.toString),
-      SqlParameter("Int", rangeL.toString),
+      SqlParameter("Int", (rangeL - 1).toString),
       SqlParameter("Int", (rangeR - rangeL).toString)
     )
     for {
@@ -59,20 +59,7 @@ case class QueryFollowingListMessagePlanner(
     } yield result
   }
 
-  /** Step 1: Query Followee Records */
-  private def queryFolloweeRecords()(using PlanContext): IO[List[Json]] = {
-    val sql =
-      s"""
-         |SELECT follower_id, followee_id, timestamp
-         |FROM ${schemaName}.follow_relation_table
-         |WHERE follower_id = ?;
-         |""".stripMargin
-
-    IO(logger.info(s"执行查询指令：${sql}，使用参数: UserID=${userID}")) >>
-      readDBRows(sql, List(SqlParameter("Int", userID.toString)))
-  }
-
-  /** Step 3-5: Process followee records (Sort, Paginate, Transform) */
+  /** Step 3: Process followee records */
   private def processFolloweeRecords(followeeRecords: List[Json])(using PlanContext): IO[List[FollowRelation]] = {
     for {
       // Step 3: Transform paginated records into FollowRelation objects

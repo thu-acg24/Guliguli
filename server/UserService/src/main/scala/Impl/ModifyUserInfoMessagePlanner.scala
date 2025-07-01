@@ -26,81 +26,49 @@ case class ModifyUserInfoMessagePlanner(
                                          token: String,
                                          newField: UserInfo,
                                          override val planContext: PlanContext
-                                       ) extends Planner[Option[String]] {
+                                       ) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   // Main plan definition
-  override def plan(using PlanContext): IO[Option[String]] = {
-    IO(logger.info(s"Validating token $token"))
-    validateToken(token).flatMap {
-      case Some(userID) =>
-        validateNewField(newField) match {
-          case Some(error) =>
-            IO(logger.error(s"Field validation failed: $error")) *>
-              IO.pure(Some(error))
-
-          case None =>
-            for {
-              _ <- IO(logger.info("All validations passed, updating database"))
-              result <- updateUserInfoInDB(userID, newField)
-            } yield result
-        }
-
-      case None =>
-        IO(logger.error("Token validation failed: Invalid Token")) *>
-          IO.pure(Some("Invalid Token"))
-    }
+  override def plan(using PlanContext): IO[Unit] = {
+    for {
+      _ <- IO(logger.info(s"Validating token $token"))
+      userID <- validateToken(token)
+      _ <- validateNewField(newField)
+      _ <- updateUserInfoInDB(userID, newField)
+    } yield ()
   }
 
   /**
    * Validate the fields in UserInfo (e.g., check username for proper format).
    */
-  private def validateNewField(newField: UserInfo): Option[String] = {
-    if (newField.username.length > 20) {
-      logger.error(s"Username '${newField.username}' exceeds max length of 20")
-      Some("Invalid Field Value: Username exceeds max length of 20")
+  private def validateNewField(newField: UserInfo): IO[Unit] = {
+    if (newField.username.length > 20 || newField.username.length < 3) {
+      IO(logger.error(s"Username '${newField.username}' has invalid length")) >>
+      IO.raiseError(IllegalArgumentException("用户名长度不正确"))
     } else {
-      None
+      IO.unit
     }
   }
 
   /**
    * Update user information in the database.
    */
-  private def updateUserInfoInDB(userID: Int, newField: UserInfo)(using PlanContext): IO[Option[String]] = {
+  private def updateUserInfoInDB(userID: Int, newField: UserInfo)(using PlanContext): IO[String] = {
     val querySQL =
       s"""
          UPDATE ${schemaName}.user_table
-         SET username = ?, is_banned = ?, updated_at = ?
+         SET username = ?, updated_at = ?
          WHERE user_id = ?
        """.stripMargin
 
     val queryParams = List(
       SqlParameter("String", newField.username),
-      SqlParameter("Boolean", newField.isBanned.toString),
       SqlParameter("DateTime", DateTime.now().getMillis.toString),
       SqlParameter("Int", userID.toString)
     )
-
-    for {
-      _ <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams"))
-      updateResponse <- writeDB(querySQL, queryParams)
-
-      // Check the result of the database operation
-      result <- {
-        if (updateResponse.contains("Operation(s) done successfully")) {
-          IO {
-            logger.info("User information updated successfully.")
-            None // No error, meaning success
-          }
-        } else {
-          IO {
-            logger.error("Failed to modify user info in the database.")
-            Some("Failed to modify user info")
-          }
-        }
-      }
-    } yield result
+    IO(logger.info(s"Executing update query: $querySQL with params: $queryParams")) >>
+      writeDB(querySQL, queryParams)
   }
 }
