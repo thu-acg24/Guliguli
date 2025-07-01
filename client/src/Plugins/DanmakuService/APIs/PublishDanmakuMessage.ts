@@ -6,7 +6,6 @@
  * @param timeInVideo: Float (弹幕出现的时间点（单位：秒）)
  * @param danmakuContent: String (弹幕的文字内容)
  * @param danmakuColor: String (弹幕的颜色值（例如：#FFFFFF）)
- * @return result: String (返回操作结果，成功返回None，失败返回具体错误信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

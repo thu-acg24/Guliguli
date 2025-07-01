@@ -4,7 +4,7 @@
  * @param token: String (用户身份令牌，用于校验身份)
  * @param rangeL: Int (分页查询的起始位置)
  * @param rangeR: Int (分页查询的结束位置)
- * @return history: HistoryRecord:1184 (返回用户观看历史记录的列表)
+ * @return history: HistoryRecord[] (返回用户观看历史记录的列表)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

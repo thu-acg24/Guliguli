@@ -8,7 +8,6 @@
  * @param description: String (视频简介)
  * @param tag: String (视频标签列表)
  * @param duration: Int (视频时长（秒）)
- * @return result: String (操作结果，成功返回None，失败返回错误信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

@@ -9,7 +9,6 @@
  * @param description: String (视频描述（可选）)
  * @param tag: String (视频标签列表（可选）)
  * @param duration: Int (视频时长（可选）)
- * @return result: String (修改结果消息，返回None表示修改成功，返回Some[String]表示失败原因)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

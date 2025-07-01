@@ -4,7 +4,6 @@
  * @param token: String (用户身份验证的Token，用于校验身份及权限。)
  * @param userID: Int (需要修改封禁状态的目标用户ID。)
  * @param isBan: Boolean (标识是否封禁用户，true为封禁，false为解封。)
- * @return result: String (操作结果，返回None表示成功，否则为具体错误信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

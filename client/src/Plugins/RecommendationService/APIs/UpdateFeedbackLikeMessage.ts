@@ -4,7 +4,6 @@
  * @param token: String (用户身份验证令牌)
  * @param videoID: Int (唯一标识要操作的视频的ID)
  * @param isLike: Boolean (是否是点赞操作，true为点赞，false为取消点赞)
- * @return result: String (操作返回结果，None表示成功，Some包含错误信息时表示失败)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

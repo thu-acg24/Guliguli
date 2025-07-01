@@ -4,7 +4,7 @@
  * @param userID: Int (目标用户的唯一标识。)
  * @param rangeL: Int (要查询的粉丝列表的起始范围（包含）。)
  * @param rangeR: Int (要查询的粉丝列表的结束范围（包含）。)
- * @return followerList: FollowRelation:1181 (包含粉丝列表的关注关系列表，每个关系包括粉丝的相关信息。)
+ * @return followerList: FollowRelation[] (包含粉丝列表的关注关系列表，每个关系包括粉丝的相关信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 

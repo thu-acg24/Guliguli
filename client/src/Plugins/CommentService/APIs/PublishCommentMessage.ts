@@ -5,7 +5,6 @@
  * @param videoID: Int (需要评论的视频的ID。)
  * @param commentContent: String (评论的具体内容。)
  * @param replyToCommentID: Int (回复的目标评论ID，可空。)
- * @return result: String (返回操作的结果，如果成功返回None，否则返回错误信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
