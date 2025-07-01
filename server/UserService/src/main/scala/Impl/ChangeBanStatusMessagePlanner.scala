@@ -52,9 +52,6 @@ case class ChangeBanStatusMessagePlanner(
         case None =>
             IO(logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=${userID})")) *>
             IO.raiseError(new RuntimeException(s"未在数据库中找到目标用户"))
-      }.handleErrorWith { ex =>
-          IO(logger.error(s"[ChangeBanStatus] 获取用户(userID=${userID})信息时失败: ${ex.getMessage}")) *>
-          IO.raiseError(new RuntimeException(s"获取用户信息时失败: ${ex.getMessage}"))
       }
   }
 
@@ -88,9 +85,5 @@ WHERE user_id = ?
     ).map(_ =>
       logger.info(s"[ChangeBanStatus] 成功更新用户(userID=${userID})封禁状态为: ${isBan}")
     )
-    .handleErrorWith { ex =>
-      IO(logger.error(s"[ChangeBanStatus] 更新用户(userID=${userID})封禁状态失败: ${ex.getMessage}")) *>
-      IO.raiseError(new RuntimeException(s"更新用户封禁状态失败: ${ex.getMessage}"))
-    }
   }
 }

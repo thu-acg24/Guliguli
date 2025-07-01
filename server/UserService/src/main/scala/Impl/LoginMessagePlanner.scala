@@ -68,10 +68,6 @@ case class LoginMessagePlanner(
         case Some(json) =>
           IO.pure(json)
       }
-      .handleErrorWith { ex =>
-        IO(logger.info(s"获取用户数据时发生错误，登录凭证 $usernameOrEmail，错误信息${ex.getMessage}")) *>
-        IO.raiseError(new RuntimeException(s"获取用户数据时发生错误，错误信息${ex.getMessage}"))
-      }
   }
 
   private def generateTokenResponse(userID: Int)(using PlanContext): IO[String] = {

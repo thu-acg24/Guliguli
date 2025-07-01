@@ -69,10 +69,6 @@ case class ChangeUserRoleMessagePlanner(
           IO(logger.info(s"[ChangeUserRoleStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
           IO.raiseError(new RuntimeException("未在数据库中找到目标用户"))
       }
-      .handleErrorWith { ex =>
-        IO(logger.error(s"[ChangeUserRoleStatus] 查询目标用户(userID=$userID)时发生错误: ${ex.getMessage}")) *>
-        IO.raiseError(new RuntimeException("查询目标用户时发生错误"))
-      }
   }
 
   // Step 3 Helper: 验证 newRole 的合法性
@@ -114,10 +110,6 @@ case class ChangeUserRoleMessagePlanner(
         if (updatedRows <= 0)
           IO(logger.info(s"未更新任何记录，可能用户不存在(userID=$userID)")) *>
             IO.raiseError(new RuntimeException(s"未更新任何记录，可能用户不存在"))
-      }
-      .handleErrorWith { ex =>
-        IO(logger.error(s"更新用户角色失败(userID=$userID): ${ex.getMessage}")) *>
-          IO.raiseError(new RuntimeException(s"修改用户角色时发生错误: ${ex.getMessage}"))
       }
   }
 }

@@ -53,10 +53,6 @@ case class ChangeFollowStatusMessagePlanner(
           IO(logger.info(s"[ChangeFollowStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
           IO.raiseError(new RuntimeException("未在数据库中找到目标用户"))
       }
-      .handleErrorWith { ex =>
-        IO(logger.error(s"[ChangeFollowStatus] 查询目标用户(userID=$userID)时发生错误: ${ex.getMessage}")) *>
-        IO.raiseError(new RuntimeException(s"查询目标用户时发生错误: ${ex.getMessage}"))
-      }
   }
 
   private def handleFollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Unit] = {
@@ -75,21 +71,14 @@ case class ChangeFollowStatusMessagePlanner(
 
     for {
       _ <- IO(logger.info(s"Handling follow action for followerID=$followerID and followeeID=$followeeID."))
-      alreadyExists <- readDBBoolean(checkSQL, params).handleErrorWith { ex =>
-          IO(logger.error(s"[ChangeFollowStatus] 查询关注关系时发生错误：${ex.getMessage}")) *>
-          IO.raiseError(new RuntimeException(s"查询关注关系时发生错误：${ex.getMessage}"))
-        }
-      _ <- IO(if (alreadyExists) {
-        logger.info(s"Follow relation already exists between followerID=$followerID and followeeID=$followeeID.")
+      alreadyExists <- readDBBoolean(checkSQL, params)
+      _ <- if (alreadyExists) {
+        IO(logger.info(s"Follow relation already exists between followerID=$followerID and followeeID=$followeeID."))
       } else {
         val timestamp = DateTime.now().getMillis.toString
         IO(logger.info(s"Inserting new follow relation for followerID=$followerID and followeeID=$followeeID.")) *>
         writeDB(insertSQL, params :+ SqlParameter("DateTime", timestamp))
-          .handleErrorWith { ex =>
-            IO(logger.error(s"[ChangeFollowStatus] 将关注关系插入数据库时发生错误：${ex.getMessage}")) *>
-            IO.raiseError(new RuntimeException(s"将关注关系插入数据库时发生错误：${ex.getMessage}"))
-          }
-      })
+      }
     } yield()
   }
 
@@ -110,19 +99,12 @@ case class ChangeFollowStatusMessagePlanner(
 
     for {
       _ <- IO(logger.info(s"Handling unfollow action for followerID=$followerID and followeeID=$followeeID."))
-      exists <- readDBBoolean(checkSQL, params).handleErrorWith { ex =>
-        logger.error(s"[ChangeFollowStatus] 查询关注关系时发生错误：${ex.getMessage}")
-        throw RuntimeException(s"查询关注关系时发生错误：${ex.getMessage}")
-      }
+      exists <- readDBBoolean(checkSQL, params)
       _ <- if (!exists) {
           IO(logger.info(s"No follow relation exists between followerID=$followerID and followeeID=$followeeID."))
         } else {
-          IO(logger.info(s"Deleting follow relation between followerID=$followerID and followeeID=$followeeID.")) >>
+          IO(logger.info(s"Deleting follow relation between followerID=$followerID and followeeID=$followeeID.")) *>
           writeDB(deleteSQL, params)
-            .handleErrorWith { ex =>
-              IO(logger.error(s"[ChangeFollowStatus] 删除关注关系时发生错误：${ex.getMessage}")) *>
-              IO.raiseError(RuntimeException(s"删除关注关系时发生错误：${ex.getMessage}"))
-            }
         }
     } yield ()
   }

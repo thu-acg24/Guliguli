@@ -78,11 +78,7 @@ case object AuthProcess {
     for {
       _ <- IO(logger.info(s"开始校验Token: ${token}"))
       _ <- IO(logger.info(s"[Step 1] 执行查询Token的用户信息与过期时间，SQL: ${querySQL}"))
-      record <- readDBJsonOptional(querySQL, queryParams)
-        .handleErrorWith { ex =>
-          IO(logger.error(s"[validateToken] 查询Token时发生错误：${ex.getMessage}")) *>
-          IO.raiseError(new RuntimeException(s"查询Token时发生错误：${ex.getMessage}"))
-        }.flatMap {
+      record <- readDBJsonOptional(querySQL, queryParams).flatMap {
           case Some(record) => IO(record)
           case None =>
             IO(logger.info(s"查询的Token ${token}不存在")) *>
@@ -129,14 +125,8 @@ case object AuthProcess {
       _ <- IO(logger.info(s"生成的Token为：${generatedToken}"))
       _ <- IO(logger.info(s"设置的Token过期时间为：$expirationTime"))
       _ <- IO(logger.info(s"准备将生成的Token保存到数据库中，SQL为：$writeSQL"))
-      writeResult <- writeDB(writeSQL, writeParams).attempt
-      _ <- writeResult match {
-        case Right(_) =>
-          IO(logger.info(s"成功将Token保存到数据库，Token为：$generatedToken"))
-        case Left(e) =>
-          IO(logger.error(s"写入数据库时发生错误：${e.getMessage}")) *>
-          IO.raiseError(new RuntimeException(s"写入数据库时发生错误：${e.getMessage}"))
-      }
+      _ <- writeDB(writeSQL, writeParams)
+      _ <- IO(logger.info(s"成功将Token保存到数据库，Token为：$generatedToken"))
     } yield generatedToken
   }
 }
