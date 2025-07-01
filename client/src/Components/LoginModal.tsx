@@ -19,13 +19,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         e.preventDefault();
         try {
             new LoginMessage(username, password).send(
-                (tokenAndResult: string[]) => {
-                    const [token, err] = tokenAndResult;
-                    if (token.length === 0) setMessage(err);
-                    else {
-                        setUserToken(token);
-                        onClose();
-                    }
+                (info: string) => {
+                    const token = JSON.parse(info);
+                    setUserToken(token);
+                    onClose();
                 }, (e) => {
                     setMessage(e || '登录失败：未知错误！');
                 }

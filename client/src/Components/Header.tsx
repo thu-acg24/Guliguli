@@ -12,7 +12,6 @@ const Header: React.FC = () => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState("");
     const userToken = useUserToken();
-    const [isLogin, setIsLogin] = useState(false);
 
     // 校验token有效性
     const checkLoginValid = async (): Promise<boolean> => {
@@ -21,13 +20,11 @@ const Header: React.FC = () => {
             try {
                 new GetUIDByTokenMessage(userToken).send(
                     (info: string) => {
-                        try {
-                            const result = JSON.parse(info);
-                            // 如果能获取到userID且不为null，说明token有效
-                            resolve(result && result.userID !== undefined && result.userID !== null);
-                        } catch {
-                            resolve(false);
-                        }
+                        resolve(true)
+                    },
+                    (error: string) => {
+                        console.error("Token校验失败:", error);
+                        resolve(false);
                     }
                 );
             } catch {
@@ -35,14 +32,6 @@ const Header: React.FC = () => {
             }
         });
     };
-
-    useEffect(() => {
-        // 进入页面时鉴权
-        (async () => {
-            setIsLogin(await checkLoginValid());
-        })();
-        // eslint-disable-next-line
-    }, [userToken]);
 
     const performSearch = () => {
         if (searchKeyword.trim()) {
@@ -116,7 +105,7 @@ const Header: React.FC = () => {
                     <button className="search-btn" onClick={performSearch}>搜索</button>
                 </div>
             </div>
-            {isLogin ? (
+            {userToken ? (
                 <div className="user-actions">
                     <div className="user-avatar" onClick={handleAvatarClick}>
                         <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+" alt="用户头像" />
