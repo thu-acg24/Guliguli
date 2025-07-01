@@ -54,8 +54,8 @@ case class AddBrowseHistoryMessagePlanner(
   }
 
   private def addOrUpdateHistory(userId: Int, videoId: Int)(using PlanContext): IO[Unit] = {
-    val timestamp = DateTime.now()
     for {
+      timestamp <- IO(DateTime.now())
       _ <- IO(logger.info(s"Step 3.1: Check if user ${userId} has already viewed video ${videoId}"))
       exists <- checkExistingHistory(userId, videoId)
       _ <- if(exists){

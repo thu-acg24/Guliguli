@@ -48,7 +48,7 @@ case class QueryHistoryMessagePlanner(
    * 调用公共方法GetUIDByTokenMessage验证Token是否有效。
    */
   private def validateToken(token: String)(using PlanContext): IO[Int] = {
-    logger.info(s"调用API获取用户ID，参数Token: ${token}")
+    IO(logger.info(s"调用API获取用户ID，参数Token: ${token}"))>>
     GetUIDByTokenMessage(token).send
   }
 
@@ -94,16 +94,18 @@ case class QueryHistoryMessagePlanner(
 
         (sql, parameters)
       }.flatMap { case (sql, parameters) =>
-        logger.info("开始执行SQL查询用户历史记录")
-        readDBRows(sql, parameters).map { rows =>
-          logger.info(s"查询成功，记录数量: ${rows.size}")
-          rows.map { row =>
-            HistoryRecord(
-              userID = decodeField[Int](row, "user_id"),
-              videoID = decodeField[Int](row, "video_id"),
-              timestamp = decodeField[DateTime](row, "timestamp")
-            )
-          }
+        IO(logger.info("开始执行SQL查询用户历史记录")) *>
+        readDBRows(sql, parameters).flatMap { rows =>
+          IO(logger.info(s"查询成功，记录数量: ${rows.size}"))*>
+          IO.pure(
+            rows.map { row =>
+              HistoryRecord(
+                userID = decodeField[Int](row, "user_id"),
+                videoID = decodeField[Int](row, "video_id"),
+                timestamp = decodeField[DateTime](row, "timestamp")
+              )
+            }
+          )
         }
       }
   }

@@ -27,76 +27,47 @@ case class SendMessageMessagePlanner(
     messageContent: String,
     isNotification: Boolean,
     override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: 验证调用者Token的合法性
       _ <- IO(logger.info(s"开始验证调用者Token: ${token}"))
-      validatedUserIDOptional <- validateToken()
-      _ <- IO(logger.info(s"Token验证结果: ${validatedUserIDOptional.getOrElse("无效Token")}"))
-      
-      result <- validatedUserIDOptional match {
-        case Some(userID) =>
-          // Step 2: 如果是通知，检查权限是否合法
-          for {
-            _ <- IO(logger.info("开始校验通知的合法性"))
-            notificationCheckResult <- checkNotificationPermission(userID)
-            _ <- IO(logger.info(s"通知权限校验结果: ${notificationCheckResult.getOrElse("权限正常")}"))
-            
-            finalResult <- notificationCheckResult match {
-              case None =>
-                // Step 3: 校验接收方是否合法
-                for {
-                  _ <- IO(logger.info(s"验证接收方ID: ${receiverID}是否存在"))
-                  receiverCheckResult <- validateReceiver()
-                  _ <- IO(logger.info(s"接收方校验结果: ${receiverCheckResult.getOrElse("接收方有效")}"))
-                  
-                  actualResult <- receiverCheckResult match {
-                    case None =>
-                      // Step 4: 构造消息并插入数据库
-                      for {
-                        constructedMessage <- constructMessage(userID)
-                        _ <- IO(logger.info("消息构造成功，开始插入数据库"))
-                        insertResult <- insertMessageRecord(constructedMessage)
-                      } yield insertResult
-                    case errorResult => IO(errorResult)
-                  }
-                } yield actualResult
-              case errorResult => IO(errorResult)
-            }
-          } yield finalResult
-
-        case None =>
-          IO(Some("Invalid Token")) // 如果验证Token失败，直接返回
-      }
-    } yield result
+      userID <- validateToken()
+      _ <- IO(logger.info(s"验证成功，用户: ${userID}"))
+      _ <- IO(logger.info("开始校验通知的合法性"))
+      _ <- checkNotificationPermission(userID)
+      _ <- IO(logger.info("权限正常"))
+      _ <- IO(logger.info(s"验证接收方ID: ${receiverID}是否存在"))
+      _ <- validateReceiver()
+      _ <- IO(logger.info(s"接收方有效"))
+      constructedMessage <- constructMessage(userID)
+      _ <- IO(logger.info("消息构造成功，开始插入数据库"))
+      _ <- insertMessageRecord(constructedMessage)
+    }yield()
   }
 
-  private def validateToken()(using PlanContext): IO[Option[Int]] = {
+  private def validateToken()(using PlanContext): IO[Int] = {
     GetUIDByTokenMessage(token).send
   }
 
-  private def checkNotificationPermission(senderID: Int)(using PlanContext): IO[Option[String]] = {
+  private def checkNotificationPermission(senderID: Int)(using PlanContext): IO[Unit] = {
     if (isNotification) {
       for {
-        userRoleOpt <- QueryUserRoleMessage(token).send
-        result <- userRoleOpt match {
-          case Some(UserRole.Auditor) => IO(None) // 审核员权限允许发送通知
-          case _ => IO(Some("Invalid Permission")) // 无权限
+        userRole <- QueryUserRoleMessage(token).send
+        _ <- userRole match {
+          case UserRole.Auditor => IO.unit // 审核员权限允许发送通知
+          case _ => IO.raiseError(IllegalArgumentException("Invalid Permission"))
         }
-      } yield result
+      } yield ()
     } else {
-      IO(None) // 如果不是通知，无需校验权限
+      IO.unit // 如果不是通知，无需校验权限
     }
   }
 
-  private def validateReceiver()(using PlanContext): IO[Option[String]] = {
-    QueryUserInfoMessage(receiverID).send.map {
-      case Some(_) => None // 接收方存在
-      case None => Some("Receiver Not Found") // 接收方无效
-    }
+  private def validateReceiver()(using PlanContext): IO[Unit] = {
+    QueryUserInfoMessage(receiverID).send.as{()}
   }
 
   private def constructMessage(senderID: Int)(using PlanContext): IO[Message] = {
@@ -112,7 +83,7 @@ case class SendMessageMessagePlanner(
     IO(message)
   }
 
-  private def insertMessageRecord(message: Message)(using PlanContext): IO[Option[String]] = {
+  private def insertMessageRecord(message: Message)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
          INSERT INTO ${schemaName}.message_table
@@ -129,9 +100,7 @@ case class SendMessageMessagePlanner(
         SqlParameter("DateTime", message.timestamp.getMillis.toString),
         SqlParameter("Boolean", message.isNotification.toString)
       )
-    ).map(_ => None).handleErrorWith { error =>
-      IO(logger.error(s"消息插入失败，原因: ${error.getMessage}")) *> IO(Some("Unable to send message"))
-    }
+    ).as(())
   }
 
   private case class Message(
