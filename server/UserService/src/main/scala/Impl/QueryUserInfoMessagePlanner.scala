@@ -3,20 +3,24 @@ package Impl
 
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Global.GlobalVariables.minioClient
 import Objects.UserService.UserInfo
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
+import io.minio.http.Method
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+
+import java.util.concurrent.TimeUnit
 
 case class QueryUserInfoMessagePlanner(
     userID: Int,
@@ -62,12 +66,24 @@ case class QueryUserInfoMessagePlanner(
       avatarPath <- IO(decodeField[String](userJson, "avatar_path"))
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
 
+      _ <- IO(logger.info("[Step 2.2] 开始获取头像的minIO自签名url"))
+      avatarUrl <- IO.blocking { // 包装阻塞IO操作
+        minioClient.getPresignedObjectUrl(
+          io.minio.GetPresignedObjectUrlArgs.builder()
+            .method(Method.GET)
+            .bucket("avatar")
+            .`object`(avatarPath)
+            .expiry(1, TimeUnit.MINUTES)
+            .build()
+        )
+      }
+
       // Wrap the parsed data into UserInfo object
       userInfo <- IO {
         val userInfo = UserInfo(
           userID = userID,
           username = username,
-          avatarPath = avatarPath,
+          avatarPath = avatarUrl,
           isBanned = isBanned
         )
         logger.info(s"[Step 2.3] 封装成UserInfo对象: ${userInfo}")
