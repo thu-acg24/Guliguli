@@ -39,7 +39,14 @@ object Init {
             followee_id INT NOT NULL,
             timestamp TIMESTAMP NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS idx_follow_relation_timestamp ON follow_relation_table(timestamp);
+        """,
+        List()
+      )
+      _ <- writeDB(
+        s"""
+        CREATE INDEX IF NOT EXISTS idx_follow_relation_timestamp
+          ON "${schemaName}"."follow_relation_table" (timestamp);
+        );
         """,
         List()
       )
