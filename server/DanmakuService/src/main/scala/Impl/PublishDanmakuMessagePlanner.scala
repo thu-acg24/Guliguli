@@ -29,42 +29,37 @@ case class PublishDanmakuMessagePlanner(
   danmakuContent: String,
   danmakuColor: String,
   override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info("Step 1: 校验token合法性，并解析用户ID"))
-      userIDOpt <- validateToken(token)
-      _ <- IO(logger.info(s"userID为: ${userIDOpt.getOrElse("None")}"))
-      result <- userIDOpt match {
-        case None => IO.pure(Some("Invalid Token"))
-        case Some(userID) =>
-          for {
-            _ <- IO(logger.info("Step 2: 校验视频ID是否存在"))
-            videoOpt <- validateVideoID(videoID)
-            _ <- IO(logger.info(s"video信息为: ${videoOpt.map(_.title).getOrElse("None")}"))
-            stepResult <- videoOpt match {
-              case None => IO.pure(Some("Video Not Found"))
-              case Some(video) =>
-                for {
-                  _ <- IO(logger.info("Step 3: 校验弹幕颜色合法性"))
-                  colorValid <- validateDanmakuColor(danmakuColor)
-                  _ <- IO(logger.info(s"danmakuColor合法性: ${colorValid}"))
-                  finalResult <- if (!colorValid) IO.pure(Some("Color invalid")) else saveDanmaku(videoID, userID, timeInVideo, danmakuContent, danmakuColor)
-                } yield finalResult
-            }
-          } yield stepResult
+      userID <- validateToken(token)
+      _ <- IO(logger.info(s"userID为: $userID"))
+
+      _ <- IO(logger.info("Step 2: 校验视频ID是否存在"))
+      video <- validateVideoID(videoID)
+      _ <- IO(logger.info(s"video信息为: $video"))
+
+      _ <- IO(logger.info("Step 3: 校验弹幕颜色合法性"))
+      colorValid <- validateDanmakuColor(danmakuColor)
+      _ <- IO(logger.info(s"danmakuColor合法性: ${colorValid}"))
+
+      _ <- if (!colorValid) {
+        IO.raiseError(IllegalArgumentException("Color invalid"))
+      } else {
+        saveDanmaku(videoID, userID, timeInVideo, danmakuContent, danmakuColor)
       }
-    } yield result
+    } yield ()
   }
 
-  private def validateToken(token: String)(using PlanContext): IO[Option[Int]] = {
+  private def validateToken(token: String)(using PlanContext): IO[Int] = {
     IO(logger.info(s"调用getUIDByTokenMessage校验token: ${token}")) >>
       GetUIDByTokenMessage(token).send
   }
 
-  private def validateVideoID(videoID: Int)(using PlanContext): IO[Option[Video]] = {
+  private def validateVideoID(videoID: Int)(using PlanContext): IO[Video] = {
     IO(logger.info(s"调用QueryVideoInfoMessage校验videoID: ${videoID}")) >>
       QueryVideoInfoMessage(None, videoID).send
   }
@@ -74,7 +69,7 @@ case class PublishDanmakuMessagePlanner(
       IO(color.matches("^#[0-9a-fA-F]{6}$"))
   }
 
-  private def saveDanmaku(videoID: Int, userID: Int, timeInVideo: Float, content: String, color: String)(using PlanContext): IO[Option[String]] = {
+  private def saveDanmaku(videoID: Int, userID: Int, timeInVideo: Float, content: String, color: String)(using PlanContext): IO[String] = {
     IO(logger.info("Step 4: 插入弹幕数据到数据库")) >>
       {
         val sql =
@@ -93,10 +88,7 @@ case class PublishDanmakuMessagePlanner(
           SqlParameter("DateTime", DateTime.now().getMillis.toString)
         )
 
-        writeDB(sql, params).map(_ => None).handleError { ex =>
-          logger.error(s"弹幕发布失败: ${ex.getMessage}")
-          Some("Failed to publish danmaku")
-        }
+        writeDB(sql, params)
       }
   }
 }

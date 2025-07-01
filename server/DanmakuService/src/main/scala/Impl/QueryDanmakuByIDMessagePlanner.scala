@@ -22,45 +22,18 @@ import org.slf4j.LoggerFactory
 case class QueryDanmakuByIDMessagePlanner(
   danmakuID: Int, 
   override val planContext: PlanContext
-) extends Planner[Option[Danmaku]] {
+) extends Planner[Danmaku] {
 
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[Danmaku]] = {
+  override def plan(using planContext: PlanContext): IO[Danmaku] = {
     for {
-      // Step 1: Check if the danmakuID exists in DanmakuTable
-      _ <- IO(logger.info(s"校验danmakuID=${danmakuID}是否存在于DanmakuTable中"))
-      exists <- checkDanmakuIDExists(danmakuID)
-      
-      // Step 2: Return result based on existence
-      result <- if (!exists) {
-        IO(logger.info(s"danmakuID=${danmakuID}不存在，返回None")) >>
-        IO.pure(None) // Explicitly return None if the ID doesn't exist
-      } else {
-        // Step 3: Fetch the Danmaku record
-        IO(logger.info(s"danmakuID=${danmakuID}存在，开始查询对应记录")) >>
-        fetchDanmakuByID(danmakuID)
-      }
+      result <- fetchDanmakuByID(danmakuID)
     } yield result
   }
 
-  // Step 1.1: Check whether danmakuID exists
-  private def checkDanmakuIDExists(danmakuID: Int)(using PlanContext): IO[Boolean] = {
-    val sql =
-      s"""
-         |SELECT EXISTS(
-         |  SELECT 1
-         |  FROM ${schemaName}.danmaku_table
-         |  WHERE danmaku_id = ?
-         |);
-       """.stripMargin
-
-    IO(logger.info(s"检查danmakuID存在性的SQL指令为: ${sql}")) >>
-    readDBBoolean(sql, List(SqlParameter("Int", danmakuID.toString)))
-  }
-
   // Step 2.1: Query for the actual danmaku record
-  private def fetchDanmakuByID(danmakuID: Int)(using PlanContext): IO[Option[Danmaku]] = {
+  private def fetchDanmakuByID(danmakuID: Int)(using PlanContext): IO[Danmaku] = {
     val sql =
       s"""
          |SELECT danmaku_id, content, video_id, author_id, danmaku_color, time_in_video
@@ -70,6 +43,18 @@ case class QueryDanmakuByIDMessagePlanner(
 
     IO(logger.info(s"查询danmaku记录的SQL指令为: ${sql}")) >>
     readDBJsonOptional(sql, List(SqlParameter("Int", danmakuID.toString)))
-      .map(_.map(decodeType[Danmaku])) // Decode the JSON result into Danmaku object
+      .flatMap {
+        case Some(json) =>
+          json.as[Danmaku] match {
+            case Right(danmaku) =>
+              IO(logger.info(s"成功查询到danmaku记录: ${danmaku}")) >> IO(danmaku)
+            case Left(error) =>
+              IO(logger.error(s"解析danmaku记录失败: ${error.getMessage}")) >>
+              IO.raiseError(IllegalArgumentException("Failed to parse danmaku record"))
+          }
+        case None =>
+          IO(logger.error(s"未找到danmaku记录，ID: ${danmakuID}")) >>
+          IO.raiseError(IllegalArgumentException(s"No danmaku found with ID: $danmakuID"))
+      }
   }
 }

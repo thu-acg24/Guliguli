@@ -26,53 +26,43 @@ case class DeleteDanmakuMessagePlanner(
                                         token: String,
                                         danmakuID: Int,
                                         override val planContext: PlanContext
-                                      ) extends Planner[Option[String]] {
+                                      ) extends Planner[Unit] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
+  override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info(s"开始验证Token并获取用户ID"))
-      maybeUserID <- verifyToken(token)
-
-      userID <- IO(maybeUserID.getOrElse {
-        logger.error(s"无效的Token：${token}")
-        return IO.pure(Some("Invalid Token"))
-      })
+      userID <- verifyToken(token)
 
       _ <- IO(logger.info(s"验证弹幕记录是否存在，弹幕ID：${danmakuID}"))
-      maybeDanmakuRecord <- checkDanmakuExistence(danmakuID)
-
-      (videoID, senderID) <- IO(maybeDanmakuRecord.getOrElse {
-        logger.error(s"弹幕记录不存在，弹幕ID：${danmakuID}")
-        return IO.pure(Some("Danmaku Not Found"))
-      })
+      (videoID, senderID) <- checkDanmakuExistence(danmakuID)
 
       _ <- IO(logger.info(s"校验用户删除权限"))
       hasPermission <- checkDeletionPermission(userID, videoID, senderID, token)
 
       _ <- if (!hasPermission) {
-        IO(logger.error(s"用户无删除权限，用户ID：${userID}, 弹幕ID：${danmakuID}"))
-        return IO.pure(Some("Unauthorized Action"))
+        IO(logger.info(s"用户无删除权限，用户ID：${userID}, 弹幕ID：${danmakuID}"))
+        IO.raiseError(IllegalArgumentException("Unauthorized Action"))
       } else IO.unit
 
       _ <- IO(logger.info(s"开始删除弹幕记录，弹幕ID：${danmakuID}"))
       deletionResult <- deleteDanmakuRecord(danmakuID)
 
-      result <- if (deletionResult) {
+      _ <- if (deletionResult) {
         IO(logger.info(s"弹幕记录删除成功，弹幕ID：${danmakuID}"))
-        IO.pure(None)
+        IO.unit
       } else {
         IO(logger.error(s"删除弹幕记录失败，弹幕ID：${danmakuID}"))
-        IO.pure(Some("Failed to delete danmaku"))
+        IO.raiseError(IllegalArgumentException("Failed to delete danmaku"))
       }
-    } yield result
+    } yield ()
   }
 
-  private def verifyToken(token: String)(using PlanContext): IO[Option[Int]] = {
+  private def verifyToken(token: String)(using PlanContext): IO[Int] = {
     GetUIDByTokenMessage(token).send
   }
 
-  private def checkDanmakuExistence(danmakuID: Int)(using PlanContext): IO[Option[(Int, Int)]] = {
+  private def checkDanmakuExistence(danmakuID: Int)(using PlanContext): IO[(Int, Int)] = {
     val sql =
       s"""
          |SELECT video_id, author_id
@@ -80,30 +70,28 @@ case class DeleteDanmakuMessagePlanner(
          |WHERE danmaku_id = ?;
          |""".stripMargin
     readDBJsonOptional(sql, List(SqlParameter("Int", danmakuID.toString))).map {
-      _.map { json =>
+      case None => throw IllegalArgumentException("弹幕不存在")
+      case Some(json) =>
         val videoID = decodeField[Int](json, "video_id")
         val senderID = decodeField[Int](json, "author_id")
         (videoID, senderID)
-      }
     }
   }
 
   private def checkDeletionPermission(userID: Int, videoID: Int, senderID: Int, token: String)(using PlanContext): IO[Boolean] = {
     for {
-      isDanmakuAuthor = userID == senderID
+      isDanmakuAuthor <- IO(userID == senderID)
 
-      isVideoUploader <- QueryVideoInfoMessage(Some(token), videoID).send.map {
-        case Some(video) => video.uploaderID == userID
-        case None =>
-          logger.error(s"未找到视频信息，视频ID：${videoID}")
-          false
+      isVideoUploader <- QueryVideoInfoMessage(Some(token), videoID).send.flatMap {
+        case video => IO(video.uploaderID == userID)
+        case _ =>
+          IO(logger.error(s"未找到视频信息，视频ID：${videoID}")) >> IO(false)
       }
 
-      isAuditor <- QueryUserRoleMessage(token).send.map {
-        case Some(role) => role == UserRole.Auditor
-        case None =>
-          logger.error(s"无法验证用户角色，用户ID：${userID}")
-          false
+      isAuditor <- QueryUserRoleMessage(token).send.flatMap {
+        case role => IO(role == UserRole.Auditor)
+        case _ =>
+          IO(logger.error(s"无法验证用户角色，用户ID：${userID}")) >> IO(false)
       }
     } yield isDanmakuAuthor || isVideoUploader || isAuditor
   }

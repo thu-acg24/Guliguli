@@ -20,40 +20,17 @@ import io.circe.syntax._
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
-case class QueryVideoDanmakuMessagePlanner(videoID: Int, token: Option[String], override val planContext: PlanContext) extends Planner[Option[List[Danmaku]]] {
+case class QueryVideoDanmakuMessagePlanner(videoID: Int, token: Option[String], override val planContext: PlanContext) extends Planner[List[Danmaku]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[List[Danmaku]]] = {
+  override def plan(using PlanContext): IO[List[Danmaku]] = {
     for {
-      _ <- IO(logger.info(s"校验视频ID ${videoID} 是否合法"))
-      videoOpt <- validateVideoExistence()
-      _ <- IO(logger.info(s"校验结果: ${videoOpt.isDefined}"))
+      danmakuRecords <- fetchDanmakuRecords()
+      _ <- IO(logger.info(s"查询到 ${danmakuRecords.size} 条弹幕记录"))
 
-      result <- videoOpt match {
-        case None =>
-          IO(logger.info(s"视频ID ${videoID} 无效, 返回None")) >> IO.pure(None)
-        case Some(_) =>
-          for {
-            _ <- IO(logger.info(s"视频ID ${videoID} 有效，查询相关弹幕记录"))
-            danmakuRecords <- fetchDanmakuRecords()
-            _ <- IO(logger.info(s"查询到 ${danmakuRecords.size} 条弹幕记录"))
-
-            sortedRecords <- IO(logger.info("根据timeInVideo字段对弹幕记录排序")) >> sortDanmakuRecords(danmakuRecords)
-            _ <- IO(logger.info(s"排序完成，共有 ${sortedRecords.size} 条弹幕记录"))
-
-            result = Some(sortedRecords)
-            _ <- IO(logger.info(s"返回封装后的弹幕查询结果"))
-          } yield result
-      }
+      result <- IO(logger.info("根据timeInVideo字段对弹幕记录排序")) >> sortDanmakuRecords(danmakuRecords)
+      _ <- IO(logger.info(s"排序完成，共有 ${result.size} 条弹幕记录"))
     } yield result
-  }
-
-  /**
-   * 校验视频是否存在
-   * @return Option[Video] 如果视频存在, 返回视频信息; 否则返回None
-   */
-  private def validateVideoExistence()(using PlanContext): IO[Option[Video]] = {
-    QueryVideoInfoMessage(token, videoID).send
   }
 
   /**
