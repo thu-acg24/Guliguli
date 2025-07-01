@@ -5,7 +5,8 @@
  * @param videoID: Int (被举报视频的唯一标识)
  * @param reporterID: Int (举报用户的唯一标识)
  * @param reason: String (举报的原因)
- * @param status: ReportStatus:1016 (处理该举报的状态)
+ * @param status: ReportStatus (处理该举报的状态)
+ * @param timestamp: DateTime (举报时间)
  */
 import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
@@ -18,7 +19,8 @@ export class ReportVideo extends Serializable {
         public  videoID: number,
         public  reporterID: number,
         public  reason: string,
-        public  status: ReportStatus
+        public  status: ReportStatus,
+        public  timestamp: number
     ) {
         super()
     }

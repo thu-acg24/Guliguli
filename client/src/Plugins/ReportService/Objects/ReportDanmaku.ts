@@ -5,7 +5,8 @@
  * @param danmakuID: Int (被举报的弹幕的唯一ID)
  * @param reporterID: Int (举报人的唯一ID)
  * @param reason: String (举报理由)
- * @param status: ReportStatus:1016 (举报处理状态)
+ * @param status: ReportStatus (举报处理状态)
+ * @param timestamp: DateTime (举报时间)
  */
 import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
@@ -18,7 +19,8 @@ export class ReportDanmaku extends Serializable {
         public  danmakuID: number,
         public  reporterID: number,
         public  reason: string,
-        public  status: ReportStatus
+        public  status: ReportStatus,
+        public  timestamp: number
     ) {
         super()
     }

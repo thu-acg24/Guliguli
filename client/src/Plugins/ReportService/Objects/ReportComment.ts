@@ -5,7 +5,8 @@
  * @param commentID: Int (被举报的评论的唯一标识符)
  * @param reporterID: Int (举报人的唯一标识符)
  * @param reason: String (举报原因描述)
- * @param status: ReportStatus:1016 (举报记录的状态)
+ * @param status: ReportStatus (举报记录的状态)
+ * @param timestamp: DateTime (举报时间)
  */
 import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
@@ -18,7 +19,8 @@ export class ReportComment extends Serializable {
         public  commentID: number,
         public  reporterID: number,
         public  reason: string,
-        public  status: ReportStatus
+        public  status: ReportStatus,
+        public  timestamp: number
     ) {
         super()
     }
