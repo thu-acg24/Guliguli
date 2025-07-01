@@ -46,18 +46,13 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         try {
             new RegisterMessage(username, email, password).send(
                 (info: string) => {
-                    const result = JSON.parse(info);
-                    if (result) {
-                        setMessage(result);
-                    } else {
-                        onClose();
-                    }
+                    onClose();
                 }, (e) => {
-                    setMessage(e || '注册失败：未知错误！');
+                    setMessage(e || '注册失败！');
                 }
             );
         } catch (e) {
-            setMessage(e.message || '注册失败：未知错误！');
+            setMessage(e.message || '注册失败！');
         }
     }
 

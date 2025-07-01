@@ -218,13 +218,13 @@ const VideoPage: React.FC = () => {
                         
                         <div className="video-actions">
                             <button 
-                                className={`action-btn ${isLiked ? 'liked' : ''}`}
+                                className={`videopage-action-btn ${isLiked ? 'liked' : ''}`}
                                 onClick={() => likeVideo(videoData.id)}
                             >
                                 <span className="icon">👍</span> {isLiked ? '已点赞' : '点赞'}
                             </button>
                             <button 
-                                className={`action-btn ${isFavorited ? 'favorited' : ''}`}
+                                className={`videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
                                 onClick={() => favoriteVideo(videoData.id)}
                             >
                                 <span className="icon">⭐</span> {isFavorited ? '已收藏' : '收藏'}

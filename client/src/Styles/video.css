@@ -163,7 +163,8 @@
 .video-player-container {
     width: 100%;
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    padding-bottom: 56.25%;
+    /* 16:9 aspect ratio */
     background-color: #000;
     margin-bottom: 15px;
 }
@@ -182,7 +183,7 @@
     margin-bottom: 15px;
 }
 
-.action-btn {
+.videopage-action-btn {
     padding: 8px 15px;
     margin-right: 10px;
     background-color: #f4f4f4;
@@ -193,16 +194,16 @@
     align-items: center;
 }
 
-.action-btn .icon {
+.videopage-action-btn .icon {
     margin-right: 5px;
 }
 
-.action-btn.liked {
+.videopage-action-btn.liked {
     background-color: #fb7299;
     color: white;
 }
 
-.action-btn.favorited {
+.videopage-action-btn.favorited {
     background-color: #fb7299;
     color: white;
 }
@@ -327,7 +328,8 @@
     margin-right: 5px;
 }
 
-.like-btn, .reply-btn {
+.like-btn,
+.reply-btn {
     background: none;
     border: none;
     color: #999;
@@ -336,7 +338,8 @@
     margin-left: 10px;
 }
 
-.like-btn:hover, .reply-btn:hover {
+.like-btn:hover,
+.reply-btn:hover {
     color: #fb7299;
 }
 

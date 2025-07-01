@@ -38,7 +38,7 @@ case class ModifyVideoMessage(
   title: Option[String] = None,
   coverPath: Option[String] = None,
   description: Option[String] = None,
-  tag: Option[List[String]] = None,
+  tag: List[String],
   duration: Option[Int] = None
 ) extends API[Unit](VideoServiceCode)
 

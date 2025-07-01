@@ -79,16 +79,18 @@ case class PublishDanmakuMessagePlanner(
              |VALUES (?, ?, ?, ?, ?, ?)
              |""".stripMargin
 
-        val params = List(
-          SqlParameter("String", content),
-          SqlParameter("Int", videoID.toString),
-          SqlParameter("Int", userID.toString),
-          SqlParameter("String", color),
-          SqlParameter("Float", timeInVideo.toString),
-          SqlParameter("DateTime", DateTime.now().getMillis.toString)
-        )
-
-        writeDB(sql, params)
+        for {
+          timestamp <- IO(DateTime.now().getMillis.toString)
+          params = List(
+            SqlParameter("String", content),
+            SqlParameter("Int", videoID.toString),
+            SqlParameter("Int", userID.toString),
+            SqlParameter("String", color),
+            SqlParameter("Float", timeInVideo.toString),
+            SqlParameter("DateTime", timestamp)
+          )
+          result <- writeDB(sql, params)
+        } yield result
       }
   }
 }
