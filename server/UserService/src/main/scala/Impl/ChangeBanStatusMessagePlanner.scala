@@ -58,8 +58,8 @@ case class ChangeBanStatusMessagePlanner(
   private def validateUserRole()(using PlanContext): IO[Unit] = {
     QueryUserRoleMessage(token).send.flatMap { userRoleOpt =>
       userRoleOpt match {
-        case Some(UserRole.Auditor) | Some(UserRole.Admin) => IO.unit
-        case Some(role) =>
+        case UserRole.Auditor | UserRole.Admin => IO.unit
+        case role =>
           IO(logger.info(s"[ChangeBanStatus] 错误：角色'${role.toString}'无权访问")) *>
           IO.raiseError(new RuntimeException(s"错误：角色'${role.toString}'无权访问"))
       }

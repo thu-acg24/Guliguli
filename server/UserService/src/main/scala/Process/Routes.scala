@@ -23,6 +23,8 @@ import Impl.QueryUserInfoMessagePlanner
 import Impl.QueryUserRoleMessagePlanner
 import Impl.QueryUserStatMessagePlanner
 import Impl.RegisterMessagePlanner
+import Impl.ModifyAvatarMessagePlanner
+import Impl.ValidateAvatarMessagePlanner
 import cats.effect.*
 import fs2.concurrent.Topic
 import io.circe.*
@@ -145,6 +147,20 @@ object Routes:
         IO(
           decode[RegisterMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for RegisterMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ModifyAvatarMessage" =>
+        IO(
+          decode[ModifyAvatarMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ModifyAvatarMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ValidateAvatarMessage" =>
+        IO(
+          decode[ValidateAvatarMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateAvatarMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

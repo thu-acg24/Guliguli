@@ -16,9 +16,9 @@ import scala.util.Try
 
 /**
  * ModifyAvatarMessage
- * desc: 根据用户Token校验审核员权限后，封禁或解封指定用户并更新用户表状态。用于修改用户封禁状态功能点
+ * desc: 根据用户Token校验身份后，给用户返回一个上传渠道，用于用户头像修改功能点
  * @param token: String (用户身份验证的Token，用于校验身份及权限。)
- * @return result: String (上传URL)
+ * @return result: List[String] (固定两个元素，第一个是上传URL，第二个是sessionToken)
  */
 
 case class ModifyAvatarMessage(

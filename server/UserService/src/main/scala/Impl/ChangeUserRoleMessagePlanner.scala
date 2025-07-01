@@ -1,25 +1,18 @@
 package Impl
 
 
-import APIs.UserService.QueryUserInfoMessage
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.decodeDateTime
-import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
-import Objects.UserService.UserInfo
 import Objects.UserService.UserRole
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
 import io.circe._
 import io.circe.generic.auto.*
-import io.circe.generic.auto._
-import io.circe.syntax.*
-import io.circe.syntax._
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -45,9 +38,9 @@ case class ChangeUserRoleMessagePlanner(
   // Step 1 Helper: 获取操作者角色
   private def getOperatorRole()(using PlanContext): IO[Unit] = {
     QueryUserRoleMessage(token).send.flatMap {
-      case Some(UserRole.Admin) =>
+      case UserRole.Admin =>
         IO(logger.info(s"Token=${token}对应用户角色=${UserRole.Admin}")).void
-      case Some(role) =>
+      case role =>
         IO(logger.info(s"Token=${token}对应用户角色=$role")) *>
         IO.raiseError(new RuntimeException(s"操作人($role)权限不足"))
     }
