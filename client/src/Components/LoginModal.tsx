@@ -24,11 +24,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     setUserToken(token);
                     onClose();
                 }, (e) => {
-                    setMessage(e || '登录失败：未知错误！');
+                    setMessage(e || '登录失败！');
                 }
             );
         } catch (e) {
-            setMessage(e.message || '登录失败：未知错误！');
+            setMessage(e.message || '登录失败！');
         }
     }
 

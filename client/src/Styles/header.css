@@ -68,7 +68,7 @@
     font-size: 16px;
 }
 
-.user-actions {
+.header-actions {
     display: flex;
     align-items: center;
     margin-left: auto;
@@ -92,7 +92,7 @@
     object-fit: cover;
 }
 
-.action-btn {
+.header-action-btn {
     margin-left: 20px;
     font-size: 14px;
     color: #666;
@@ -101,12 +101,12 @@
     border-radius: 4px;
 }
 
-.action-btn:hover {
+.header-action-btn:hover {
     color: #fb7299;
     background-color: #f5f5f5;
 }
 
-.upload-btn {
+.header-upload-btn {
     margin-left: 20px;
     padding: 8px 15px;
     background-color: #fb7299;
@@ -116,7 +116,7 @@
     cursor: pointer;
 }
 
-.upload-btn:hover {
+.header-upload-btn:hover {
     background-color: #ff85ad;
 }
 

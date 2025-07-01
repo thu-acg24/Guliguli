@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import iconSrc from "../icon.png";
 import LoginModal from "./LoginModal";
-import { useUserToken } from "../Globals/GlobalStore";
+import { useUserToken, setUserToken } from "../Globals/GlobalStore";
 import { GetUIDByTokenMessage } from "../Plugins/UserService/APIs/GetUIDByTokenMessage";
+import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 
 import { mainPagePath } from "../Pages/MainPage";
 
@@ -22,13 +23,20 @@ const Header: React.FC = () => {
                     (info: string) => {
                         resolve(true)
                     },
-                    (error: string) => {
-                        console.error("Token校验失败:", error);
-                        resolve(false);
+                    (e: string) => {
+                        console.error("Token校验失败:", e);
+                        materialAlertError(`Token校验失败`, "", () => {
+                            setUserToken("");
+                            resolve(false);
+                        });
                     }
                 );
-            } catch {
-                resolve(false);
+            } catch (e) {
+                console.error("Token校验异常:", e.message);
+                materialAlertError(`Token校验失败`, "", () => {
+                    setUserToken("");
+                    resolve(false);
+                });
             }
         });
     };
@@ -106,19 +114,19 @@ const Header: React.FC = () => {
                 </div>
             </div>
             {userToken ? (
-                <div className="user-actions">
+                <div className="header-actions">
                     <div className="user-avatar" onClick={handleAvatarClick}>
                         <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+" alt="用户头像" />
                     </div>
-                    <div className="action-btn" onClick={handleMsgClick}>消息</div>
-                    <div className="action-btn" onClick={handleDynamicClick}>动态</div>
-                    <div className="action-btn" onClick={handleFavClick}>收藏</div>
-                    <div className="action-btn" onClick={handleHistoryClick}>历史</div>
-                    <div className="upload-btn" onClick={handleUploadClick}>投稿</div>
+                    <div className="header-action-btn" onClick={handleMsgClick}>消息</div>
+                    <div className="header-action-btn" onClick={handleDynamicClick}>动态</div>
+                    <div className="header-action-btn" onClick={handleFavClick}>收藏</div>
+                    <div className="header-action-btn" onClick={handleHistoryClick}>历史</div>
+                    <div className="header-upload-btn" onClick={handleUploadClick}>投稿</div>
                 </div>
             ) : (
-                <div className="user-actions">
-                    <button className="login-btn" onClick={() => setShowLoginModal(true)}>登录</button>
+                <div className="header-actions">
+                    <button className="header-upload-btn" onClick={() => setShowLoginModal(true)}>登录</button>
                 </div>
             )}
             <LoginModal

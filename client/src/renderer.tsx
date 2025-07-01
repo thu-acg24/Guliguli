@@ -9,22 +9,26 @@ import './Styles/index.css';
 import VideoPage, { videoPagePath } from 'Pages/VideoPage';
 // import SearchPage, { searchPagePath } from 'Pages/SearchPage';
 // import MemberPage, { memberPagePath } from 'Pages/MemberPage';
+import { AlertGadget } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
 
 
 const Layout = () => {
     return (
-        <HashRouter>Main
-            <Routes>
-                <Route path="/" element={<VideoPage />} />
-                <Route path={mainPagePath} element={<MainPage />} />
-                {<Route path={videoPagePath} element={<VideoPage />} />
-                /* <Route path={homePagePath} element={<HomePage />} />
-                <Route path={messagePagePath} element={<MessagePage />} />
-                <Route path={managementPagePath} element={<ManagementPage />} />
-                <Route path={searchPagePath} element={<SearchPage />} />
-                <Route path={memberPagePath} element={<MemberPage />} /> */}
-            </Routes>
-        </HashRouter>
+        <>
+            <HashRouter>Main
+                <Routes>
+                    <Route path="/" element={<VideoPage />} />
+                    <Route path={mainPagePath} element={<MainPage />} />
+                    {<Route path={videoPagePath} element={<VideoPage />} />
+                    /* <Route path={homePagePath} element={<HomePage />} />
+                    <Route path={messagePagePath} element={<MessagePage />} />
+                    <Route path={managementPagePath} element={<ManagementPage />} />
+                    <Route path={searchPagePath} element={<SearchPage />} />
+                    <Route path={memberPagePath} element={<MemberPage />} /> */}
+                </Routes>
+            </HashRouter>
+            <AlertGadget />
+        </>
     )
 }
 const container = document.getElementById('root');
