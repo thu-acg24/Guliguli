@@ -31,36 +31,29 @@ case class DeleteHistoryMessagePlanner(
                                         token: String,
                                         videoID: Int,
                                         override val planContext: PlanContext
-                                      ) extends Planner[Option[String]] {
+                                      ) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
+  override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate user identity
-      userIDOpt <- validateUserIdentity(token)
-      result <- userIDOpt match {
-        case None =>
-          // User validation failed
-          IO(logger.info(s"Token validation failed for token: ${token}")) *> IO.pure(Some("Authentication failed: invalid token"))
-        case Some(userID) =>
-          // Step 2: Delete history record
-          deleteHistoryRecord(userID, videoID)
-      }
-    } yield result
+      userID <- validateUserIdentity(token)
+      _ <- deleteHistoryRecord(userID, videoID)
+    } yield ()
   }
 
   /**
    * 获取用户ID，并校验用户身份是否合法。
    *
    * @param token 用户的认证Token
-   * @return IO[Option[Int]] 如果Token合法，返回Some(userID)，否则返回None
+   * @return IO[Int]
    */
-  private def validateUserIdentity(token: String)(using PlanContext): IO[Option[Int]] = {
+  private def validateUserIdentity(token: String)(using PlanContext): IO[Int] = {
     for {
       _ <- IO(logger.info(s"Calling GetUIDByTokenMessage with token: ${token}"))
-      userIDOpt <- GetUIDByTokenMessage(token).send
-      _ <- IO(logger.info(s"Validation result for token '${token}': ${userIDOpt.fold("Invalid token")(userID => s"Valid UserID=$userID")}"))
-    } yield userIDOpt
+      userID <- GetUIDByTokenMessage(token).send
+      _ <- IO(logger.info(s"Validation result for token ${token}"))
+    } yield userID
   }
 
   /**
@@ -95,14 +88,14 @@ case class DeleteHistoryMessagePlanner(
    *
    * @param userID 用户ID
    * @param videoID 视频ID
-   * @return IO[Option[String]] None表示成功删除，否则返回错误信息。
+   * @return IO[Unit]
    */
-  private def deleteHistoryRecord(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
+  private def deleteHistoryRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
     for {
       exists <- checkHistoryRecordExistence(userID, videoID)
-      result <- if (!exists) {
-        IO(logger.info(s"No history record found for userID: ${userID}, videoID: ${videoID}")) *>
-          IO.pure(Some("Record not found: the specified history record does not exist"))
+      _ <- if (!exists) {
+        IO(logger.info(s"No history record found for userID: ${userID}, videoID: ${videoID}"))*>
+        IO.raiseError(IllegalArgumentException("Video not found"))
       } else {
         val sqlQuery =
           s"""
@@ -117,8 +110,8 @@ case class DeleteHistoryMessagePlanner(
           _ <- IO(logger.info(s"Deleting history record for userID: ${userID}, videoID: ${videoID}"))
           _ <- writeDB(sqlQuery, parameters)
           _ <- IO(logger.info(s"Successfully deleted history record for userID: ${userID}, videoID: ${videoID}"))
-        } yield None // Operation successful, return None
+        } yield () // Operation successful
       }
-    } yield result
+    } yield ()
   }
 }
