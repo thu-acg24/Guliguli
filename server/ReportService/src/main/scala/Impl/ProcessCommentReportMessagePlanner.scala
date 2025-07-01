@@ -6,6 +6,7 @@ import APIs.CommentService.QueryCommentByIDMessage
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
+import APIs.MessageService.SendMessageMessage
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
@@ -19,7 +20,7 @@ import Objects.ReportService.ReportStatus
 import Objects.UserService.UserRole
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
-import Utils.NotifyProcess.sendNotification
+import Utils.ValidateProcess.validateTokenAndRole
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits._
@@ -35,87 +36,33 @@ case class ProcessCommentReportMessagePlanner(
     reportID: Int,
     status: ReportStatus,
     override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
 
   private val logger =
     LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info("开始处理 ProcessCommentReportMessage 请求"))
       // Step 1: 校验 token 是否有效
-      roleOption <- validateTokenAndRole(token)
-      result <- roleOption match {
-        case None =>
-          IO(logger.error("用户权限校验失败，返回未授权访问")) >>
-            IO.pure(Some("Unauthorized Access"))
-        case Some(_) =>
-          // Step 2: 校验 reportID 是否存在
-          validateReportResult <- validateReportID(reportID)
-          validateReportResult match {
-            case Left(errorMsg) =>
-              IO(logger.error(s"校验 reportID 失败：${errorMsg}")) >>
-                IO.pure(Some(errorMsg))
-            case Right((reporterID, commentID)) =>
-              // Step 3: 检查评论和视频是否存在
-              validateCommentResult <- validateCommentAndVideo(commentID)
-              validateCommentResult match {
-                case Left(errorMsg) =>
-                  IO(logger.error(s"校验评论和视频失败：${errorMsg}")) >>
-                    IO.pure(Some(errorMsg))
-                case Right((commentContent, videoTitle, videoID)) =>
-                  // Step 4: 删除评论（根据状态决定是否删除）
-                  deletionResult <- deleteCommentIfNeeded(commentID)
-                  deletionResult match {
-                    case Some(errorMsg) =>
-                      IO(logger.error(s"删除评论失败：${errorMsg}")) >>
-                        IO.pure(Some(errorMsg))
-                    case None =>
-                      // Step 5: 更新举报记录状态
-                      updateReportResult <- updateReportStatus(reportID, status)
-                      updateReportResult match {
-                        case Some(errorMsg) =>
-                          IO(logger.error(s"更新举报记录状态失败：${errorMsg}")) >>
-                            IO.pure(Some(errorMsg))
-                        case None =>
-                          // Step 6: 向用户发送通知
-                          notificationResult <- sendNotificationToReporter(
-                            token,
-                            reporterID,
-                            videoTitle,
-                            commentContent,
-                            status
-                          )
-                          if (notificationResult.isDefined) {
-                            IO(logger.error(s"发送通知失败：${notificationResult.get}"))
-                          }
-                          IO.pure(notificationResult)
-                      }
-                  }
-              }
-          }
+      _ <- validateTokenAndRole(token)
+      (reporterID, commentID) <- validateReportID(reportID)
+      (commentContent, commentAuthorID, videoTitle, videoID) <- validateCommentAndVideo(commentID)
+      _ <- updateReportStatus(reportID, status)
+      _ <- deleteCommentIfNeeded(commentID)
+      _ <- SendMessageMessage(token, reporterID,
+        s"您在视频 ${videoTitle} 下举报的评论 ${commentContent} 已被处理", true).send
+      _ <- status match {
+        case ReportStatus.Resolved => SendMessageMessage(token, commentAuthorID,
+          s"您在视频 ${videoTitle} 下的评论 ${commentContent} 被举报并已被审核员删除", true).send
+        case _ => IO.unit
       }
-    } yield result
-  }
-
-  private def validateTokenAndRole(
-      token: String
-  )(using PlanContext): IO[Option[UserRole]] = {
-    for {
-      _ <- IO(logger.info("开始校验 token 和用户角色"))
-      userRoleOption <- QueryUserRoleMessage(token).send
-      _ <- IO(userRoleOption match {
-        case Some(UserRole.Auditor) =>
-          logger.info("用户角色校验通过")
-        case _ =>
-          logger.error("用户角色校验失败")
-      })
-    } yield userRoleOption.collect { case UserRole.Auditor => UserRole.Auditor }
+    } yield ()
   }
 
   private def validateReportID(
       reportID: Int
-  )(using PlanContext): IO[Either[String, (Int, Int)]] = {
+  )(using PlanContext): IO[(Int, Int)] = {
     for {
       _ <- IO(logger.info(s"校验 reportID [${reportID}] 是否存在"))
       result <- readDBJsonOptional(
@@ -124,55 +71,41 @@ case class ProcessCommentReportMessagePlanner(
       )
     } yield result match {
       case None =>
-        Left("Report Not Found or Already Processed")
+        throw IllegalArgumentException("Report Not Found or Already Processed")
       case Some(json) =>
         val status = decodeField[String](json, "status")
         if (status != ReportStatus.Pending.toString) {
-          Left("Report Not Found or Already Processed")
+          throw IllegalArgumentException("Report Not Found or Already Processed")
         } else {
           val reporterID = decodeField[Int](json, "reporter_id")
           val commentID = decodeField[Int](json, "comment_id")
-          Right((reporterID, commentID))
+          (reporterID, commentID)
         }
     }
   }
 
   private def validateCommentAndVideo(
       commentID: Int
-  )(using PlanContext): IO[Either[String, (String, String, Int)]] = {
+  )(using PlanContext): IO[(String, Int, String, Int)] = {
     for {
       _ <- IO(logger.info(s"校验评论 [${commentID}] 和其所属视频是否存在"))
-      commentOption <- QueryCommentByIDMessage(commentID).send
-      result <- commentOption match {
-        case None =>
-          IO.pure(Left("Comment does not exist"))
-        case Some(comment) =>
-          val videoID = comment.videoID
-          for {
-            videoOption <- QueryVideoInfoMessage(Some(token), videoID).send
-          } yield videoOption match {
-            case None =>
-              Left("Video does not exist")
-            case Some(video) if video.status != VideoStatus.Approved =>
-              Left("Video is not public")
-            case Some(video) =>
-              Right((comment.content, video.title, videoID))
-          }
-      }
-    } yield result
+      comment <- QueryCommentByIDMessage(commentID).send
+      videoID = comment.videoID
+      video <- QueryVideoInfoMessage(Some(token), videoID).send
+    } yield (comment.content, comment.authorID, video.title, videoID)
   }
 
-  private def deleteCommentIfNeeded(commentID: Int)(using PlanContext): IO[Option[String]] = {
+  private def deleteCommentIfNeeded(commentID: Int)(using PlanContext): IO[Unit] = {
     if (status == ReportStatus.Resolved) {
       DeleteCommentMessage(token, commentID).send
     } else {
-      IO.pure(None)
+      IO.unit
     }
   }
 
   private def updateReportStatus(reportID: Int, status: ReportStatus)(using
       PlanContext
-  ): IO[Option[String]] = {
+  ): IO[String] = {
     for {
       _ <- IO(logger.info(s"更新举报记录状态为 ${status}"))
       writeResult <- writeDB(
@@ -182,13 +115,7 @@ case class ProcessCommentReportMessagePlanner(
           SqlParameter("Int", reportID.toString)
         )
       )
-    } yield {
-      if (writeResult != "Operation(s) done successfully") {
-        Some("Failed to process report")
-      } else {
-        None
-      }
-    }
+    } yield writeResult
   }
 
 }

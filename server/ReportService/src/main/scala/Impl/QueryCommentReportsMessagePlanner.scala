@@ -13,6 +13,7 @@ import Common.ServiceUtils.schemaName
 import Objects.ReportService.ReportComment
 import Objects.ReportService.ReportStatus
 import Objects.UserService.UserRole
+import Utils.ValidateProcess.validateTokenAndRole
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
@@ -25,45 +26,15 @@ import org.slf4j.LoggerFactory
 case class QueryCommentReportsMessagePlanner(
                                               token: String,
                                               override val planContext: PlanContext
-                                            ) extends Planner[Option[List[ReportComment]]] {
+                                            ) extends Planner[List[ReportComment]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[List[ReportComment]]] = {
+  override def plan(using planContext: PlanContext): IO[List[ReportComment]] = {
     for {
       // Step 1: Verify Token and Auditor Role
-      isAuditor <- validateUserTokenAndRole()
-      reportsOpt <- if (isAuditor) {
-        // Step 2: Query Pending Comment Reports
-        queryPendingReports.map(reports => {
-          logger.info(s"查询完成，得到的记录数量为：${reports.length}")
-          Some(reports)
-        })
-      } else {
-        IO(logger.info("用户Token无效或用户不具备审核员权限，返回None")) *> IO.pure(None)
-      }
-    } yield reportsOpt
-  }
-
-  private def validateUserTokenAndRole()(using PlanContext): IO[Boolean] = {
-    for {
-      _ <- IO(logger.info("调用GetUIDByTokenMessage验证Token合法性"))
-      userIDOpt <- GetUIDByTokenMessage(token).send
-      isAuditor <- userIDOpt match {
-        case Some(userID) =>
-          IO(logger.info(s"Token合法，对应的用户ID为：${userID}")) >>
-          IO(logger.info("调用QueryUserRoleMessage获取用户角色信息")) >>
-          QueryUserRoleMessage(token).send.map {
-            case Some(UserRole.Auditor) =>
-              logger.info("用户角色为Auditor，具备审核员权限")
-              true
-            case _ =>
-              logger.info("用户角色不为Auditor，拒绝操作")
-              false
-          }
-        case None =>
-          IO(logger.info("Token无效")) *> IO.pure(false)
-      }
-    } yield isAuditor
+      _ <- validateTokenAndRole(token)
+      result <- queryPendingReports
+    } yield result
   }
 
   private def queryPendingReports(using PlanContext): IO[List[ReportComment]] = {
@@ -72,7 +43,7 @@ case class QueryCommentReportsMessagePlanner(
          |SELECT report_id, comment_id, reporter_id, reason, status, timestamp
          |FROM ${schemaName}.report_comment_table
          |WHERE status = ?
-         |ORDER BY timestamp DESC;
+         |ORDER BY timestamp ASC;
          """.stripMargin
 
     val params = List(SqlParameter("String", ReportStatus.Pending.toString))

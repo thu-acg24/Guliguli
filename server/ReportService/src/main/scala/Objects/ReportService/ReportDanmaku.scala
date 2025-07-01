@@ -24,7 +24,8 @@ import scala.util.Try
  * @param danmakuID: Int (被举报的弹幕的唯一ID)
  * @param reporterID: Int (举报人的唯一ID)
  * @param reason: String (举报理由)
- * @param status: ReportStatus:1016 (举报处理状态)
+ * @param status: ReportStatus (举报处理状态)
+ * @param timestamp: DateTime (举报时间)
  */
 
 case class ReportDanmaku(
@@ -32,7 +33,8 @@ case class ReportDanmaku(
   danmakuID: Int,
   reporterID: Int,
   reason: String,
-  status: ReportStatus
+  status: ReportStatus,
+  timestamp: DateTime
 ){
 
   //process class code 预留标志位，不要删除

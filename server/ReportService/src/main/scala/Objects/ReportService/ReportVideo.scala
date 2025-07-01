@@ -24,7 +24,8 @@ import scala.util.Try
  * @param videoID: Int (被举报视频的唯一标识)
  * @param reporterID: Int (举报用户的唯一标识)
  * @param reason: String (举报的原因)
- * @param status: ReportStatus:1016 (处理该举报的状态)
+ * @param status: ReportStatus (处理该举报的状态)
+ * @param timestamp: DateTime (举报时间)
  */
 
 case class ReportVideo(
@@ -32,7 +33,8 @@ case class ReportVideo(
   videoID: Int,
   reporterID: Int,
   reason: String,
-  status: ReportStatus
+  status: ReportStatus,
+  timestamp: DateTime
 ){
 
   //process class code 预留标志位，不要删除
