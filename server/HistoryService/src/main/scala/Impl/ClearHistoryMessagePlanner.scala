@@ -21,42 +21,28 @@ import org.slf4j.LoggerFactory
 case class ClearHistoryMessagePlanner(
                                        token: String,
                                        override val planContext: PlanContext
-                                     ) extends Planner[Option[String]] {
+                                     ) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
+  override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info(s"开始处理清空历史记录请求，用户Token为：${token}"))
 
       // 验证用户Token并获取对应的用户ID
-      userIDOpt <- validateTokenAndFetchUserID(token)
-
+      userID <- validateTokenAndFetchUserID(token)
+      _ <- IO(logger.info(s"Token解析成功，用户ID为：${userID}"))
+      clearResult <- clearUserHistory(userID)
+      _ <- IO(logger.info(s"历史记录清空结果：${clearResult}"))
       // 根据用户ID进行相应的操作
-      resultOpt <- userIDOpt match {
-        case Some(userID) =>
-          for {
-            _ <- IO(logger.info(s"Token解析成功，用户ID为：${userID}"))
-
-            // 清空观看历史记录
-            clearResult <- clearUserHistory(userID)
-
-            _ <- IO(logger.info(s"历史记录清空结果：${clearResult}"))
-          } yield None // 表示操作成功，返回None
-        case None =>
-          IO {
-            logger.error("Token解析失败，无法获取用户ID")
-            Some("Invalid token") // Token无效，返回错误信息
-          }
-      }
-    } yield resultOpt
+    } yield ()
   }
 
   // 验证用户Token并获取用户ID
-  private def validateTokenAndFetchUserID(token: String)(using PlanContext): IO[Option[Int]] = {
+  private def validateTokenAndFetchUserID(token: String)(using PlanContext): IO[Int] = {
     for {
       _ <- IO(logger.info(s"调用 GetUIDByTokenMessage 根据用户Token获取用户ID"))
-      userIDOpt <- GetUIDByTokenMessage(token).send
-    } yield userIDOpt
+      userID <- GetUIDByTokenMessage(token).send
+    } yield userID
   }
 
   // 删除用户的观看历史记录

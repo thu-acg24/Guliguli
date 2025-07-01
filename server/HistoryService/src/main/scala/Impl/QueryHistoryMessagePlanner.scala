@@ -29,18 +29,17 @@ case class QueryHistoryMessagePlanner(
                                        rangeL: Int,
                                        rangeR: Int,
                                        override val planContext: PlanContext
-                                     ) extends Planner[Option[List[HistoryRecord]]] {
+                                     ) extends Planner[List[HistoryRecord]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[List[HistoryRecord]]] = {
+  override def plan(using planContext: PlanContext): IO[List[HistoryRecord]] = {
     for {
       // Step 1: 验证用户Token
       _ <- IO(logger.info(s"开始验证Token: ${token}"))
-      userIDOption <- validateToken(token)
-      
+      userID <- validateToken(token)
       // Step 2: 查询并分页提取用户的历史记录
-      _ <- IO(logger.info(s"Token验证结果: ${userIDOption}"))
-      historyRecords <- queryHistoryByToken(userIDOption)
+      _ <- IO(logger.info(s"Token验证结果: ${userID}"))
+      historyRecords <- queryHistoryByToken(userID)
     } yield historyRecords
   }
 
@@ -48,7 +47,7 @@ case class QueryHistoryMessagePlanner(
    * Step 1: 验证用户Token是否合法。
    * 调用公共方法GetUIDByTokenMessage验证Token是否有效。
    */
-  private def validateToken(token: String)(using PlanContext): IO[Option[Int]] = {
+  private def validateToken(token: String)(using PlanContext): IO[Int] = {
     logger.info(s"调用API获取用户ID，参数Token: ${token}")
     GetUIDByTokenMessage(token).send
   }
@@ -57,15 +56,11 @@ case class QueryHistoryMessagePlanner(
    * Step 2: 根据验证结果查询用户的观看历史记录。
    * 如果Token无效，直接返回None；否则查询用户历史记录表。
    */
-  private def queryHistoryByToken(userIDOption: Option[Int])(using PlanContext): IO[Option[List[HistoryRecord]]] = {
-    userIDOption match {
-      case Some(userID) =>
-        IO(logger.info(s"用户合法，开始查询历史记录，用户ID: ${userID}")) >>
-          queryUserHistory(userID, rangeL, rangeR).map(Some(_))
-      case None =>
-        IO(logger.info(s"Token非法，返回空记录")) >>
-          IO.pure(None)
-    }
+  private def queryHistoryByToken(userID: Int)(using PlanContext): IO[List[HistoryRecord]] = {
+
+        IO(logger.info(s"用户合法，开始查询历史记录，用户ID: ${userID}")) >> 
+          queryUserHistory(userID, rangeL, rangeR)
+      
   }
 
   /**
