@@ -7,13 +7,28 @@ interface RegisterModalProps {
 }
 
 const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [isClosing, setIsClosing] = useState(false);
+
+    if (!isOpen && !isClosing) return null;
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            onClose();
+        }, 100); // 与动画时长保持一致
+    };
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            handleClose();
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -46,7 +61,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         try {
             new RegisterMessage(username, email, password).send(
                 (info: string) => {
-                    onClose();
+                    handleClose();
                 }, (e) => {
                     setMessage(e || '注册失败！');
                 }
@@ -57,11 +72,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     }
 
     return (
-        <div className="modal" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal" onClick={handleBackdropClick}>
+            <div className={`modal-content ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <div className="modal-title">注册</div>
-                    <div className="modal-close" onClick={onClose}>&times;</div>
+                    <div className="modal-close" onClick={handleClose}>&times;</div>
                 </div>
                 <div className="modal-body">
                     <form className="login-form" onSubmit={handleSubmit}>
@@ -121,7 +136,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
                         <div className="register-link">
                             已有账户？<a href="#" onClick={(e) => {
                                 e.preventDefault();
-                                onClose();
+                                handleClose();
                             }}>返回登录</a>
                         </div>
                     </form>

@@ -9,12 +9,27 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [isClosing, setIsClosing] = useState(false);
+
+    if (!isOpen && !isClosing) return null;
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            onClose();
+        }, 100); // 与动画时长保持一致
+    };
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            handleClose();
+        }
+    };
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
@@ -22,7 +37,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 (info: string) => {
                     const token = JSON.parse(info);
                     setUserToken(token);
-                    onClose();
+                    handleClose();
                 }, (e) => {
                     setMessage(e || '登录失败！');
                 }
@@ -34,11 +49,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
     return (
         <>
-            <div className="modal" onClick={onClose}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal" onClick={handleBackdropClick}>
+                <div className={`modal-content ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
                     <div className="modal-header">
                         <div className="modal-title">登录</div>
-                        <div className="modal-close" onClick={onClose}>&times;</div>
+                        <div className="modal-close" onClick={handleClose}>&times;</div>
                     </div>
                     <div className="modal-body">
                         <form className="login-form" onSubmit={handleSubmit}>
