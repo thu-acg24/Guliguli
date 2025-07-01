@@ -27,6 +27,7 @@ docker run -d ^
   -e MINIO_ROOT_USER=gugugaga ^
   --mount type=bind,source="%PASSWORD_FILE%",target=/run/secrets/minio_pwd,readonly ^
   -e MINIO_ROOT_PASSWORD_FILE=/run/secrets/minio_pwd ^
+  -e "MINIO_SERVER_URL=https://44e0-141-11-146-73.ngrok-free.app"
   --name minio-with-ffmpeg ^
   custom-minio ^
   server /data --console-address ":9001"

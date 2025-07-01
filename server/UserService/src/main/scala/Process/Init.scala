@@ -69,7 +69,7 @@ object Init {
             username TEXT NOT NULL,
             email TEXT NOT NULL,
             password_hash TEXT NOT NULL,
-            avatar_path TEXT,
+            avatar_path TEXT NOT NULL DEFAULT 'default.jpg',
             user_role TEXT NOT NULL DEFAULT 'Normal',
             video_count INT NOT NULL DEFAULT 0,
             is_banned BOOLEAN NOT NULL DEFAULT false,
