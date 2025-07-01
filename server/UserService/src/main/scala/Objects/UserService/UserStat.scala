@@ -1,3 +1,4 @@
+
 package Objects.UserService
 
 
@@ -21,15 +22,11 @@ import scala.util.Try
  * desc: 用户的统计信息，包括粉丝、关注、视频数和收藏夹视频数
  * @param followerCount: Int (粉丝数量)
  * @param followingCount: Int (关注的人数)
- * @param videoCount: Int (上传的视频数量)
- * @param favoriteVideoCount: Int (收藏夹中的视频数量)
  */
 
 case class UserStat(
   followerCount: Int,
-  followingCount: Int,
-  videoCount: Int,
-  favoriteVideoCount: Int
+  followingCount: Int
 ){
 
   //process class code 预留标志位，不要删除

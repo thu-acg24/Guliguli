@@ -34,11 +34,12 @@ object Init {
       _ <- writeDB(
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."follow_relation_table" (
-            follower_id SERIAL NOT NULL PRIMARY KEY,
+            follow_relation_id SERIAL NOT NULL PRIMARY KEY,
+            follower_id INT NOT NULL,
             followee_id INT NOT NULL,
             timestamp TIMESTAMP NOT NULL
         );
-         
+        CREATE INDEX IF NOT EXISTS idx_follow_relation_timestamp ON follow_relation_table(timestamp);
         """,
         List()
       )

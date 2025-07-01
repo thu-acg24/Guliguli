@@ -23,11 +23,11 @@ case class RegisterMessagePlanner(
   email: String,
   password: String,
   override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[String]] = {
+  override def plan(using planContext: PlanContext): IO[Unit] = {
 
     for {
       // Step 1: Validate format of username and email
@@ -59,24 +59,16 @@ case class RegisterMessagePlanner(
 
       // Step 4: Insert user record into UserTable
       _ <- IO(logger.info("准备将用户信息插入数据库"))
-      result <- insertUserRecord(username, email, passwordHash)
-      _ <- if (result) 
-             IO(logger.info("用户注册成功")) 
-           else 
-             IO.raiseError(new Exception("Failed to register user"))
+      _ <- insertUserRecord(username, email, passwordHash)
+      _ <- IO(logger.info("用户注册成功"))
 
-    } yield None
-  }.handleErrorWith { e =>
-    IO {
-      logger.error(s"用户注册失败，错误信息：${e.getMessage}")
-      Some(e.getMessage)
-    }
+    } yield ()
   }
 
   // Validate username format
   private def validateUsernameFormat(username: String): IO[Boolean] = IO {
     logger.info(s"校验用户名格式: ${username}")
-    username.nonEmpty && username.length >= 3 && username.matches("^[a-zA-Z0-9_]+$")
+    username.nonEmpty && username.length >= 3 && username.length <= 20
   }
 
   // Validate email format
@@ -100,7 +92,7 @@ case class RegisterMessagePlanner(
   }
 
   // Insert the user record into UserTable
-  private def insertUserRecord(username: String, email: String, passwordHash: String)(using PlanContext): IO[Boolean] = {
+  private def insertUserRecord(username: String, email: String, passwordHash: String)(using PlanContext): IO[String] = {
     val now = DateTime.now()
     val query =
       s"""
@@ -113,11 +105,6 @@ case class RegisterMessagePlanner(
       SqlParameter("String", passwordHash),
       SqlParameter("DateTime", now.getMillis.toString),
       SqlParameter("DateTime", now.getMillis.toString)
-    )).map(_ => true).handleErrorWith { e =>
-      IO {
-        logger.error(s"插入数据库失败，错误信息：${e.getMessage}")
-        false
-      }
-    }
+    ))
   }
 }

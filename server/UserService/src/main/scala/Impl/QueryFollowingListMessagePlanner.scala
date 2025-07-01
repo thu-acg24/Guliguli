@@ -27,17 +27,33 @@ case class QueryFollowingListMessagePlanner(
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[List[FollowRelation]] = {
+    val sql =
+      s"""
+         |SELECT follower_id, followee_id, timestamp
+         |FROM ${schemaName}.follow_relation_table
+         |WHERE follower_id = ?
+         |ORDER BY timestamp DESC
+         |OFFSET ? LIMIT ?;
+         |""".stripMargin
+    val param = List(
+      SqlParameter("Int", userID.toString),
+      SqlParameter("Int", rangeL.toString),
+      SqlParameter("Int", (rangeR - rangeL).toString)
+    )
     for {
+      _ <- IO.unit.ensure(IllegalArgumentException("Invalid range")) { _ =>
+        rangeL > 0 && rangeR <= 2001 && rangeL <= rangeR
+      }
       // Step 1: Query followees based on userID
       _ <- IO(logger.info(s"从关注关系表中查询UserID=${userID}的关注者"))
-      followeeRecords <- queryFolloweeRecords()
+      followeeRecords <- readDBRows(sql, param)
 
       // Step 2: If followeeRecords is empty, return an empty list
       _ <- IO(logger.info(s"检查查询结果是否为空"))
       result <- if (followeeRecords.isEmpty) {
-        IO(logger.info("查询结果为空，返回空列表")) *> IO.pure(List.empty[FollowRelation])
+        IO(logger.info("查询结果为空，返回空列表")) >> IO.pure(List.empty[FollowRelation])
       } else {
-        // Step 3-5: Process followee records (Sort, Paginate, Transform)
+        // Step 3: Process followee records
         processFolloweeRecords(followeeRecords)
       }
     } yield result
@@ -59,22 +75,10 @@ case class QueryFollowingListMessagePlanner(
   /** Step 3-5: Process followee records (Sort, Paginate, Transform) */
   private def processFolloweeRecords(followeeRecords: List[Json])(using PlanContext): IO[List[FollowRelation]] = {
     for {
-      // Step 3: Sort records by timestamp in ascending order
-      _ <- IO(logger.info(s"对查询结果按照timestamp字段升序排序"))
-      sortedRecords <- IO {
-        followeeRecords.sortBy(record => decodeField[DateTime](record, "timestamp"))
-      }
-
-      // Step 4: Apply pagination based on rangeL and rangeR
-      _ <- IO(logger.info(s"根据分页范围rangeL=${rangeL}和rangeR=${rangeR}进行分页提取"))
-      paginatedRecords <- IO {
-        sortedRecords.slice(rangeL, rangeR)
-      }
-
-      // Step 5: Transform paginated records into FollowRelation objects
+      // Step 3: Transform paginated records into FollowRelation objects
       _ <- IO(logger.info(s"将分页后的记录封装为FollowRelation格式的对象"))
       followList <- IO {
-        paginatedRecords.map(record => decodeType[FollowRelation](record))
+        followeeRecords.map(record => decodeType[FollowRelation](record))
       }
     } yield followList
   }
