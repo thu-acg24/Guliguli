@@ -23,7 +23,7 @@ import scala.util.Try
 
 case class ModifyAvatarMessage(
   token: String
-) extends API[String](UserServiceCode)
+) extends API[List[String]](UserServiceCode)
 
 case object ModifyAvatarMessage{
 

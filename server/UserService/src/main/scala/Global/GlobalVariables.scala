@@ -1,8 +1,9 @@
 package Global
 
-
+import scala.collection.mutable
 import Global.MinioConfig
 import Global.ServiceCenter.*
+import Objects.UserService.UploadSession
 import io.minio.MinioClient
 
 object GlobalVariables {
@@ -13,6 +14,7 @@ object GlobalVariables {
     .endpoint(minioConfig.endpoint)
     .credentials(minioConfig.accessKey, minioConfig.secretKey)
     .build()
+  val sessions: mutable.Map[String, UploadSession] = mutable.Map[String, UploadSession]()
   var isTest:Boolean=false
 
 }

@@ -9,7 +9,9 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.minioClient
+import Global.GlobalVariables.sessions
 import Objects.UserService.UserInfo
+import Objects.UserService.UploadSession
 import Utils.AuthProcess.validateToken
 import cats.effect.IO
 import cats.effect.std.Random
@@ -19,6 +21,7 @@ import io.circe.generic.auto.*
 import io.circe.syntax.*
 import io.minio.http.Method
 import java.util.concurrent.TimeUnit
+import java.util.UUID
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -29,30 +32,27 @@ import org.slf4j.LoggerFactory
 case class ModifyAvatarMessagePlanner(
                                          token: String,
                                          override val planContext: PlanContext
-                                       ) extends Planner[String] {
+                                       ) extends Planner[List[String]] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   // Main plan definition
-  override def plan(using PlanContext): IO[String] = {
+  override def plan(using PlanContext): IO[List[String]] = {
     for {
       _ <- IO(logger.info(s"Validating token $token"))
       userID <- validateToken(token)
       objectName <- generateObjectName(userID)
       uploadUrl <- generateUploadUrl(objectName)
-    } yield uploadUrl
+      sessionToken <- IO(UUID.randomUUID().toString)
+      _ <- IO(sessions.put(sessionToken, UploadSession(sessionToken, userID, uploadUrl)))
+    } yield List(uploadUrl, sessionToken)
   }
 
   private def generateObjectName(userID: Int): IO[String] = {
     for {
       timestamp <- IO.realTimeInstant.map(_.toEpochMilli)
       random <- Random.scalaUtilRandom[IO].flatMap(_.betweenInt(0, 10000))
-      extension = contentType match {
-        case "image/jpeg" => "jpg"
-        case "image/png" => "png"
-        case "image/gif" => "gif"
-      }
-    } yield s"$userID/$timestamp-$random.$extension"
+    } yield s"$userID/$timestamp-$random.jpg"
   }
 
   private def generateUploadUrl(objectName: String): IO[String] = {
@@ -60,30 +60,11 @@ case class ModifyAvatarMessagePlanner(
       minioClient.getPresignedObjectUrl(
         io.minio.GetPresignedObjectUrlArgs.builder()
           .method(Method.PUT)
-          .bucket("avatar")
+          .bucket("temp")
           .`object`(objectName)
           .expiry(3, TimeUnit.MINUTES)
           .build()
       )
     }
-  }
-
-  private def updateAvatarLikeInDB(userID: Int, objectName: String)(using PlanContext): IO[Unit] = {
-    val querySQL =
-      s"""
-           UPDATE ${schemaName}.user_table
-           SET avatar_path = ?
-           WHERE user_id = ?
-         """.stripMargin
-
-    val queryParams = List(
-      SqlParameter("String", objectName),
-      SqlParameter("Int", userID.toString)
-    )
-
-    for {
-      _ <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams"))
-      updateResponse <- writeDB(querySQL, queryParams)
-    } yield ()
   }
 }

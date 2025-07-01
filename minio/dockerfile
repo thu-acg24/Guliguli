@@ -1,0 +1,24 @@
+# 使用更兼容的基础镜像
+FROM alpine:3.18 AS builder
+
+# 安装 FFmpeg
+RUN apk update && \
+    apk add --no-cache \
+        ffmpeg \
+        libgomp \
+        libstdc++
+
+# 使用 MinIO 官方镜像
+FROM minio/minio:latest
+
+# 从构建阶段复制 FFmpeg 二进制文件和依赖
+COPY --from=builder /usr/bin/ffmpeg /usr/bin/ffmpeg
+COPY --from=builder /usr/bin/ffprobe /usr/bin/ffprobe
+COPY --from=builder /usr/bin/ffplay /usr/bin/ffplay
+
+# 复制必要的库文件
+COPY --from=builder /usr/lib/ /usr/lib/
+COPY --from=builder /lib/ /lib/
+
+# 验证安装
+RUN ffmpeg -version

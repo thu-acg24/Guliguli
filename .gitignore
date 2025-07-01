@@ -10,3 +10,6 @@
 **.css.map
 **/*.env
 **/.DS_Store
+minio/config
+minio/data
+minio/minio_pwd.txt
