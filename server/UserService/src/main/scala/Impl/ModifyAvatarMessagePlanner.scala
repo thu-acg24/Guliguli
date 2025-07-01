@@ -28,25 +28,19 @@ import org.slf4j.LoggerFactory
 
 case class ModifyAvatarMessagePlanner(
                                          token: String,
-                                         contentType: String,
                                          override val planContext: PlanContext
-                                       ) extends Planner[Option[String]] {
+                                       ) extends Planner[String] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   // Main plan definition
-  override def plan(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"Validating token $token"))
-    validateToken(token).flatMap {
-      case Some(userID) =>
-        for {
-          objectName <- generateObjectName(userID)
-          uploadUrl <- generateUploadUrl(objectName)
-          _ <- updateAvatarLikeInDB(userID, objectName)
-        } yield()
-      case None =>
-        IO(logger.error("Token validation failed: Invalid Token")).void
-    }
+  override def plan(using PlanContext): IO[String] = {
+    for {
+      _ <- IO(logger.info(s"Validating token $token"))
+      userID <- validateToken(token)
+      objectName <- generateObjectName(userID)
+      uploadUrl <- generateUploadUrl(objectName)
+    } yield uploadUrl
   }
 
   private def generateObjectName(userID: Int): IO[String] = {
