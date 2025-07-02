@@ -41,7 +41,7 @@ object Init {
             sender_id INT NOT NULL,
             receiver_id INT NOT NULL,
             content TEXT NOT NULL,
-            send_time TIMESTAMP NOT NULL
+            send_time TIMESTAMP NOT NULL,
             unread BOOLEAN NOT NULL DEFAULT TRUE
         );
         """,
@@ -60,7 +60,7 @@ object Init {
             notification_id SERIAL NOT NULL PRIMARY KEY,
             receiver_id INT NOT NULL,
             content TEXT NOT NULL,
-            send_time TIMESTAMP NOT NULL
+            send_time TIMESTAMP NOT NULL,
             unread BOOLEAN NOT NULL DEFAULT TRUE
         );
         """,

@@ -54,7 +54,7 @@ case class QueryUserInContactMessagePlanner(
           |WHEN receiver_id = ? THEN sender_id
           |END AS contact_user_id
           |FROM ${schemaName}.message_table
-          |WHERE (sender_id = ? OR receiver_id = ?) AND is_notification = false;
+          |WHERE (sender_id = ? OR receiver_id = ?)
       """.stripMargin
     IO(logger.info("开始创建获取联系人ID的数据库指令"))*>
     IO(logger.info(s"指令为${sql}")) *>

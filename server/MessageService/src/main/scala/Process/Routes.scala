@@ -9,8 +9,13 @@ import Common.Serialize.CustomColumnTypes.*
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Impl.QueryMessagesMessagePlanner
+import Impl.QueryNoticesCountMessagePlanner
+import Impl.QueryNotificationsMessagePlanner
+import Impl.QueryReplyNoticesMessagePlanner
 import Impl.QueryUserInContactMessagePlanner
 import Impl.SendMessageMessagePlanner
+import Impl.SendNotificationMessagePlanner
+import Impl.SendReplyNoticeMessagePlanner
 import cats.effect.*
 import fs2.concurrent.Topic
 import io.circe.*
@@ -37,11 +42,46 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryMessagesMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
+
+      case "QueryNoticesCountMessage" =>
+        IO(
+          decode[QueryNoticesCountMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryNoticesCountMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryNotificationsMessage" =>
+        IO(
+          decode[QueryNotificationsMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryNotificationsMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryReplyNoticesMessage" =>
+        IO(
+          decode[QueryReplyNoticesMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryReplyNoticesMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
       case "SendMessageMessage" =>
         IO(
           decode[SendMessageMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SendMessageMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "SendNotificationMessage" =>
+        IO(
+          decode[SendNotificationMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SendNotificationMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "SendReplyNoticeMessage" =>
+        IO(
+          decode[SendReplyNoticeMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SendReplyNoticeMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

@@ -17,7 +17,7 @@ import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
-case class SendReplyNoticePlanner(
+case class SendReplyNoticeMessagePlanner(
     token: String,
     commentID: Int,
     override val planContext: PlanContext

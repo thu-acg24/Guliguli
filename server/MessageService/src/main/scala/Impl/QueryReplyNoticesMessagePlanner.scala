@@ -16,7 +16,7 @@ import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 
-case class QueryReplyNoticesPlanner(
+case class QueryReplyNoticesMessagePlanner(
                                         token: String,
                                         override val planContext: PlanContext
                                       ) extends Planner[List[ReplyNotice]] {
