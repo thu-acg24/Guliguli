@@ -111,7 +111,15 @@ const WhisperTab: React.FC = () => {
   }, [userToken]);
 
   useEffect(() => {
-    if (selectedUser) fetchMessages(selectedUser);
+    if (selectedUser) {
+      const loadData = async () => {
+        if (selectedUser) {
+          await fetchMessages(selectedUser); // 等待完成
+          await fetchConversations();
+        }
+      };
+      loadData();
+    }
   }, [selectedUser]);
 
   useEffect(() => {
@@ -137,42 +145,59 @@ async function getUserIdByToken(userToken: string): Promise<number> {
     }
   });
 }
-
   const fetchConversations = async () => {
     setLoading(true);
     try {
-      new QueryUserInContactMessage(userToken).send(
-        (info: string) => {
-          const data = JSON.parse(info);
-          console.log("data type: ", typeof(data));
-          setConversations(data);
-        },
-        (e: string) => {
-          materialAlertError('加载对话列表失败', e);
-        }
-      );
+      await new Promise<void>((resolve, reject) => {
+        new QueryUserInContactMessage(userToken).send(
+            (info: string) => {
+              try {
+                const data = JSON.parse(info);
+                setConversations(data);
+                resolve(); // 只有这里才表示真正完成
+              } catch (e) {
+                reject(e);
+              }
+            },
+            (e: string) => reject(new Error(e)) // 将失败转为 rejection
+        );
+      });
     } catch (error) {
       materialAlertError('加载对话列表失败', error.message);
     } finally {
-      setLoading(false);
+      setLoading(false); // 此时确保所有操作已完成
     }
   };
-
-  const fetchMessages = async (userId: number) => {
+  const fetchMessages = async (userId: number): Promise<void> => {
     setLoading(true);
+
     try {
-      new QueryMessagesMessage(userToken, userId).send(
-        (info: string) => {
-          const data:Message[] = JSON.parse(info);
-          setMessages(data.map(msg => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          })));
-        },
-        (e: string) => {
-          materialAlertError('加载消息失败', e);
-        }
-      );
+      // 将回调式API转换为Promise
+      const messages = await new Promise<Message[]>((resolve, reject) => {
+        new QueryMessagesMessage(userToken, userId).send(
+            (info: string) => {
+              try {
+                const data: Message[] = JSON.parse(info);
+                resolve(data); // 成功时返回解析的数据
+              } catch (e) {
+                reject(new Error("消息解析失败")); // JSON解析错误
+              }
+            },
+            (e: string) => {
+              reject(new Error(e)); // 网络或业务错误
+            }
+        );
+      });
+
+      // 处理并设置消息状态
+      setMessages(messages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      })));
+
     } catch (error) {
       materialAlertError('加载消息失败', error.message);
     } finally {
@@ -180,58 +205,95 @@ async function getUserIdByToken(userToken: string): Promise<number> {
     }
   };
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (): Promise<void> => {
     try {
-      new QueryNotificationsMessage(userToken).send(
-        (info: string) => {
-          // 处理系统通知数据
-          const data = JSON.parse(info);
-          console.log('Notifications:', data);
-        },
-        (e: string) => {
-          console.error('加载通知失败', e);
-        }
-      );
+      // 将回调式API转换为Promise
+      const notifications = await new Promise<any>((resolve, reject) => {
+        new QueryNotificationsMessage(userToken).send(
+            (info: string) => {
+              try {
+                const data = JSON.parse(info);
+                resolve(data); // 成功时返回解析的数据
+              } catch (e) {
+                reject(new Error("通知解析失败")); // JSON解析错误
+              }
+            },
+            (e: string) => {
+              reject(new Error(e)); // 网络或业务错误
+            }
+        );
+      });
+
+      // 处理通知数据
+      console.log('Notifications:', notifications);
+
     } catch (error) {
-      console.error('加载通知失败', error);
+      console.error('加载通知失败', error instanceof Error ? error.message : String(error));
     }
   };
 
-  const fetchReplyNotices = async () => {
+  const fetchReplyNotices = async (): Promise<ReplyNotice[]> => {
     try {
-      new QueryReplyNoticesMessage(userToken).send(
-        (info: string) => {
-          // 处理回复通知数据
-          const data = JSON.parse(info);
-          console.log('Reply Notices:', data);
-        },
-        (e: string) => {
-          console.error('加载回复通知失败', e);
-        }
-      );
+      // 将回调API转换为Promise
+      const notices = await new Promise<ReplyNotice[]>((resolve, reject) => {
+        new QueryReplyNoticesMessage(userToken).send(
+            (info: string) => {
+              try {
+                const data: ReplyNotice[] = JSON.parse(info);
+                resolve(data);
+              } catch (e) {
+                reject(new Error(`回复通知解析失败: ${e instanceof Error ? e.message : String(e)}`));
+              }
+            },
+            (e: string) => {
+              reject(new Error(`API请求失败: ${e}`));
+            }
+        );
+      });
+
+      console.log('Reply Notices:', notices);
+      return notices;
+
     } catch (error) {
-      console.error('加载回复通知失败', error);
+      const errorMsg = error instanceof Error ? error.message : '未知错误';
+      console.error('加载回复通知失败:', errorMsg);
+      throw error; // 保持错误传播
     }
   };
 
 // 修改handleSendMessage函数
-  const handleSendMessage = () => {
+  const handleSendMessage = async (): Promise<void> => {
+    // 1. 输入验证
     if (!messageInput.trim() || !selectedUser) return;
 
-    // 保存选中的用户ID到sessionStorage
-    sessionStorage.setItem('selectedUser', selectedUser.toString());
+    try {
+      // 2. 保存选中的用户ID
+      sessionStorage.setItem('selectedUser', selectedUser.toString());
 
-    // 实际发送消息
-    new SendMessageMessage(userToken, selectedUser, messageInput).send(
-        () => {
-          // 发送成功后设置刷新标志
-          setRefreshFlag(!refreshFlag);
-          setMessageInput("")
-        },
-        (e: string) => {
-          materialAlertError('发送消息失败', e);
-        }
-    );
+      // 3. 发送消息（Promise化）
+      await new Promise<void>((resolve, reject) => {
+        new SendMessageMessage(userToken, selectedUser, messageInput).send(
+            () => {
+              resolve(); // 发送成功
+            },
+            (e: string) => {
+              reject(new Error(e)); // 发送失败
+            }
+        );
+      });
+
+      // 4. 发送成功后的处理
+      setRefreshFlag(prev => !prev); // 使用函数式更新确保最新状态
+      setMessageInput("");
+
+    } catch (error) {
+      // 5. 错误处理
+      const errorMessage = error instanceof Error ? error.message : '发送消息失败';
+      materialAlertError('发送消息失败', errorMessage);
+
+      // 可选：恢复输入框内容
+      // setMessageInput(messageInput);
+    }
   };
 
   const formatTime = (timestamp: string) => {
@@ -261,18 +323,22 @@ async function getUserIdByToken(userToken: string): Promise<number> {
         {conversations.map(conversation => {
           const user = conversation.userInfo;
           return (
-            <div 
+            <div
               key={user.userID}
               className={`user-item ${selectedUser === user.userID ? 'active' : ''}`}
               onClick={() => !user.isBanned && setSelectedUser(user.userID)}
             >
               <div className="user-avatar">
-                {user.avatarPath ? (
-                  <img src={user.avatarPath} alt="头像" />
-                ) : (
-                  <img src={`data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+`} alt="头像" />
-                )}
+                <img src={user.avatarPath} alt="头像" />
               </div>
+              {conversation.unreadCount > 0 && (
+                  <div
+                      className="unread-count"
+                      data-count={conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}
+                  >
+                    {conversation.unreadCount <= 99 ? conversation.unreadCount : null}
+                  </div>
+              )}
               <div className="user-info">
                 <div className="user-name">
                   {user.username}
@@ -283,14 +349,12 @@ async function getUserIdByToken(userToken: string): Promise<number> {
               <div className="user-time">
                 {formatTime(conversation.timestamp)}
               </div>
-              {conversation.unreadCount > 0 && (
-                <div className="unread-count">{conversation.unreadCount}</div>
-              )}
+
             </div>
           );
         })}
       </div>
-      
+
       <div className="message-area">
         {selectedUser ? (
           <>

@@ -38,8 +38,8 @@ case class QueryMessagesMessagePlanner(
       // Step 2: Query messages if token is valid, else return an empty list
       _ <- IO(logger.info(s"Token验证通过, userID=$userID"))
 
-      messages <- queryAndFormatMessages(userID)
       _ <- readMessageBetweenUsers(userID, targetID)
+      messages <- queryAndFormatMessages(userID)
     } yield messages
   }
 
