@@ -81,11 +81,11 @@ case class PublishCommentMessagePlanner(
                              commentContent: String,
                              replyToCommentID: Option[Int]
                            )(using PlanContext): IO[String] = {
-    val timestamp = DateTime.now()
+    val time_stamp = DateTime.now()
     val sql =
       s"""
          |INSERT INTO ${schemaName}.comment_table
-         |  (content, video_id, author_id, reply_to_id, likes, timestamp)
+         |  (content, video_id, author_id, reply_to_id, likes, time_stamp)
          |VALUES
          |  (?, ?, ?, ?, 0, ?);
          |""".stripMargin
@@ -97,7 +97,7 @@ case class PublishCommentMessagePlanner(
         SqlParameter("Int", videoID.toString),
         SqlParameter("Int", userID.toString),
         SqlParameter("Int", replyToCommentID.map(_.toString).getOrElse("null")),
-        SqlParameter("DateTime", timestamp.getMillis.toString)
+        SqlParameter("DateTime", time_stamp.getMillis.toString)
       )
     )
   }
