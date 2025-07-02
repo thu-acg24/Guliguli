@@ -76,20 +76,17 @@ case class PublishDanmakuMessagePlanner(
         val sql =
           s"""
              |INSERT INTO $schemaName.danmaku_table
-             |(content, video_id, author_id, danmaku_color, time_in_video, timestamp)
-             |VALUES (?, ?, ?, ?, ?, ?)
+             |(content, video_id, author_id, danmaku_color, time_in_video)
+             |VALUES (?, ?, ?, ?, ?)
              |""".stripMargin
-
-        for {
-          timestamp <- IO(DateTime.now().getMillis.toString)
-          params = List(
+        val params  = List(
             SqlParameter("String", content),
             SqlParameter("Int", videoID.toString),
             SqlParameter("Int", userID.toString),
             SqlParameter("String", color),
-            SqlParameter("Float", timeInVideo.toString),
-            SqlParameter("DateTime", timestamp)
+            SqlParameter("Float", timeInVideo.toString)
           )
+        for {
           result <- writeDB(sql, params)
         } yield result
       }

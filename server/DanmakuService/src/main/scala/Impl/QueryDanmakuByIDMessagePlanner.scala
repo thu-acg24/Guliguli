@@ -46,13 +46,14 @@ case class QueryDanmakuByIDMessagePlanner(
     readDBJsonOptional(sql, List(SqlParameter("Int", danmakuID.toString)))
       .flatMap {
         case Some(json) =>
-          json.as[Danmaku] match {
-            case Right(danmaku) =>
-              IO(logger.info(s"成功查询到danmaku记录: ${danmaku}")) >> IO(danmaku)
-            case Left(error) =>
-              IO(logger.error(s"解析danmaku记录失败: ${error.getMessage}")) >>
-              IO.raiseError(InvalidInputException("Failed to parse danmaku record"))
-          }
+          IO(Danmaku(
+            danmakuID = decodeField[Int](json, "danmaku_id"),
+            content = decodeField[String](json, "content"),
+            videoID = decodeField[Int](json, "video_id"),
+            authorID = decodeField[Int](json, "author_id"),
+            danmakuColor = decodeField[String](json, "danmaku_color"),
+            timeInVideo = decodeField[Float](json, "time_in_video")
+          ))
         case None =>
           IO(logger.error(s"未找到danmaku记录，ID: ${danmakuID}")) >>
           IO.raiseError(InvalidInputException(s"No danmaku found with ID: $danmakuID"))
