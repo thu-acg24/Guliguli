@@ -26,12 +26,12 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
-            /** 包含私信和通知信息的表
+       /** 包含私信和通知信息的表
        * message_id: 唯一标识每条私信的主键ID
        * sender_id: 私信发送者的用户ID
        * receiver_id: 私信接收者的用户ID
        * content: 私信内容
-       * timestamp: 私信发送时间
+       * send_time: 私信发送时间
        * is_notification: 是否为通知
        */
       _ <- writeDB(
@@ -41,10 +41,33 @@ object Init {
             sender_id INT NOT NULL,
             receiver_id INT NOT NULL,
             content TEXT NOT NULL,
-            timestamp TIMESTAMP NOT NULL,
+            send_time TIMESTAMP NOT NULL,
             is_notification BOOLEAN NOT NULL
+            unread BOOLEAN NOT NULL DEFAULT FALSE
         );
-         
+        """,
+        List()
+      )
+      /** 包含回复评论通知信息的表
+       * notice_id: 唯一标识每条通知的主键ID
+       * sender_id: 私信发送者的用户ID
+       * receiver_id: 私信接收者的用户ID
+       * content: 私信内容
+       * comment_id: 评论ID
+       * send_time: 私信发送时间
+       * is_notification: 是否为通知
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."reply_notice_table" (
+            notice_id SERIAL NOT NULL PRIMARY KEY,
+            sender_id INT NOT NULL,
+            receiver_id INT NOT NULL,
+            content TEXT NOT NULL,
+            comment_id INT NOT NULL,
+            send_time TIMESTAMP NOT NULL,
+            unread BOOLEAN NOT NULL DEFAULT FALSE
+        );
         """,
         List()
       )

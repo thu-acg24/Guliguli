@@ -52,11 +52,9 @@ case class QueryMessagesMessagePlanner(
   private def queryAndFormatMessages(userID: Int)(using PlanContext): IO[List[Message]] = {
     for {
       _ <- IO(logger.info(s"获取用户 $userID 和目标用户 $targetID 的私信记录"))
-      rawMessages <- queryMessagesBetweenUsers(userID, targetID)
-      _ <- IO(logger.info(s"对消息进行时间戳降序排序"))
-      sortedMessages = rawMessages.sortBy(_.timestamp.getMillis)(Ordering[Long].reverse)
-      _ <- IO(logger.info(s"返回格式化的消息列表，共 ${sortedMessages.size} 条"))
-    } yield sortedMessages
+      messages <- queryMessagesBetweenUsers(userID, targetID)
+      _ <- IO(logger.info(s"返回格式化的消息列表，共 ${messages.size} 条"))
+    } yield messages
   }
 
   /**
@@ -69,9 +67,10 @@ case class QueryMessagesMessagePlanner(
   private def queryMessagesBetweenUsers(userID: Int, targetID: Int)(using PlanContext): IO[List[Message]] = {
     val sql =
       s"""
-         |SELECT message_id, sender_id, receiver_id, content, timestamp, is_notification
+         |SELECT message_id, sender_id, receiver_id, content, send_time, is_notification
          |FROM $schemaName.message_table
-         |WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?);
+         |WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+         |ORDER BY send_time DESC;
          """.stripMargin
     val parameters = List(
       SqlParameter("Int", userID.toString),
@@ -98,7 +97,7 @@ case class QueryMessagesMessagePlanner(
       senderID = decodeField[Int](json, "sender_id"),
       receiverID = decodeField[Int](json, "receiver_id"),
       content = decodeField[String](json, "content"),
-      timestamp = decodeField[DateTime](json, "timestamp"),
+      timestamp = decodeField[DateTime](json, "send_time"),
       isNotification = decodeField[Boolean](json, "is_notification")
     )
   }
