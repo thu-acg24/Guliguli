@@ -79,12 +79,12 @@ function getUserIdByToken(userToken: string): number {
               return userid
           }, (e) => {
           materialAlertError('未找到用户', e);
-          return -1;
+          throw new Error('未找到用户');
           }
       );
   } catch (e) {
       materialAlertError('未找到用户', e);
-      return -1;
+      throw new Error('未找到用户');
   }
 }
 
