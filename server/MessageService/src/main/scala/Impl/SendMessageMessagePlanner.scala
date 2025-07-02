@@ -88,7 +88,7 @@ case class SendMessageMessagePlanner(
     val sql =
       s"""
          INSERT INTO ${schemaName}.message_table
-         (sender_id, receiver_id, content, timestamp, is_notification)
+         (sender_id, receiver_id, content, send_time, is_notification)
          VALUES (?, ?, ?, ?, ?);
        """
 

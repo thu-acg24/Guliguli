@@ -33,7 +33,7 @@ object Init {
        * author_id: 评论发布者的用户ID
        * reply_to_id: 回复的目标评论ID，可以为空
        * likes: 评论的点赞数量
-       * timestamp: 评论的发布时间
+       * time_stamp: 评论的发布时间
        */
       _ <- writeDB(
         s"""
@@ -44,7 +44,7 @@ object Init {
             author_id INT NOT NULL,
             reply_to_id INT,
             likes INT NOT NULL DEFAULT 0,
-            timestamp TIMESTAMP NOT NULL
+            time_stamp TIMESTAMP NOT NULL
         );
          
         """,
@@ -53,14 +53,15 @@ object Init {
       /** 点赞评论记录表，保存用户对评论的点赞情况
        * user_id: 点赞用户的ID
        * comment_id: 点赞评论的ID
-       * timestamp: 点赞时间
+       * time_stamp: 点赞时间
        */
       _ <- writeDB(
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."like_comment_record_table" (
-            user_id SERIAL NOT NULL PRIMARY KEY,
+            like_record_id SERIAL NOT NULL PRIMARY KEY,
+            user_id INT NOT NULL,
             comment_id INT NOT NULL,
-            timestamp TIMESTAMP NOT NULL
+            time_stamp TIMESTAMP NOT NULL
         );
          
         """,

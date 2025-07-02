@@ -1,5 +1,7 @@
 package Common
 
+import Common.APIException.InvalidInputException
+
 package object DBAPI {
 
 
@@ -38,6 +40,8 @@ import org.joda.time.format.ISODateTimeFormat
 
     def commitOrRollbackAction(result: Either[Throwable, A]): IO[A] =
       result match {
+        case Left(exception:InvalidInputException) =>
+          IO.raiseError(exception)   /** API输入导致的异常，不需要额外处理 */
         case Left(exception:DidRollbackException) =>
           IO.raiseError(exception)   /** 如果问题已经处理过了，我们不需要额外处理了 */
         case Left(exception)=>
@@ -55,6 +59,7 @@ import org.joda.time.format.ISODateTimeFormat
       _ <- IO.println("Step result")
 
       _ <- result match
+        case Left(value:InvalidInputException) => IO.unit
         case Left(value) => IO.pure(value.printStackTrace())
         case Right(value) => IO.println(s"result = ${result}")
 

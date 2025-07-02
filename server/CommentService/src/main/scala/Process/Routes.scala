@@ -13,6 +13,7 @@ import Impl.PublishCommentMessagePlanner
 import Impl.QueryCommentByIDMessagePlanner
 import Impl.QueryVideoCommentsMessagePlanner
 import Impl.UpdateLikeCommentMessagePlanner
+import Impl.QueryLikedBatchMessagePlanner
 import cats.effect.*
 import fs2.concurrent.Topic
 import io.circe.*
@@ -60,11 +61,18 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for DeleteCommentMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
+
       case "QueryCommentByIDMessage" =>
         IO(
           decode[QueryCommentByIDMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryCommentByIDMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryLikedBatchIDMessage" =>
+        IO(
+          decode[QueryLikedBatchMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikedBatchMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

@@ -28,7 +28,7 @@ case class QueryVideoCommentsMessagePlanner(
                                               override val planContext: PlanContext
                                             ) extends Planner[List[Comment]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[List[Comment]] = {
     for {
@@ -68,10 +68,10 @@ case class QueryVideoCommentsMessagePlanner(
     for {
       sql <- IO {
         s"""
-           |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, timestamp
+           |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, time_stamp
            |FROM ${schemaName}.comment_table
            |WHERE video_id = ?
-           |ORDER BY timestamp DESC
+           |ORDER BY time_stamp DESC
            |LIMIT ? OFFSET ?;
        """.stripMargin
       }
@@ -95,7 +95,7 @@ case class QueryVideoCommentsMessagePlanner(
         authorID = decodeField[Int] (json, "author_id"),
         replyToID = decodeField[Option[Int]] (json, "reply_to_id"),
         likes = decodeField[Int] (json, "likes"),
-        timestamp = decodeField[DateTime] (json, "timestamp")
+        timestamp = decodeField[DateTime] (json, "time_stamp")
       )
     })
     } yield result

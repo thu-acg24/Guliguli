@@ -3,7 +3,7 @@ import { create } from 'zustand'
 const globalStore = create<{
     userToken:string,
 }>(() => ({
-    userToken: "a",
+    userToken: "",
 }))
 
 export const getUserToken = ()=> globalStore.getState().userToken

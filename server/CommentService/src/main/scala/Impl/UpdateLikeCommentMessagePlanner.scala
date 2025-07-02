@@ -26,7 +26,7 @@ case class UpdateLikeCommentMessagePlanner(
     isLike: Boolean,
     override val planContext: PlanContext
 ) extends Planner[Unit] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
     for {
@@ -67,7 +67,7 @@ case class UpdateLikeCommentMessagePlanner(
             // Add record to LikeCommentRecordTable
             _ <- IO(logger.info(s"[Perform Like] Adding like record for userID=${userID} and commentID=${comment.commentID}"))
             insertRecordSql = s"""
-              INSERT INTO ${schemaName}.like_comment_record_table (user_id, comment_id, timestamp)
+              INSERT INTO ${schemaName}.like_comment_record_table (user_id, comment_id, time_stamp)
               VALUES (?, ?, ?);
             """
             _ <- writeDB(insertRecordSql, List(

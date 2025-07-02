@@ -29,13 +29,13 @@ case class DeleteCommentMessagePlanner(
                                          override val planContext: PlanContext
                                        ) extends Planner[Unit] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: 校验token是否有效并获取用户ID
       _ <- IO(logger.info(s"Step 1: 验证token[$token]是否合法"))
-      userID <- getUserID(token)
+      userID <- GetUIDByTokenMessage(token).send
       // Step 2: 校验commentID是否存在
       (authorID, videoID) <- validateCommentExistsAndFetchAuthor(commentID)
       // Step 3: 检查用户身份是否符合删除权限
@@ -43,10 +43,6 @@ case class DeleteCommentMessagePlanner(
       // Step 4: 从CommentTable中删除记录
       _ <- deleteComment(commentID)
     } yield ()
-  }
-
-  private def getUserID(token: String)(using PlanContext): IO[Int] = {
-    GetUIDByTokenMessage(token).send
   }
 
   private def validateCommentExistsAndFetchAuthor(commentID: Int)(using PlanContext): IO[(Int, Int)] = {

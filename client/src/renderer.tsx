@@ -11,32 +11,30 @@ import ReplyTab from 'Pages/MessagePage/ReplyTab';
 import SystemTab from 'Pages/MessagePage/SystemTab';
 
 const Layout = () => {
-  return (
-    <>
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<MessagePage />}>
-            <Route index element={<WhisperTab />} />
-            <Route path="whisper" element={<WhisperTab />} />
-            <Route path="reply" element={<ReplyTab />} />
-            <Route path="system" element={<SystemTab />} />
-          </Route>
-          <Route path={messagePagePath} element={<MessagePage />}>
-            <Route index element={<WhisperTab />} />
-            <Route path="whisper" element={<WhisperTab />} />
-            <Route path="reply" element={<ReplyTab />} />
-            <Route path="system" element={<SystemTab />} />
-          </Route>
-          
-          <Route path={mainPagePath} element={<MainPage />} />
-          <Route path={videoPagePath} element={<VideoPage />} />
-        </Routes>
-      </HashRouter>
-      <AlertGadget />
-    </>
-  );
-};
-
+    return (
+        <>
+            <HashRouter>Main
+                <Routes>
+                    <Route path="/" element={<MainPage />} />
+                    <Route path={mainPagePath} element={<MainPage />} />
+                    <Route path={videoPagePath} element={<VideoPage />} />
+                    <Route path={messagePagePath} element={<MessagePage />}>
+                        <Route index element={<WhisperTab />} />
+                        <Route path="whisper" element={<WhisperTab />} />
+                        <Route path="reply" element={<ReplyTab />} />
+                        <Route path="system" element={<SystemTab />} />
+                    </Route>
+                    {/* <Route path={homePagePath} element={<HomePage />} />
+                    <Route path={messagePagePath} element={<MessagePage />} />
+                    <Route path={managementPagePath} element={<ManagementPage />} />
+                    <Route path={searchPagePath} element={<SearchPage />} />
+                    <Route path={memberPagePath} element={<MemberPage />} /> */}
+                </Routes>
+            </HashRouter>
+            <AlertGadget />
+        </>
+    )
+}
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(<Layout />);
