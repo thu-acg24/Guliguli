@@ -5,6 +5,8 @@ import Header from "../Components/Header";
 import LoginModal from "../Components/LoginModal";
 import { useUserToken } from "../Globals/GlobalStore";
 
+export const messagePagePath = "/message/"
+
 // 定义消息类型
 interface Message {
   id: string;
@@ -145,8 +147,6 @@ const fetchSystemNotifications = async (userId: string): Promise<SystemNotificat
   ];
 };
 
-export const messagePagePath = "/message/:userId"
-
 const MessagePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const location = useLocation();
@@ -174,10 +174,10 @@ const MessagePage: React.FC = () => {
   useEffect(() => {
     const pathParts = location.pathname.split('/');
     const tab = pathParts[pathParts.length - 1] as 'whisper' | 'reply' | 'system';
-    
+
     if (tab && ['whisper', 'reply', 'system'].includes(tab)) {
       setActiveTab(tab);
-      
+
       // 如果是whisper标签且有联系人ID
       if (tab === 'whisper' && pathParts.length > 4) {
         const contactId = pathParts[pathParts.length - 1];
@@ -232,7 +232,7 @@ const MessagePage: React.FC = () => {
   // 处理发送消息
   const handleSendMessage = () => {
     if (!userId || !selectedContact || !newMessage.trim()) return;
-    
+
     sendMessage(userId, selectedContact, newMessage).then(success => {
       if (success) {
         // 添加到本地消息列表
@@ -256,13 +256,13 @@ const MessagePage: React.FC = () => {
   // 处理点赞回复
   const handleLikeReply = (replyId: string) => {
     if (!userId) return;
-    
+
     likeReply(userId, replyId).then(success => {
       if (success) {
-        setReplies(prev => 
-          prev.map(reply => 
-            reply.id === replyId 
-              ? { ...reply, isLiked: !reply.isLiked, likeCount: reply.isLiked ? reply.likeCount - 1 : reply.likeCount + 1 } 
+        setReplies(prev =>
+          prev.map(reply =>
+            reply.id === replyId
+              ? { ...reply, isLiked: !reply.isLiked, likeCount: reply.isLiked ? reply.likeCount - 1 : reply.likeCount + 1 }
               : reply
           )
         );
@@ -273,7 +273,7 @@ const MessagePage: React.FC = () => {
   // 处理发送回复
   const handleSendReply = () => {
     if (!userId || !replyModal.replyId || !replyContent.trim()) return;
-    
+
     sendReply(userId, replyModal.replyId, replyContent).then(success => {
       if (success) {
         setReplyModal({ open: false });
@@ -291,30 +291,30 @@ const MessagePage: React.FC = () => {
   return (
     <div className="message-page">
       <Header />
-      
+
       <div className="message-container">
         {/* 侧边栏 */}
         <div className="message-sidebar">
-          <div 
+          <div
             className={`sidebar-item ${activeTab === 'whisper' ? 'active' : ''}`}
             onClick={() => navigate(`/message/${userId}/whisper`)}
           >
             我的消息
           </div>
-          <div 
+          <div
             className={`sidebar-item ${activeTab === 'reply' ? 'active' : ''}`}
             onClick={() => navigate(`/message/${userId}/reply`)}
           >
             回复我的
           </div>
-          <div 
+          <div
             className={`sidebar-item ${activeTab === 'system' ? 'active' : ''}`}
             onClick={() => navigate(`/message/${userId}/system`)}
           >
             系统通知
           </div>
         </div>
-        
+
         {/* 主内容区 */}
         <div className="message-content">
           {activeTab === 'whisper' && (
@@ -322,7 +322,7 @@ const MessagePage: React.FC = () => {
               {/* 联系人列表 */}
               <div className="contact-list">
                 {whisperUsers.map(user => (
-                  <div 
+                  <div
                     key={user.id}
                     className={`contact-item ${selectedContact === user.id ? 'active' : ''}`}
                     onClick={() => navigate(`/message/${userId}/whisper/${user.id}`)}
@@ -338,7 +338,7 @@ const MessagePage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* 聊天区域 */}
               <div className="chat-area">
                 {selectedContact ? (
@@ -348,11 +348,11 @@ const MessagePage: React.FC = () => {
                         {whisperUsers.find(u => u.id === selectedContact)?.name || '未知用户'}
                       </div>
                     </div>
-                    
+
                     <div className="chat-messages">
                       {messages.map(msg => (
-                        <div 
-                          key={msg.id} 
+                        <div
+                          key={msg.id}
                           className={`message ${msg.isOwn ? 'own' : ''}`}
                         >
                           {!msg.isOwn && (
@@ -364,12 +364,12 @@ const MessagePage: React.FC = () => {
                               )}
                             </div>
                           )}
-                          
+
                           <div className="message-content">
                             <div className="message-text">{msg.content}</div>
                             <div className="message-time">{msg.timestamp}</div>
                           </div>
-                          
+
                           {msg.isOwn && (
                             <div className="message-avatar">
                               {msg.senderAvatar ? (
@@ -382,7 +382,7 @@ const MessagePage: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="message-input">
                       <input
                         type="text"
@@ -402,7 +402,7 @@ const MessagePage: React.FC = () => {
               </div>
             </div>
           )}
-          
+
           {activeTab === 'reply' && (
             <div className="reply-list">
               {replies.map(reply => (
@@ -420,26 +420,26 @@ const MessagePage: React.FC = () => {
                     </div>
                     <div className="reply-time">{reply.timestamp}</div>
                   </div>
-                  
+
                   <div className="reply-content">{reply.content}</div>
-                  
+
                   <div className="reply-actions">
-                    <button 
+                    <button
                       className={`like-btn ${reply.isLiked ? 'liked' : ''}`}
                       onClick={() => handleLikeReply(reply.id)}
                     >
                       {reply.isLiked ? '已赞' : '点赞'} ({reply.likeCount})
                     </button>
-                    <button 
+                    <button
                       className="reply-btn"
                       onClick={() => setReplyModal({ open: true, replyId: reply.id })}
                     >
                       回复
                     </button>
                   </div>
-                  
-                  <div 
-                    className="original-comment" 
+
+                  <div
+                    className="original-comment"
                     onClick={() => handleGoToVideo(reply.videoId)}
                   >
                     <div className="video-title">原评论: {reply.videoTitle}</div>
@@ -449,7 +449,7 @@ const MessagePage: React.FC = () => {
               ))}
             </div>
           )}
-          
+
           {activeTab === 'system' && (
             <div className="system-list">
               {notifications.map(notification => (
@@ -465,13 +465,13 @@ const MessagePage: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* 登录弹窗 */}
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
       />
-      
+
       {/* 回复弹窗 */}
       {replyModal.open && (
         <div className="modal" onClick={() => setReplyModal({ open: false })}>

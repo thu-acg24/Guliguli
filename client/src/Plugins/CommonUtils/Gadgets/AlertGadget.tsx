@@ -125,6 +125,7 @@ export const materialAlertWarning = (info: string, message: string = '', onClose
 }
 
 export const materialAlertError = (info: string, message: string = '', onClose: () => void = () => {}) => {
+    console.log(info)
     openDialog()
     alertStore.setState({
         infoStack: alertStore.getState().infoStack.concat({ info, type: 'error', message, onClose }),
