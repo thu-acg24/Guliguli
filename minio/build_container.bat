@@ -2,18 +2,16 @@
 chcp 65001
 setlocal enabledelayedexpansion
 
-REM 设置密码文件路径（建议使用绝对路径）
-set PASSWORD_FILE=%~dp0minio_pwd.txt
+REM 设置文件路径（建议使用绝对路径）
 set DATA_FILE=%~dp0data
 set CONFIG_FILE=%~dp0config
-echo %PASSWORD_FILE%
 echo %DATA_FILE%
 echo %CONFIG_FILE%
 
-REM 检查密码文件是否存在
-if not exist "%PASSWORD_FILE%" (
-    echo 错误：密码文件未找到: %PASSWORD_FILE%
-    echo 请创建包含密码的文本文件
+REM 检查文件夹是否存在
+if not exist "%DATA_FILE%" (
+    echo 错误：数据存放文件夹未找到: %DATA_FILE%
+    echo 请创建用来存储数据的文件夹
     exit /b 1
 )
 
@@ -23,11 +21,7 @@ docker run -d ^
   -p 9001:9001 ^
   -v %DATA_FILE%:/data ^
   -v %CONFIG_FILE%:/root/.minio ^
-  -e "MINIO_OPTS=--address 0.0.0.0:9001" ^
-  -e MINIO_ROOT_USER=gugugaga ^
-  --mount type=bind,source="%PASSWORD_FILE%",target=/run/secrets/minio_pwd,readonly ^
-  -e MINIO_ROOT_PASSWORD_FILE=/run/secrets/minio_pwd ^
-  -e "MINIO_SERVER_URL=https://44e0-141-11-146-73.ngrok-free.app"
+  --env-file .env ^
   --name minio-with-ffmpeg ^
   custom-minio ^
   server /data --console-address ":9001"
