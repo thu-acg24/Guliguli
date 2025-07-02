@@ -23,8 +23,21 @@ const Header: React.FC = () => {
     const [showUserPanel, setShowUserPanel] = useState(false);
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [userStat, setUserStat] = useState<UserStat | null>(null);
-    const [currentUserID, setCurrentUserID] = useState<number | null>(1);
     const userToken = useUserToken();
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const userId = await getUIDByToken();
+            if (userId !== null) {
+                await fetchUserInfo(userId);
+                await fetchUserStat(userId);
+            } else {
+                setUserInfo(null);
+                setUserStat(null);
+            }
+        };
+        fetchUserData();
+    }, [userToken]);
 
     // 校验token有效性
     const getUIDByToken = async (): Promise<number | null> => {
@@ -58,15 +71,16 @@ const Header: React.FC = () => {
     const fetchUserInfo = async (userID: number) => {
         try {
             new QueryUserInfoMessage(userID).send(
-                (info: UserInfo) => {
-                    setUserInfo(info);
+                (info: string) => {
+                    const userInfo = JSON.parse(info);
+                    setUserInfo(userInfo);
                 },
                 (e: string) => {
                     console.error("获取用户信息失败:", e);
                 }
             );
         } catch (e) {
-            console.error("获取用户信息异常:", e);
+            console.error("获取用户信息异常:", e.message);
         }
     };
 
@@ -74,15 +88,16 @@ const Header: React.FC = () => {
     const fetchUserStat = async (userID: number) => {
         try {
             new QueryUserStatMessage(userID).send(
-                (stat: UserStat) => {
-                    setUserStat(stat);
+                (info: string) => {
+                    const userStat = JSON.parse(info);
+                    setUserStat(userStat);
                 },
                 (e: string) => {
                     console.error("获取用户统计信息失败:", e);
                 }
             );
         } catch (e) {
-            console.error("获取用户统计信息异常:", e);
+            console.error("获取用户统计信息异常:", e.message);
         }
     };
 
@@ -91,32 +106,14 @@ const Header: React.FC = () => {
         if (!userToken) return;
         try {
             new LogoutMessage(userToken).send(
-                () => {
-                    setUserToken("");
-                    setUserInfo(null);
-                    setUserStat(null);
-                    setCurrentUserID(null);
-                    setShowUserPanel(false);
-                },
-                (e: string) => {
-                    console.error("登出失败:", e);
-                    // 即使服务器登出失败，也清除本地token
-                    setUserToken("");
-                    setUserInfo(null);
-                    setUserStat(null);
-                    setCurrentUserID(null);
-                    setShowUserPanel(false);
-                }
+                (info: string) => { },
+                (e: string) => { console.error(e) }
             );
         } catch (e) {
-            console.error("登出异常:", e);
-            // 即使登出异常，也清除本地状态
-            setUserToken("");
-            setUserInfo(null);
-            setUserStat(null);
-            setCurrentUserID(null);
-            setShowUserPanel(false);
+            console.error(e);
         }
+        setUserToken("");
+        setShowUserPanel(false);
     };
 
     const performSearch = () => {
@@ -222,7 +219,7 @@ const Header: React.FC = () => {
                                     <div className="user-basic-info">
                                         <div className="user-avatar-large">
                                             <img
-                                                src={userInfo?.avatarPath || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+"}
+                                                src={userInfo?.avatarPath || DEFAULT_AVATAR}
                                                 alt="用户头像"
                                             />
                                         </div>
@@ -250,10 +247,6 @@ const Header: React.FC = () => {
                                         <div className="panel-link-item" onClick={handleAvatarClick}>
                                             <PersonCenterIcon />
                                             <span>个人中心</span>
-                                        </div>
-                                        <div className="panel-link-item" onClick={handleUploadClick}>
-                                            <UploadManageIcon />
-                                            <span>投稿管理</span>
                                         </div>
                                     </div>
 

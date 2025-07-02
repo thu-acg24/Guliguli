@@ -20,6 +20,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
+            setUsername("");
+            setEmail("");
+            setPassword("");
+            setConfirmPassword("");
+            setMessage("");
             onClose();
         }, 100); // 与动画时长保持一致
     };
