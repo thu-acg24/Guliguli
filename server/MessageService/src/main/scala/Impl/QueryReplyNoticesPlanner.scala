@@ -86,7 +86,6 @@ case class QueryReplyNoticesPlanner(
     ReplyNotice(
       noticeID = decodeField[Int](json, "notice_id"),
       senderID = decodeField[Int](json, "sender_id"),
-      receiverID = decodeField[Int](json, "receiver_id"),
       content = decodeField[String](json, "content"),
       commentID = decodeField[Int](json, "comment_id"),
       originalContent = decodeField[String](json, "original_content"),

@@ -1,4 +1,4 @@
-package Impl
+  package Impl
 
 import APIs.UserService.GetUIDByTokenMessage
 import Common.API.{PlanContext, Planner}
@@ -16,7 +16,7 @@ import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 
-case class QueryNotificationsMessagePlanner(
+case class QueryNoticesCountMessagePlanner(
                                         token: String,
                                         override val planContext: PlanContext
                                       ) extends Planner[List[Notification]] {
