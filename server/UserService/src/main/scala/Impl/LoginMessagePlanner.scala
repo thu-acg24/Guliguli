@@ -3,7 +3,8 @@ package Impl
 
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
+import Common.Exception.InvalidInputException
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -14,9 +15,9 @@ import Utils.AuthProcess.validatePassword
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -64,7 +65,7 @@ case class LoginMessagePlanner(
       .flatMap {
         case None =>
           IO(logger.info(s"未找到用户信息，登陆凭证 $usernameOrEmail")) *>
-          IO.raiseError(new RuntimeException(s"未找到用户信息"))
+          IO.raiseError(InvalidInputException(s"未找到用户信息"))
         case Some(json) =>
           IO.pure(json)
       }
