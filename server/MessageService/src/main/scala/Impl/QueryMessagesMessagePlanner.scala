@@ -71,7 +71,7 @@ case class QueryMessagesMessagePlanner(
          |SELECT message_id, sender_id, receiver_id, content, send_time
          |FROM $schemaName.message_table
          |WHERE ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
-         |ORDER BY send_time DESC;
+         |ORDER BY send_time ASC;
          """.stripMargin
     val parameters = List(
       SqlParameter("Int", userID.toString),
