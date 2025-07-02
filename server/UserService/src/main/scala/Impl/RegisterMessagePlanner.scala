@@ -35,7 +35,7 @@ case class RegisterMessagePlanner(
       isUsernameValid <- validateUsernameFormat(username)
       isEmailValid <- validateEmailFormat(email)
       _ <- if (!isUsernameValid || !isEmailValid) 
-             IO.raiseError(new Exception("Invalid Username or Email Format")) 
+             IO.raiseError(new Exception("不合法的用户名或邮箱格式"))
            else 
              IO(logger.info("用户名与邮箱格式校验通过"))
 
@@ -43,7 +43,7 @@ case class RegisterMessagePlanner(
       _ <- IO(logger.info("检查用户名与邮箱是否已存在"))
       isExist <- checkUserExistence(username, email)
       _ <- if (isExist) 
-             IO.raiseError(new Exception("Username or Email already in use")) 
+             IO.raiseError(new Exception("用户名或邮箱已被使用过"))
            else 
              IO(logger.info("用户名与邮箱检查通过"))
 
