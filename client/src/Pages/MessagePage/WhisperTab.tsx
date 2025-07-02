@@ -74,7 +74,9 @@ const WhisperTab: React.FC = () => {
     setLoading(true);
     try {
       new QueryUserInContactMessage(userToken).send(
-        (data: UserInfoWithMessage[]) => {
+        (info: string) => {
+          const data = JSON.parse(info);
+          console.log("data type: ", typeof(data));
           setConversations(data);
         },
         (e: string) => {
@@ -92,7 +94,8 @@ const WhisperTab: React.FC = () => {
     setLoading(true);
     try {
       new QueryMessagesMessage(userToken, userId).send(
-        (data: Message[]) => {
+        (info: string) => {
+          const data = JSON.parse(info);
           setMessages(data.map(msg => ({
             ...msg,
             timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -112,8 +115,9 @@ const WhisperTab: React.FC = () => {
   const fetchNotifications = async () => {
     try {
       new QueryNotificationsMessage(userToken).send(
-        (data: Notification[]) => {
+        (info: string) => {
           // 处理系统通知数据
+          const data = JSON.parse(info);
           console.log('Notifications:', data);
         },
         (e: string) => {
@@ -128,8 +132,9 @@ const WhisperTab: React.FC = () => {
   const fetchReplyNotices = async () => {
     try {
       new QueryReplyNoticesMessage(userToken).send(
-        (data: ReplyNotice[]) => {
+        (info: string) => {
           // 处理回复通知数据
+          const data = JSON.parse(info);
           console.log('Reply Notices:', data);
         },
         (e: string) => {

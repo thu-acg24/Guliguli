@@ -99,8 +99,8 @@ case class QueryMessagesMessagePlanner(
          |UPDATE ${schemaName}.message_table
          |SET unread = FALSE
          |WHERE
-         |    ((receiver_id = ? AND sender_id = ?)
-         |    AND unread = TRUE
+         |(receiver_id = ? AND sender_id = ?)
+         |AND unread = TRUE
       """.stripMargin
     val parameters = List(
       SqlParameter("Int", userID.toString),
