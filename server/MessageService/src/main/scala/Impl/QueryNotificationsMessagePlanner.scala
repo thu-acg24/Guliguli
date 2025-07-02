@@ -1,29 +1,23 @@
 package Impl
 
-
 import APIs.UserService.GetUIDByTokenMessage
-import Common.API.PlanContext
-import Common.API.Planner
-import Common.DBAPI._
+import Common.API.{PlanContext, Planner}
+import Common.DBAPI.*
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.decodeDateTime
-import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Objects.MessageService.Message
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
-import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 
-case class QueryMessagesMessagePlanner(
+case class QueryNotificationsMessagePlanner(
                                         token: String,
-                                        targetID: Int,
                                         override val planContext: PlanContext
                                       ) extends Planner[List[Message]] {
 
@@ -35,7 +29,7 @@ case class QueryMessagesMessagePlanner(
       _ <- IO(logger.info(s"开始验证Token: $token"))
       userID <- GetUIDByTokenMessage(token).send
 
-      // Step 2: Query messages if token is valid, else return an empty list
+      // Step 2: Query notifications if token is valid, else return an empty list
       _ <- IO(logger.info(s"Token验证通过, userID=$userID"))
 
       messages <- queryAndFormatMessages(userID)
@@ -51,8 +45,8 @@ case class QueryMessagesMessagePlanner(
    */
   private def queryAndFormatMessages(userID: Int)(using PlanContext): IO[List[Message]] = {
     for {
-      _ <- IO(logger.info(s"获取用户 $userID 和目标用户 $targetID 的私信记录"))
-      messages <- queryMessagesBetweenUsers(userID, targetID)
+      _ <- IO(logger.info(s"获取用户 $userID 的通知"))
+      messages <- queryNotifications(userID)
       _ <- IO(logger.info(s"返回格式化的消息列表，共 ${messages.size} 条"))
     } yield messages
   }
@@ -61,26 +55,22 @@ case class QueryMessagesMessagePlanner(
    * 查询数据库中 userID 和 targetID 之间的私信
    *
    * @param userID   当前用户ID
-   * @param targetID 目标用户ID
    * @return 原始消息列表
    */
-  private def queryMessagesBetweenUsers(userID: Int, targetID: Int)(using PlanContext): IO[List[Message]] = {
+  private def queryNotifications(userID: Int)(using PlanContext): IO[List[Message]] = {
     val sql =
       s"""
-         |SELECT message_id, sender_id, receiver_id, content, send_time
+         |SELECT message_id, receiver_id, content, send_time
          |FROM $schemaName.message_table
-         |WHERE ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
-         |AND is_notification = FALSE
+         |WHERE receiver_id = ?
+         |AND is_notification = TRUE
          |ORDER BY send_time DESC;
          """.stripMargin
     val parameters = List(
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", targetID.toString),
-      SqlParameter("Int", targetID.toString),
       SqlParameter("Int", userID.toString)
     )
     for {
-      _ <- IO(logger.info(s"生成查询私信记录的SQL: $sql"))
+      _ <- IO(logger.info(s"生成查询通知记录的SQL: $sql"))
       rows <- readDBRows(sql, parameters)
       messages <- IO(rows.map(decodeMessage))
     } yield messages
@@ -95,11 +85,11 @@ case class QueryMessagesMessagePlanner(
   private def decodeMessage(json: Json): Message = {
     Message(
       messageID = decodeField[Int](json, "message_id"),
-      senderID = decodeField[Int](json, "sender_id"),
+      senderID = 0,
       receiverID = decodeField[Int](json, "receiver_id"),
       content = decodeField[String](json, "content"),
       timestamp = decodeField[DateTime](json, "send_time"),
-      isNotification = false
+      isNotification = true
     )
   }
 }
