@@ -60,7 +60,8 @@ case class QueryReplyNoticesPlanner(
   private def queryNotices(userID: Int)(using PlanContext): IO[List[ReplyNotice]] = {
     val sql =
       s"""
-         |SELECT notice_id, sender_id, receiver_id, content, comment_id, send_time
+         |SELECT notice_id, sender_id, receiver_id, content,
+         |comment_id, original_content, original_comment_id, send_time
          |FROM $schemaName.message_table
          |WHERE receiver_id = ?
          |ORDER BY send_time DESC;
@@ -88,6 +89,8 @@ case class QueryReplyNoticesPlanner(
       receiverID = decodeField[Int](json, "receiver_id"),
       content = decodeField[String](json, "content"),
       commentID = decodeField[Int](json, "comment_id"),
+      originalContent = decodeField[String](json, "original_content"),
+      originalCommentID = decodeField[Int](json, "original_comment_id"),
       timestamp = decodeField[DateTime](json, "send_time"),
     )
   }

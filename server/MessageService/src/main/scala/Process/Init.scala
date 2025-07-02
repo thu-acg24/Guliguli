@@ -43,17 +43,19 @@ object Init {
             content TEXT NOT NULL,
             send_time TIMESTAMP NOT NULL,
             is_notification BOOLEAN NOT NULL
-            unread BOOLEAN NOT NULL DEFAULT FALSE
+            unread BOOLEAN NOT NULL DEFAULT TRUE
         );
         """,
         List()
       )
       /** 包含回复评论通知信息的表
        * notice_id: 唯一标识每条通知的主键ID
-       * sender_id: 私信发送者的用户ID
-       * receiver_id: 私信接收者的用户ID
-       * content: 私信内容
-       * comment_id: 评论ID
+       * sender_id: 回复发送者的用户ID
+       * receiver_id: 被回复者的用户ID
+       * content: 回复内容
+       * comment_id: 回复ID
+       * original_content: 原评论内容
+       * original_comment_id: 原评
        * send_time: 私信发送时间
        * is_notification: 是否为通知
        */
@@ -65,8 +67,10 @@ object Init {
             receiver_id INT NOT NULL,
             content TEXT NOT NULL,
             comment_id INT NOT NULL,
+            original_content TEXT NOT NULL,
+            original_comment_id INT NOT NULL,
             send_time TIMESTAMP NOT NULL,
-            unread BOOLEAN NOT NULL DEFAULT FALSE
+            unread BOOLEAN NOT NULL DEFAULT TRUE
         );
         """,
         List()

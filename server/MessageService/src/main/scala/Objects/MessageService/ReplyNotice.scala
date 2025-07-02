@@ -18,8 +18,10 @@ import scala.util.Try
  * @param noticeID: Int (通知的唯一ID)
  * @param senderID: Int (发送者的用户ID)
  * @param receiverID: Int (接收者的用户ID)
- * @param content: String (消息内容)
- * @param commentID: Int (评论ID)
+ * @param content: String (回复内容)
+ * @param commentID: Int (回复ID)
+ * @param originalContent: String (原评论内容)
+ * @param originalCommentID: String (原评论ID)
  * @param timestamp: DateTime (消息发送的时间戳)
  */
 
@@ -29,6 +31,8 @@ case class ReplyNotice(
   receiverID: Int,
   content: String,
   commentID: Int,
+  originalContent: String,
+  originalCommentID: Int,
   timestamp: DateTime,
 ){
 

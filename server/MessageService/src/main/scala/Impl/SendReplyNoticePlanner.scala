@@ -47,7 +47,8 @@ case class SendReplyNoticePlanner(
       // Step 3: 插入数据库
       _ <- IO(logger.info("消息构造成功，开始插入数据库"))
       timestamp <- IO(DateTime.now())
-      constructedMessage <- insertRecord(userID, receiverID, comment.content, commentID, timestamp)
+      constructedMessage <- insertRecord(userID, receiverID, comment.content, commentID,
+        replyComment.content, replyComment.authorID, timestamp)
     } yield()
   }
 
@@ -61,12 +62,13 @@ case class SendReplyNoticePlanner(
     } yield count > 0
   }
 
-  private def insertRecord(senderID: Int, receiverID: Int, content: String, commentID: Int, timestamp: DateTime)
+  private def insertRecord(senderID: Int, receiverID: Int, content: String, commentID: Int,
+                           originalContent: String, originalCommentID: Int, timestamp: DateTime)
                           (using PlanContext): IO[Unit] = {
     val sql =
       s"""
          INSERT INTO ${schemaName}.message_table
-         (sender_id, receiver_id, content, comment_id, send_time)
+         (sender_id, receiver_id, content, comment_id, original_content, original_comment_id, send_time)
          VALUES (?, ?, ?, ?, ?);
        """
 
@@ -77,6 +79,8 @@ case class SendReplyNoticePlanner(
         SqlParameter("Int", receiverID.toString),
         SqlParameter("String", content),
         SqlParameter("Int", commentID.toString),
+        SqlParameter("String", originalContent),
+        SqlParameter("Int", originalCommentID.toString),
         SqlParameter("DateTime", timestamp.getMillis.toString),
       )
     ).as(())
