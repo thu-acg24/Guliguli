@@ -7,10 +7,10 @@ import APIs.CommentService.QueryCommentByIDMessage
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
-import APIs.MessageService.SendMessageMessage
+import APIs.MessageService.SendNotificationMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -24,11 +24,11 @@ import Objects.VideoService.VideoStatus
 import Utils.ValidateProcess.validateTokenAndRole
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
+import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -51,11 +51,10 @@ case class ProcessCommentReportMessagePlanner(
       (commentContent, commentAuthorID, videoTitle, videoID) <- validateCommentAndVideo(commentID)
       _ <- updateReportStatus(reportID, status)
       _ <- deleteCommentIfNeeded(commentID)
-      _ <- SendMessageMessage(token, reporterID,
-        s"您在视频 ${videoTitle} 下举报的评论 ${commentContent} 已被处理", true).send
+      _ <- SendNotificationMessage(token, reporterID, s"您在视频 ${videoTitle} 下举报的评论 ${commentContent} 已被处理").send
       _ <- status match {
-        case ReportStatus.Resolved => SendMessageMessage(token, commentAuthorID,
-          s"您在视频 ${videoTitle} 下的评论 ${commentContent} 被举报并已被审核员删除", true).send
+        case ReportStatus.Resolved => SendNotificationMessage(token, commentAuthorID,
+          s"您在视频 ${videoTitle} 下的评论 ${commentContent} 被举报并已被审核员删除").send
         case _ => IO.unit
       }
     } yield ()
