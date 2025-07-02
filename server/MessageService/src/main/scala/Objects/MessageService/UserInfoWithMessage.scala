@@ -16,14 +16,14 @@ import scala.util.Try
  * UserInfoWithMessage
  * desc: 消息实体，包含发送方、接收方等基本信息
  * @param userInfo: UserInfo (用户信息)
- * @param unread: Boolean (消息内容)
+ * @param unreadCount: Int (未读的消息的数量)
  * @param timestamp: DateTime (最后一条消息发送的时间戳)
  * @param content: String (最后一条消息的内容)
  */
 
 case class UserInfoWithMessage(
                          userInfo: UserInfo,
-                         unread: Boolean,
+                         unreadCount: Boolean,
                          timestamp: DateTime,
                          content: String
                        ){

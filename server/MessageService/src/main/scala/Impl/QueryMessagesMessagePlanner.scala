@@ -39,6 +39,7 @@ case class QueryMessagesMessagePlanner(
       _ <- IO(logger.info(s"Token验证通过, userID=$userID"))
 
       messages <- queryAndFormatMessages(userID)
+      _ <- ReadMessageBetweenUsers(userID, targetID)
     } yield messages
   }
 
@@ -80,6 +81,33 @@ case class QueryMessagesMessagePlanner(
     )
     for {
       _ <- IO(logger.info(s"生成查询私信记录的SQL: $sql"))
+      rows <- readDBRows(sql, parameters)
+      messages <- IO(rows.map(decodeMessage))
+    } yield messages
+  }
+
+  /**
+   *  将 targetID 发给 userID 的私信设为已读
+   *
+   * @param userID   当前用户ID
+   * @param targetID 目标用户ID
+   * @return 原始消息列表
+   */
+  private def ReadMessageBetweenUsers(userID: Int, targetID: Int)(using PlanContext): IO[List[Message]] = {
+    val sql =
+      s"""
+         |UPDATE ${schemaName}.message_table
+         |SET unread = FALSE
+         |WHERE
+         |    ((receiver_id = ? AND sender_id = ?)
+         |    AND unread = TRUE
+      """.stripMargin
+    val parameters = List(
+      SqlParameter("Int", userID.toString),
+      SqlParameter("Int", targetID.toString)
+    )
+    for {
+      _ <- IO(logger.info(s"生成修改未读信息的SQL: $sql"))
       rows <- readDBRows(sql, parameters)
       messages <- IO(rows.map(decodeMessage))
     } yield messages
