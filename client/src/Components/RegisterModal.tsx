@@ -12,6 +12,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
 
     if (!isOpen && !isClosing) return null;
@@ -26,7 +27,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
             setConfirmPassword("");
             setMessage("");
             onClose();
-        }, 100); // 与动画时长保持一致
+        }, 100);
     };
 
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -40,18 +41,22 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
 
         // 验证输入
         if (!username.trim()) {
+            setIsSuccess(false);
             setMessage("请输入用户名");
             return;
         }
         if (!email.trim()) {
+            setIsSuccess(false);
             setMessage("请输入邮箱");
             return;
         }
         if (!password) {
+            setIsSuccess(false);
             setMessage("请输入密码");
             return;
         }
         if (password !== confirmPassword) {
+            setIsSuccess(false);
             setMessage("两次输入的密码不一致");
             return;
         }
@@ -59,6 +64,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         // 简单的邮箱格式验证
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
+            setIsSuccess(false);
             setMessage("请输入有效的邮箱地址");
             return;
         }
@@ -66,12 +72,21 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         try {
             new RegisterMessage(username, email, password).send(
                 (info: string) => {
-                    handleClose();
+                    // 注册成功时显示成功消息
+                    setIsSuccess(true);
+                    setMessage("注册成功！");
+
+                    // 3秒后自动关闭模态框
+                    setTimeout(() => {
+                        handleClose();
+                    }, 1000);
                 }, (e) => {
+                    setIsSuccess(false);
                     setMessage(e || '注册失败！');
                 }
             );
         } catch (e) {
+            setIsSuccess(false);
             setMessage(e.message || '注册失败！');
         }
     }
@@ -130,10 +145,17 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
                             />
                         </div>
                         {message && (
-                            <div className="error-message">
-                                <div className="error-icon">!</div>
-                                <div className="error-text">{message}</div>
-                            </div>
+                            isSuccess ? (
+                                <div className="success-message">
+                                    <div className="success-icon">✓</div>
+                                    <div className="modal-message-text">{message}</div>
+                                </div>
+                            ) : (
+                                <div className="error-message">
+                                    <div className="error-icon">!</div>
+                                    <div className="modal-message-text">{message}</div>
+                                </div>
+                            )
                         )}
                         <button type="submit" className="login-btn">
                             注册

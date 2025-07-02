@@ -13,6 +13,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
 
     if (!isOpen && !isClosing) return null;
@@ -25,7 +26,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             setPassword("");
             setMessage("");
             onClose();
-        }, 100); // 与动画时长保持一致
+        }, 100);
     };
 
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -40,12 +41,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 (info: string) => {
                     const token = JSON.parse(info);
                     setUserToken(token);
-                    handleClose();
+                    setIsSuccess(true);
+                    setMessage("登录成功！");
+
+                    setTimeout(() => {
+                        handleClose();
+                    }, 1000);
                 }, (e) => {
+                    setIsSuccess(false);
                     setMessage(e || '登录失败！');
                 }
             );
         } catch (e) {
+            setIsSuccess(false);
             setMessage(e.message || '登录失败！');
         }
     }
@@ -71,10 +79,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                                     value={password} onChange={(e) => setPassword(e.target.value)} />
                             </div>
                             {message && (
-                                <div className="error-message">
-                                    <div className="error-icon">!</div>
-                                    <div className="error-text">{message}</div>
-                                </div>
+                                isSuccess ? (
+                                    <div className="success-message">
+                                        <div className="success-icon">✓</div>
+                                        <div className="modal-message-text">{message}</div>
+                                    </div>
+                                ) : (
+                                    <div className="error-message">
+                                        <div className="error-icon">!</div>
+                                        <div className="modal-message-text">{message}</div>
+                                    </div>
+                                )
                             )}
                             <button type="submit" className="login-btn">
                                 登录
