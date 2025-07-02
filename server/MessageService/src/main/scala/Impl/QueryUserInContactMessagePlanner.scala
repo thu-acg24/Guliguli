@@ -78,7 +78,7 @@ case class QueryUserInContactMessagePlanner(
       s"""
          |SELECT COUNT(*) AS unread_count
          |FROM $schemaName.message_table
-         |WHERE receiver_id = ?
+         |WHERE sender_id = ?
          |AND unread = True
       """.stripMargin
     val getLastSql =
