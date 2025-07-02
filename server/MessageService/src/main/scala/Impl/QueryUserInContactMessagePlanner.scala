@@ -14,6 +14,7 @@ import Objects.MessageService.UserInfoWithMessage
 import Objects.UserService.UserInfo
 import cats.effect.IO
 import cats.implicits.*
+import cats.syntax.traverse._
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
@@ -37,8 +38,8 @@ case class QueryUserInContactMessagePlanner(
       _ <- IO(logger.info(s"与当前用户有联系的用户ID列表: ${contactUserIDs}"))
       // Step 3: Query contact user information
       userInfo <- retrieveContactUserInfo(contactUserIDs)
-      userWithMessage <- IO(userInfo).map(combineInformations)
-    } yield result
+      userWithMessage <- userInfo.traverse(combineInformation)
+    } yield userWithMessage
   }
 
   private def validateAndRetrieveUserID()(using PlanContext): IO[Int] = {
@@ -48,13 +49,13 @@ case class QueryUserInContactMessagePlanner(
   private def retrieveContactUserIDs(userID: Int)(using PlanContext): IO[List[Int]] = {
     val sql =
       s"""
-            SELECT DISTINCT CASE
-              WHEN sender_id = ? THEN receiver_id
-              WHEN receiver_id = ? THEN sender_id
-            END AS contact_user_id
-            FROM ${schemaName}.message_table
-            WHERE (sender_id = ? OR receiver_id = ?) AND is_notification = false;
-          """
+          |SELECT DISTINCT CASE
+          |WHEN sender_id = ? THEN receiver_id
+          |WHEN receiver_id = ? THEN sender_id
+          |END AS contact_user_id
+          |FROM ${schemaName}.message_table
+          |WHERE (sender_id = ? OR receiver_id = ?) AND is_notification = false;
+      """.stripMargin
     IO(logger.info("开始创建获取联系人ID的数据库指令"))*>
     IO(logger.info(s"指令为${sql}")) *>
     readDBRows(sql, List.fill(4)(SqlParameter("Int", userID.toString))).map {
@@ -72,17 +73,33 @@ case class QueryUserInContactMessagePlanner(
     }
   }
 
-  private def combineInformations(userInfo: UserInfo)(using PlanContext): IO[UserInfoWithMessage] {
-    val messageSql =
+  private def combineInformation(userInfo: UserInfo)(using PlanContext): IO[UserInfoWithMessage] = {
+    val countSql =
       s"""
-       |SELECT COUNT(*) AS unread_count
-       |FROM $schemaName.message_table
-       |WHERE receiver_id = ?
-       |AND unread = True
+         |SELECT COUNT(*) AS unread_count
+         |FROM $schemaName.message_table
+         |WHERE receiver_id = ?
+         |AND unread = True
       """.stripMargin
-    val parameter = List(SqlParameter("Int", userID.toString))
+    val getLastSql =
+      s"""
+         |SELECT content, send_time
+         |FROM $schemaName.message_table
+         |WHERE (receiver_id=? OR sender_id=?)
+         |ORDER BY send_time
+         |DESC LIMIT 1
+      """.stripMargin
+    val parameter = List(SqlParameter("Int", userInfo.userID.toString))
     for {
-      s
+      _ <- IO(logger.info("查询信息数量Sql: $countSql"))
+      count <- readDBInt(countSql, parameter)
+      json <- readDBJson(getLastSql, parameter.flatMap(x => List(x, x)))
+      result <- IO(UserInfoWithMessage(
+        userInfo = userInfo,
+        unreadCount = count,
+        timestamp = decodeField[DateTime](json, "send_time"),
+        content = decodeField[String](json, "content"),
+      ))
     } yield result
   }
 }

@@ -47,19 +47,20 @@ case class SendReplyNoticePlanner(
       // Step 3: 插入数据库
       _ <- IO(logger.info("消息构造成功，开始插入数据库"))
       timestamp <- IO(DateTime.now())
-      constructedMessage <- insertRecord(userID, receiverID, comment.content, commentID,
+      _ <- insertRecord(userID, receiverID, comment.content, commentID,
         replyComment.content, replyComment.authorID, timestamp)
     } yield()
   }
 
-  private def checkRecord(commentID: Int)(using PlanContext): IO[Boolean] = {
+  private def checkRecord(commentID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         SELECT COUNT(*) from ${schemaName}.message_table WHERE comment_id = ?;
+         SELECT COUNT(*) from ${schemaName}.reply_notice_table WHERE comment_id = ?;
        """
     for {
       count <- readDBInt(sql, List(SqlParameter("Int", commentID.toString)))
-    } yield count > 0
+      _ <- if (count <= 0) IO.unit else IO.raiseError(InvalidInputException("未查找到评论"))
+    } yield()
   }
 
   private def insertRecord(senderID: Int, receiverID: Int, content: String, commentID: Int,
@@ -67,9 +68,9 @@ case class SendReplyNoticePlanner(
                           (using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         INSERT INTO ${schemaName}.message_table
+         INSERT INTO ${schemaName}.reply_notice_table
          (sender_id, receiver_id, content, comment_id, original_content, original_comment_id, send_time)
-         VALUES (?, ?, ?, ?, ?);
+         VALUES (?, ?, ?, ?, ?, ?, ?);
        """
 
     writeDB(

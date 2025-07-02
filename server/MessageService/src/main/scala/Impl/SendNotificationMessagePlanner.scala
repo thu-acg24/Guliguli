@@ -44,7 +44,7 @@ case class SendNotificationMessagePlanner(
   private def insertMessageRecord()(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-           INSERT INTO ${schemaName}.message_table
+           INSERT INTO ${schemaName}.notification_table
            (receiver_id, content, send_time)
            VALUES (?, ?, ?);
          """
