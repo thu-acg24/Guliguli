@@ -6,6 +6,7 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.MessageServiceCode
+import Objects.MessageService.UserInfoWithMessage
 import Objects.UserService.UserInfo
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
@@ -15,8 +16,10 @@ import io.circe.generic.semiauto.deriveDecoder
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.parser.*
 import io.circe.syntax.*
+
 import java.util.UUID
 import org.joda.time.DateTime
+
 import scala.util.Try
 
 /**
@@ -28,7 +31,7 @@ import scala.util.Try
 
 case class QueryUserInContactMessage(
   token: String
-) extends API[List[UserInfo]](MessageServiceCode)
+) extends API[List[UserInfoWithMessage]](MessageServiceCode)
 
 case object QueryUserInContactMessage{
 

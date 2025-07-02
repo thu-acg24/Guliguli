@@ -21,19 +21,15 @@ import scala.util.Try
  * desc: 消息实体，包含发送方、接收方等基本信息
  * @param messageID: Int (消息的唯一ID)
  * @param senderID: Int (发送者的用户ID)
- * @param receiverID: Int (接收者的用户ID)
  * @param content: String (消息内容)
  * @param timestamp: DateTime (消息发送的时间戳)
- * @param isNotification: Boolean (是否是一条通知消息)
  */
 
 case class Message(
   messageID: Int,
   senderID: Int,
-  receiverID: Int,
   content: String,
-  timestamp: DateTime,
-  isNotification: Boolean
+  timestamp: DateTime
 ){
 
   //process class code 预留标志位，不要删除

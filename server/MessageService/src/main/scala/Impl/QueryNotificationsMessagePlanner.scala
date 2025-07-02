@@ -6,7 +6,7 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Objects.MessageService.Message
+import Objects.MessageService.Notification
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.*
@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory
 case class QueryNotificationsMessagePlanner(
                                         token: String,
                                         override val planContext: PlanContext
-                                      ) extends Planner[List[Message]] {
+                                      ) extends Planner[List[Notification]] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[List[Message]] = {
+  override def plan(using planContext: PlanContext): IO[List[Notification]] = {
     for {
       // Step 1: Validate token and get userID
       _ <- IO(logger.info(s"开始验证Token: $token"))
@@ -43,7 +43,7 @@ case class QueryNotificationsMessagePlanner(
    * @param userID 当前用户ID
    * @return 按时间戳降序排列的消息列表
    */
-  private def queryAndFormatMessages(userID: Int)(using PlanContext): IO[List[Message]] = {
+  private def queryAndFormatMessages(userID: Int)(using PlanContext): IO[List[Notification]] = {
     for {
       _ <- IO(logger.info(s"获取用户 $userID 的通知"))
       messages <- queryNotifications(userID)
@@ -57,7 +57,7 @@ case class QueryNotificationsMessagePlanner(
    * @param userID   当前用户ID
    * @return 原始消息列表
    */
-  private def queryNotifications(userID: Int)(using PlanContext): IO[List[Message]] = {
+  private def queryNotifications(userID: Int)(using PlanContext): IO[List[Notification]] = {
     val sql =
       s"""
          |SELECT message_id, receiver_id, content, send_time
@@ -82,14 +82,11 @@ case class QueryNotificationsMessagePlanner(
    * @param json SQL 查询返回的单条记录 JSON
    * @return 转换后的 Message 对象
    */
-  private def decodeMessage(json: Json): Message = {
-    Message(
+  private def decodeMessage(json: Json): Notification = {
+    Notification(
       messageID = decodeField[Int](json, "message_id"),
-      senderID = 0,
-      receiverID = decodeField[Int](json, "receiver_id"),
       content = decodeField[String](json, "content"),
-      timestamp = decodeField[DateTime](json, "send_time"),
-      isNotification = true
+      timestamp = decodeField[DateTime](json, "send_time")
     )
   }
 }

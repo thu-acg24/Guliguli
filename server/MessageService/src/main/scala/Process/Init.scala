@@ -26,13 +26,13 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
-       /** 包含私信和通知信息的表
+      /** 包含私信信息的表
        * message_id: 唯一标识每条私信的主键ID
        * sender_id: 私信发送者的用户ID
        * receiver_id: 私信接收者的用户ID
        * content: 私信内容
        * send_time: 私信发送时间
-       * is_notification: 是否为通知
+       * unread: 是否未读
        */
       _ <- writeDB(
         s"""
@@ -41,8 +41,26 @@ object Init {
             sender_id INT NOT NULL,
             receiver_id INT NOT NULL,
             content TEXT NOT NULL,
-            send_time TIMESTAMP NOT NULL,
-            is_notification BOOLEAN NOT NULL
+            send_time TIMESTAMP NOT NULL
+            unread BOOLEAN NOT NULL DEFAULT TRUE
+        );
+        """,
+        List()
+      )
+      /** 包含通知信息的表
+       * notification_id: 唯一标识每条私信的主键ID
+       * receiver_id: 私信接收者的用户ID
+       * content: 私信内容
+       * send_time: 私信发送时间
+       * unread: 是否未读
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."message_table" (
+            notification_id SERIAL NOT NULL PRIMARY KEY,
+            receiver_id INT NOT NULL,
+            content TEXT NOT NULL,
+            send_time TIMESTAMP NOT NULL
             unread BOOLEAN NOT NULL DEFAULT TRUE
         );
         """,
@@ -57,7 +75,7 @@ object Init {
        * original_content: 原评论内容
        * original_comment_id: 原评
        * send_time: 私信发送时间
-       * is_notification: 是否为通知
+       * unread: 是否未读
        */
       _ <- writeDB(
         s"""

@@ -70,7 +70,6 @@ case class QueryMessagesMessagePlanner(
          |SELECT message_id, sender_id, receiver_id, content, send_time
          |FROM $schemaName.message_table
          |WHERE ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
-         |AND is_notification = FALSE
          |ORDER BY send_time DESC;
          """.stripMargin
     val parameters = List(
@@ -96,10 +95,8 @@ case class QueryMessagesMessagePlanner(
     Message(
       messageID = decodeField[Int](json, "message_id"),
       senderID = decodeField[Int](json, "sender_id"),
-      receiverID = decodeField[Int](json, "receiver_id"),
       content = decodeField[String](json, "content"),
-      timestamp = decodeField[DateTime](json, "send_time"),
-      isNotification = false
+      timestamp = decodeField[DateTime](json, "send_time")
     )
   }
 }

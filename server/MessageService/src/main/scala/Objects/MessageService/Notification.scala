@@ -13,53 +13,45 @@ import java.util.UUID
 import scala.util.Try
 
 /**
- * Message
- * desc: 回复通知
- * @param noticeID: Int (通知的唯一ID)
- * @param senderID: Int (发送者的用户ID)
- * @param content: String (回复内容)
- * @param commentID: Int (回复ID)
- * @param originalContent: String (原评论内容)
- * @param originalCommentID: String (原评论ID)
+ * Notification
+ * desc: 消息实体，包含发送方、接收方等基本信息
+ * @param messageID: Int (消息的唯一ID)
+ * @param content: String (消息内容)
  * @param timestamp: DateTime (消息发送的时间戳)
  */
 
-case class ReplyNotice(
-  noticeID: Int,
-  senderID: Int,
+case class Notification(
+  messageID: Int,
   content: String,
-  commentID: Int,
-  originalContent: String,
-  originalCommentID: Int,
-  timestamp: DateTime,
+  timestamp: DateTime
 ){
 
   //process class code 预留标志位，不要删除
 
 }
 
-case object ReplyNotice{
+case object Notification{
 
-  private val circeEncoder: Encoder[ReplyNotice] = deriveEncoder
-  private val circeDecoder: Decoder[ReplyNotice] = deriveDecoder
+  private val circeEncoder: Encoder[Notification] = deriveEncoder
+  private val circeDecoder: Decoder[Notification] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[ReplyNotice] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[Notification] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[ReplyNotice] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[ReplyNotice]() {})) }
+  private val jacksonDecoder: Decoder[Notification] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[Notification]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given messageEncoder: Encoder[ReplyNotice] = Encoder.instance { config =>
+  given messageEncoder: Encoder[Notification] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given messageDecoder: Decoder[ReplyNotice] = Decoder.instance { cursor =>
+  given messageDecoder: Decoder[Notification] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
