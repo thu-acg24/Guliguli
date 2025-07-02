@@ -7,6 +7,7 @@ import { QueryNotificationsMessage} from 'Plugins/MessageService/APIs/QueryNotif
 import { QueryReplyNoticesMessage} from 'Plugins/MessageService/APIs/QueryReplyNoticesMessage';
 import { SendMessageMessage} from 'Plugins/MessageService/APIs/SendMessageMessage';
 import { QueryUserInContactMessage} from 'Plugins/MessageService/APIs/QueryUserInContactMessage';
+import { GetUIDByTokenMessage} from 'Plugins/UserService/APIs/GetUIDByTokenMessage';
 
 interface UserInfo {
   userID: number;
@@ -70,6 +71,31 @@ const WhisperTab: React.FC = () => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+async function getUserIdByToken(userToken: string): Promise<number> {
+  try {
+    const userId = await new Promise<number>((resolve, reject) => {
+      new GetUIDByTokenMessage(userToken).send(
+        (info: string) => {
+          try {
+            const parsedId = JSON.parse(info);
+            console.log('成功获取用户ID:', parsedId);
+            resolve(parsedId);
+          } catch (parseError) {
+            reject(new Error(`获取用户ID失败: ${parseError.message}`));
+          }
+        },
+        (error: string) => {
+          reject(new Error(`获取用户ID失败: ${error}`));
+        }
+      );
+    });
+    return userId;
+  } catch (error) {
+    console.error('获取用户ID失败', error);
+    throw error; // 重新抛出错误
+  }
+}
+
   const fetchConversations = async () => {
     setLoading(true);
     try {
@@ -95,7 +121,7 @@ const WhisperTab: React.FC = () => {
     try {
       new QueryMessagesMessage(userToken, userId).send(
         (info: string) => {
-          const data = JSON.parse(info);
+          const data:Message[] = JSON.parse(info);
           setMessages(data.map(msg => ({
             ...msg,
             timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -147,37 +173,10 @@ const WhisperTab: React.FC = () => {
   };
 
   const handleSendMessage = () => {
+    let userId: number;
     if (!messageInput.trim() || !selectedUser) return;
-    
-    const currentUserId = JSON.parse(userToken).userID;
-    const newMessage = {
-      messageID: Date.now(),
-      senderID: currentUserId,
-      content: messageInput,
-      timestamp: new Date().toISOString(),
-      isMe: true
-    };
-    
-    // 乐观更新
-    setMessages(prev => [...prev, {
-      ...newMessage,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }]);
-    setMessageInput('');
-    
-    // 更新对话列表的最后一条消息
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.userInfo.userID === selectedUser 
-          ? { 
-              ...conv, 
-              content: messageInput,
-              timestamp: new Date().toISOString()
-            } 
-          : conv
-      )
-    );
-    
+    const currentUserId =  getUserIdByToken(userToken);
+  
     // 实际发送消息
     new SendMessageMessage(userToken, selectedUser, messageInput).send(
       () => {
@@ -185,19 +184,6 @@ const WhisperTab: React.FC = () => {
       },
       (e: string) => {
         materialAlertError('发送消息失败', e);
-        // 回滚乐观更新
-        setMessages(prev => prev.filter(msg => msg.messageID !== newMessage.messageID));
-        setConversations(prev => 
-          prev.map(conv => 
-            conv.userInfo.userID === selectedUser 
-              ? { 
-                  ...conv, 
-                  content: prev.find(c => c.userInfo.userID === selectedUser)?.content || '',
-                  timestamp: prev.find(c => c.userInfo.userID === selectedUser)?.timestamp || ''
-                } 
-              : conv
-          )
-        );
       }
     );
   };
