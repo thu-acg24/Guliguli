@@ -54,11 +54,15 @@ const WhisperTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userToken = useUserToken();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+ 
   useEffect(() => {
     if (userToken) {
-      fetchConversations();
-      fetchNotifications();
-      fetchReplyNotices();
+      getUserIdByToken(userToken).then(setCurrentUserId).then(() => {
+        fetchConversations();
+        fetchNotifications();
+        fetchReplyNotices();
+      });
     }
   }, [userToken]);
 
@@ -261,8 +265,8 @@ async function getUserIdByToken(userToken: string): Promise<number> {
             </div>
             
             <div className="message-list">
-              {messages.map(async msg => {
-                const isMe = msg.senderID === await getUserIdByToken(userToken);
+              {messages.map(msg => {
+                const isMe = msg.senderID === currentUserId;
                 return (
                   <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}>
                     {!isMe && (
