@@ -32,6 +32,22 @@
     }
 }
 
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+}
+
+.modal-content.closing {
+    animation: modalFadeOut 0.3s forwards;
+}
+
 .modal-header {
     padding: 15px 20px;
     border-bottom: 1px solid #e7e7e7;
