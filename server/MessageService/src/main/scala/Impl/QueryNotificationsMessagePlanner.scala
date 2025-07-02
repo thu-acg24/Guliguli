@@ -33,6 +33,8 @@ case class QueryNotificationsMessagePlanner(
       _ <- IO(logger.info(s"Token验证通过, userID=$userID"))
 
       messages <- queryAndFormatMessages(userID)
+      _ <- IO(logger.info(s"将所有通知设为已读"))
+      _ <- readNotifications(userID)
     } yield messages
   }
 
@@ -54,18 +56,17 @@ case class QueryNotificationsMessagePlanner(
   /**
    * 查询数据库中 userID 和 targetID 之间的私信
    *
-   * @param userID   当前用户ID
+   * @param userID 当前用户ID
    * @return 原始消息列表
    */
   private def queryNotifications(userID: Int)(using PlanContext): IO[List[Notification]] = {
     val sql =
       s"""
          |SELECT message_id, receiver_id, content, send_time
-         |FROM $schemaName.message_table
+         |FROM $schemaName.notification_table
          |WHERE receiver_id = ?
-         |AND is_notification = TRUE
          |ORDER BY send_time DESC;
-         """.stripMargin
+           """.stripMargin
     val parameters = List(
       SqlParameter("Int", userID.toString)
     )
@@ -74,6 +75,30 @@ case class QueryNotificationsMessagePlanner(
       rows <- readDBRows(sql, parameters)
       messages <- IO(rows.map(decodeMessage))
     } yield messages
+  }
+
+  /**
+   * 将 userID 的通知全部设为已读
+   *
+   * @param userID 当前用户ID
+   * @return 原始消息列表
+   */
+  private def readNotifications(userID: Int)(using PlanContext): IO[Unit] = {
+    val sql =
+      s"""
+         |UPDATE ${schemaName}.notification_table
+         |SET unread = FALSE
+         |WHERE
+         |    (receiver_id = ?)
+         |    AND unread = TRUE
+        """.stripMargin
+    val parameters = List(
+      SqlParameter("Int", userID.toString)
+    )
+    for {
+      _ <- IO(logger.info(s"生成修改未读通知的SQL: $sql"))
+      _ <- writeDB(sql, parameters)
+    } yield ()
   }
 
   /**

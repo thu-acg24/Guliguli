@@ -56,7 +56,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."message_table" (
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."notification_table" (
             notification_id SERIAL NOT NULL PRIMARY KEY,
             receiver_id INT NOT NULL,
             content TEXT NOT NULL,

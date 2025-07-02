@@ -33,6 +33,7 @@ case class QueryReplyNoticesPlanner(
       _ <- IO(logger.info(s"Token验证通过, userID=$userID"))
 
       notices <- queryAndFormatNotices(userID)
+      _ <- readReplyNotices(userID)
     } yield notices
   }
 
@@ -60,9 +61,9 @@ case class QueryReplyNoticesPlanner(
   private def queryNotices(userID: Int)(using PlanContext): IO[List[ReplyNotice]] = {
     val sql =
       s"""
-         |SELECT notice_id, sender_id, receiver_id, content,
+         |SELECT notice_id, sender_id, content,
          |comment_id, original_content, original_comment_id, send_time
-         |FROM $schemaName.message_table
+         |FROM $schemaName.reply_notice_table
          |WHERE receiver_id = ?
          |ORDER BY send_time DESC;
          """.stripMargin
@@ -74,6 +75,30 @@ case class QueryReplyNoticesPlanner(
       rows <- readDBRows(sql, parameters)
       notices <- IO(rows.map(decodeNotice))
     } yield notices
+  }
+
+  /**
+   * 将 userID 的回复通知全部设为已读
+   *
+   * @param userID 当前用户ID
+   * @return 原始消息列表
+   */
+  private def readReplyNotices(userID: Int)(using PlanContext): IO[Unit] = {
+    val sql =
+      s"""
+         |UPDATE ${schemaName}.reply_notice_table
+         |SET unread = FALSE
+         |WHERE
+         |    (receiver_id = ?)
+         |    AND unread = TRUE
+          """.stripMargin
+    val parameters = List(
+      SqlParameter("Int", userID.toString)
+    )
+    for {
+      _ <- IO(logger.info(s"生成修改未读评论的SQL: $sql"))
+      _ <- writeDB(sql, parameters)
+    } yield ()
   }
 
   /**

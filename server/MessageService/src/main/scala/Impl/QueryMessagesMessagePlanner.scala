@@ -39,7 +39,7 @@ case class QueryMessagesMessagePlanner(
       _ <- IO(logger.info(s"Token验证通过, userID=$userID"))
 
       messages <- queryAndFormatMessages(userID)
-      _ <- ReadMessageBetweenUsers(userID, targetID)
+      _ <- readMessageBetweenUsers(userID, targetID)
     } yield messages
   }
 
@@ -93,7 +93,7 @@ case class QueryMessagesMessagePlanner(
    * @param targetID 目标用户ID
    * @return 原始消息列表
    */
-  private def ReadMessageBetweenUsers(userID: Int, targetID: Int)(using PlanContext): IO[List[Message]] = {
+  private def readMessageBetweenUsers(userID: Int, targetID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
          |UPDATE ${schemaName}.message_table
@@ -108,9 +108,8 @@ case class QueryMessagesMessagePlanner(
     )
     for {
       _ <- IO(logger.info(s"生成修改未读信息的SQL: $sql"))
-      rows <- readDBRows(sql, parameters)
-      messages <- IO(rows.map(decodeMessage))
-    } yield messages
+      _ <- writeDB(sql, parameters)
+    } yield()
   }
 
   /**

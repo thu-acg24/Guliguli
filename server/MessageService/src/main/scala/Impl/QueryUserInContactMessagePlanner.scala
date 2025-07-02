@@ -5,27 +5,28 @@ import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Objects.MessageService.UserInfoWithMessage
 import Objects.UserService.UserInfo
 import cats.effect.IO
 import cats.implicits.*
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 case class QueryUserInContactMessagePlanner(
                                              token: String,
                                              override val planContext: PlanContext
-                                           ) extends Planner[List[UserInfo]] {
+                                           ) extends Planner[List[UserInfoWithMessage]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[List[UserInfo]] = {
+  override def plan(using planContext: PlanContext): IO[List[UserInfoWithMessage]] = {
     for {
       // Step 1: Validate token and retrieve userID
       _ <- IO(logger.info(s"验证Token获取用户ID"))
@@ -35,7 +36,8 @@ case class QueryUserInContactMessagePlanner(
       contactUserIDs <- retrieveContactUserIDs(userID)
       _ <- IO(logger.info(s"与当前用户有联系的用户ID列表: ${contactUserIDs}"))
       // Step 3: Query contact user information
-      result <- retrieveContactUserInfo(contactUserIDs)
+      userInfo <- retrieveContactUserInfo(contactUserIDs)
+      userWithMessage <- IO(userInfo).map(combineInformations)
     } yield result
   }
 
@@ -68,5 +70,19 @@ case class QueryUserInContactMessagePlanner(
         userInfo
       }
     }
+  }
+
+  private def combineInformations(userInfo: UserInfo)(using PlanContext): IO[UserInfoWithMessage] {
+    val messageSql =
+      s"""
+       |SELECT COUNT(*) AS unread_count
+       |FROM $schemaName.message_table
+       |WHERE receiver_id = ?
+       |AND unread = True
+      """.stripMargin
+    val parameter = List(SqlParameter("Int", userID.toString))
+    for {
+      s
+    } yield result
   }
 }

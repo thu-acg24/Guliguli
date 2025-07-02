@@ -22,11 +22,11 @@ import scala.util.Try
  */
 
 case class UserInfoWithMessage(
-                         userInfo: UserInfo,
-                         unreadCount: Boolean,
-                         timestamp: DateTime,
-                         content: String
-                       ){
+  userInfo: UserInfo,
+  unreadCount: Int,
+  timestamp: DateTime,
+  content: String
+){
 
   //process class code 预留标志位，不要删除
 

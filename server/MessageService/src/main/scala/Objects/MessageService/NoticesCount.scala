@@ -16,13 +16,13 @@ import scala.util.Try
  * NoticesCount
  * desc: 消息实体，包含发送方、接收方等基本信息
  * @param MessagesCount: Int (私信的数量)
- * @param NoticesCountsCount: Int (通知的数量)
+ * @param NotificationsCount: Int (通知的数量)
  * @param ReplyNoticesCount: Int (回复的数量)
  */
 
 case class NoticesCount(
   MessagesCount: Int,
-  NoticesCountsCount: Int,
+  NotificationsCount: Int,
   ReplyNoticesCount: Int
 ){
 
