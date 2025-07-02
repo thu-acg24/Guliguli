@@ -41,7 +41,7 @@ const Header: React.FC = () => {
 
     // 校验token有效性
     const getUIDByToken = async (): Promise<number | null> => {
-        return 1
+        // return 1
         if (!userToken) return null;
         return new Promise((resolve) => {
             try {

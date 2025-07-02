@@ -8,6 +8,7 @@ import { QueryReplyNoticesMessage} from 'Plugins/MessageService/APIs/QueryReplyN
 import { SendMessageMessage} from 'Plugins/MessageService/APIs/SendMessageMessage';
 import { QueryUserInContactMessage} from 'Plugins/MessageService/APIs/QueryUserInContactMessage';
 import { GetUIDByTokenMessage} from 'Plugins/UserService/APIs/GetUIDByTokenMessage';
+import {QueryUserInfoMessage} from "Plugins/UserService/APIs/QueryUserInfoMessage";
 
 interface UserInfo {
   userID: number;
@@ -54,11 +55,54 @@ const WhisperTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userToken = useUserToken();
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
- 
+  const [userinfo, setUserInfo] = useState<UserInfo | null>(null);
+  // 在组件顶部添加新状态保存刷新前选中的用户
+  const [refreshFlag, setRefreshFlag] = useState(false);
+
+  const fetchUserInfo = async (userID: number) => {
+    try {
+      new QueryUserInfoMessage(userID).send(
+          (info: string) => {
+            const userInfo = JSON.parse(info);
+            setUserInfo(userInfo);
+          },
+          (e: string) => {
+            console.error("获取用户信息失败:", e);
+          }
+      );
+    } catch (e) {
+      console.error("获取用户信息异常:", e.message);
+    }
+  };
+// 添加useEffect处理刷新
+  useEffect(() => {
+      // 设置延迟确保状态更新完成后再刷新
+      fetchConversations();
+      if(selectedUser)fetchMessages(selectedUser);
+  }, [refreshFlag]);
+
+// 在初始化时检查是否有保存的选中用户
+  useEffect(() => {
+    // 从sessionStorage读取保存的选中用户
+    const savedUser = sessionStorage.getItem('selectedUser');
+    if (savedUser) {
+      setSelectedUser(Number(savedUser));
+      // 清除存储
+      sessionStorage.removeItem('selectedUser');
+    }
+
+    // 原有初始化逻辑
+    if (userToken) {
+      getUserIdByToken(userToken).then(userid=> fetchUserInfo(userid)).then(()=> {
+        fetchConversations();
+        fetchNotifications();
+        fetchReplyNotices();
+      });
+    }
+  }, [userToken]);
   useEffect(() => {
     if (userToken) {
-      getUserIdByToken(userToken).then(setCurrentUserId).then(() => {
+      getUserIdByToken(userToken).then(userid=> fetchUserInfo(userid)).then(()=> {
         fetchConversations();
         fetchNotifications();
         fetchReplyNotices();
@@ -170,19 +214,23 @@ async function getUserIdByToken(userToken: string): Promise<number> {
     }
   };
 
+// 修改handleSendMessage函数
   const handleSendMessage = () => {
-    let userId: number;
     if (!messageInput.trim() || !selectedUser) return;
-    const currentUserId =  getUserIdByToken(userToken);
-  
+
+    // 保存选中的用户ID到sessionStorage
+    sessionStorage.setItem('selectedUser', selectedUser.toString());
+
     // 实际发送消息
     new SendMessageMessage(userToken, selectedUser, messageInput).send(
-      () => {
-        // 发送成功，不需要额外处理
-      },
-      (e: string) => {
-        materialAlertError('发送消息失败', e);
-      }
+        () => {
+          // 发送成功后设置刷新标志
+          setRefreshFlag(!refreshFlag);
+          setMessageInput("")
+        },
+        (e: string) => {
+          materialAlertError('发送消息失败', e);
+        }
     );
   };
 
@@ -266,22 +314,23 @@ async function getUserIdByToken(userToken: string): Promise<number> {
             
             <div className="message-list">
               {messages.map(msg => {
-                const isMe = msg.senderID === currentUserId;
+                const isMe = msg.senderID === userinfo.userID;
                 return (
                   <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}>
                     {!isMe && (
                       <div className="message-avatar">
-                        {conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath ? (
-                          <img src={conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath} alt="头像" />
-                        ) : (
-                          <img src={`data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI7IiByPSI0Ii8+PC9zdmc+`} alt="头像" />
-                        )}
+                        <img src={conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath} alt="头像" />
                       </div>
                     )}
                     <div className="message-content">
                       <div className="message-text">{msg.content}</div>
                       <div className="message-time">{msg.timestamp}</div>
                     </div>
+                    {isMe && (
+                        <div className="message-avatar">
+                          <img src={userinfo.avatarPath} alt="头像" />
+                        </div>
+                    )}
                   </div>
                 );
               })}

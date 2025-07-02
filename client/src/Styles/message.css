@@ -207,6 +207,7 @@
     border-radius: 50%;
     overflow: hidden;
     margin-right: 10px;
+    margin-left: 10px;
     flex-shrink: 0;
     background-color: #e7e7e7;
     display: flex;
@@ -214,9 +215,9 @@
     justify-content: center;
 }
 
-.message.me .message-avatar {
-    display: none;
-}
+/*.message.me .message-avatar {*/
+/*    display: none;*/
+/*}*/
 
 .message-avatar img {
     width: 100%;
