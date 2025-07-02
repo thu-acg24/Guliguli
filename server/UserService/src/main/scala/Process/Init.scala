@@ -46,7 +46,6 @@ object Init {
         s"""
         CREATE INDEX IF NOT EXISTS idx_follow_relation_timestamp
           ON "${schemaName}"."follow_relation_table" (timestamp);
-        );
         """,
         List()
       )
