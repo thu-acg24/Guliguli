@@ -26,14 +26,13 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
-            /** 弹幕表，用于存储弹幕的基本信息
+       /** 弹幕表，用于存储弹幕的基本信息
        * danmaku_id: 弹幕的唯一ID (主键)
        * content: 弹幕内容
        * video_id: 所属视频的ID
        * author_id: 发布弹幕的用户ID
        * danmaku_color: 弹幕颜色 (如 #FFFFFF)
        * time_in_video: 弹幕出现的时间点（秒）
-       * timestamp: 弹幕发布时间
        */
       _ <- writeDB(
         s"""
@@ -43,10 +42,8 @@ object Init {
             video_id INT NOT NULL,
             author_id INT NOT NULL,
             danmaku_color TEXT NOT NULL,
-            time_in_video REAL NOT NULL,
-            timestamp TIMESTAMP NOT NULL
+            time_in_video REAL NOT NULL
         );
-         
         """,
         List()
       )

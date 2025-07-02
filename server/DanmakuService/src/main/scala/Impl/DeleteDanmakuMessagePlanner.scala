@@ -47,15 +47,7 @@ case class DeleteDanmakuMessagePlanner(
       } else IO.unit
 
       _ <- IO(logger.info(s"开始删除弹幕记录，弹幕ID：${danmakuID}"))
-      deletionResult <- deleteDanmakuRecord(danmakuID)
-
-      _ <- if (deletionResult) {
-        IO(logger.info(s"弹幕记录删除成功，弹幕ID：${danmakuID}"))
-        IO.unit
-      } else {
-        IO(logger.error(s"删除弹幕记录失败，弹幕ID：${danmakuID}"))
-        IO.raiseError(InvalidInputException("Failed to delete danmaku"))
-      }
+      _ <- deleteDanmakuRecord(danmakuID)
     } yield ()
   }
 
@@ -97,12 +89,12 @@ case class DeleteDanmakuMessagePlanner(
     } yield isDanmakuAuthor || isVideoUploader || isAuditor
   }
 
-  private def deleteDanmakuRecord(danmakuID: Int)(using PlanContext): IO[Boolean] = {
+  private def deleteDanmakuRecord(danmakuID: Int)(using PlanContext): IO[String] = {
     val sql =
       s"""
          |DELETE FROM ${schemaName}.danmaku_table
          |WHERE danmaku_id = ?;
          |""".stripMargin
-    writeDB(sql, List(SqlParameter("Int", danmakuID.toString))).map(_ == "Operation(s) done successfully")
+    writeDB(sql, List(SqlParameter("Int", danmakuID.toString)))
   }
 }

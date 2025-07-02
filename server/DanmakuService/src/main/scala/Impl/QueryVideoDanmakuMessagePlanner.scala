@@ -25,11 +25,8 @@ case class QueryVideoDanmakuMessagePlanner(videoID: Int, token: Option[String], 
 
   override def plan(using PlanContext): IO[List[Danmaku]] = {
     for {
-      danmakuRecords <- fetchDanmakuRecords()
-      _ <- IO(logger.info(s"查询到 ${danmakuRecords.size} 条弹幕记录"))
-
-      result <- IO(logger.info("根据timeInVideo字段对弹幕记录排序")) >> sortDanmakuRecords(danmakuRecords)
-      _ <- IO(logger.info(s"排序完成，共有 ${result.size} 条弹幕记录"))
+      result <- fetchDanmakuRecords()
+      _ <- IO(logger.info(s"查询到 ${result.size} 条弹幕记录"))
     } yield result
   }
 
@@ -42,24 +39,24 @@ case class QueryVideoDanmakuMessagePlanner(videoID: Int, token: Option[String], 
       s"""
          |SELECT danmaku_id, content, video_id, author_id, danmaku_color, time_in_video
          |FROM ${schemaName}.danmaku_table
-         |WHERE video_id = ?;
+         |WHERE video_id = ?
+         |ORDER BY time_in_video ASC;
        """.stripMargin
     for {
       _ <- IO(logger.info(s"执行SQL查询获取弹幕记录，SQL语句: $sql"))
       dbRows <- readDBRows(sql, List(SqlParameter("Int", videoID.toString)))
       danmakuRecords <- IO {
-        dbRows.map(decodeType[Danmaku]) // 将JSON解码为Danmaku对象
+        dbRows.map(json => {
+          Danmaku(
+          danmakuID = decodeField[Int](json, "danmaku_id"),
+          content = decodeField[String](json, "content"),
+          videoID = decodeField[Int](json, "video_id"),
+          authorID = decodeField[Int](json, "author_id"),
+          danmakuColor = decodeField[String](json, "danmaku_color"),
+          timeInVideo = decodeField[Float](json, "time_in_video")
+        )}) // 将JSON解码为Danmaku对象
       }
       _ <- IO(logger.info(s"SQL查询返回 ${danmakuRecords.size} 条记录"))
     } yield danmakuRecords
-  }
-
-  /**
-   * 根据timeInVideo字段排序弹幕记录
-   * @param records 未排序的弹幕记录列表
-   * @return 排序后的弹幕记录列表
-   */
-  private def sortDanmakuRecords(records: List[Danmaku]): IO[List[Danmaku]] = {
-    IO(records.sortBy(_.timeInVideo))
   }
 }
