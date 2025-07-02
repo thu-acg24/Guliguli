@@ -24,7 +24,7 @@ case class QueryCommentByIDMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[Comment] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Comment] = {
     for {

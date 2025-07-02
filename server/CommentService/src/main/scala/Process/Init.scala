@@ -58,7 +58,8 @@ object Init {
       _ <- writeDB(
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."like_comment_record_table" (
-            user_id SERIAL NOT NULL PRIMARY KEY,
+            like_record_id SERIAL NOT NULL PRIMARY KEY,
+            user_id INT NOT NULL,
             comment_id INT NOT NULL,
             timestamp TIMESTAMP NOT NULL
         );

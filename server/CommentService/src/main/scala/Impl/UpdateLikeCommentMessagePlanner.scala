@@ -26,7 +26,7 @@ case class UpdateLikeCommentMessagePlanner(
     isLike: Boolean,
     override val planContext: PlanContext
 ) extends Planner[Unit] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
     for {
