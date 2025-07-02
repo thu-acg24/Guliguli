@@ -3,6 +3,7 @@ package Impl
 
 import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI.*
 import Common.Object.SqlParameter
@@ -49,7 +50,7 @@ case class ModifyVideoMessagePlanner(
       _ <- IO(logger.info(s"开始校验用户是否有权限修改该视频, userID=${userID}, uploaderID=${uploaderID}"))
       hasPermission <- IO(userID == uploaderID)
       _ <- IO(logger.info(s"权限校验结果: ${hasPermission}"))
-      _ <- IO.raiseUnless(hasPermission)(IllegalAccessException("Permission Denied"))
+      _ <- IO.raiseUnless(hasPermission)(InvalidInputException("Permission Denied"))
 
       // Step 4: Update video fields
       _ <- updateVideo(videoID, videoPath, title, coverPath, description, tag, duration)
@@ -72,7 +73,7 @@ case class ModifyVideoMessagePlanner(
         WHERE video_id = ?;
       """
     readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
-      case None => throw IllegalArgumentException("视频不存在")
+      case None => throw InvalidInputException("视频不存在")
       case Some(json) => decodeField[Int](json, "uploader_id")
     }
   }

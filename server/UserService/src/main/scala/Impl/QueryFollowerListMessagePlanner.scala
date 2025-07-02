@@ -2,6 +2,7 @@ package Impl
 
 
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -43,7 +44,7 @@ case class QueryFollowerListMessagePlanner(
       SqlParameter("Int", (rangeR - rangeL).toString)
     )
     for {
-      _ <- IO.unit.ensure(IllegalArgumentException("Invalid range")) { _ =>
+      _ <- IO.unit.ensure(InvalidInputException("Invalid range")) { _ =>
         rangeL > 0 && rangeR <= 501 && rangeL <= rangeR
       }
       // Step 1: Query following based on userID

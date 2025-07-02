@@ -2,6 +2,7 @@ package Utils
 
 
 import APIs.UserService.QueryUserRoleMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI.*
@@ -35,7 +36,7 @@ case object ValidateProcess {
         case UserRole.Auditor =>
           IO(logger.info("用户角色校验通过"))
         case _ =>
-          IO(logger.error("用户角色校验失败")) >> IO.raiseError(SecurityException("用户无审核权限"))
+          IO(logger.error("用户角色校验失败")) >> IO.raiseError(InvalidInputException("用户无审核权限"))
       }
     } yield userRole
   }

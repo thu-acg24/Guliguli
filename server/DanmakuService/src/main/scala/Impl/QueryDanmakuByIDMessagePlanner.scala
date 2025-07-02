@@ -2,6 +2,7 @@ package Impl
 
 
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -50,11 +51,11 @@ case class QueryDanmakuByIDMessagePlanner(
               IO(logger.info(s"成功查询到danmaku记录: ${danmaku}")) >> IO(danmaku)
             case Left(error) =>
               IO(logger.error(s"解析danmaku记录失败: ${error.getMessage}")) >>
-              IO.raiseError(IllegalArgumentException("Failed to parse danmaku record"))
+              IO.raiseError(InvalidInputException("Failed to parse danmaku record"))
           }
         case None =>
           IO(logger.error(s"未找到danmaku记录，ID: ${danmakuID}")) >>
-          IO.raiseError(IllegalArgumentException(s"No danmaku found with ID: $danmakuID"))
+          IO.raiseError(InvalidInputException(s"No danmaku found with ID: $danmakuID"))
       }
   }
 }

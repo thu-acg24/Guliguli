@@ -1,6 +1,6 @@
 package Common
 
-import Common.Exception.InvalidInputException
+import Common.APIException.InvalidInputException
 
 package object DBAPI {
 

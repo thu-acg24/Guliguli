@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserInfoMessage
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
@@ -58,7 +59,7 @@ case class SendMessageMessagePlanner(
         userRole <- QueryUserRoleMessage(token).send
         _ <- userRole match {
           case UserRole.Auditor => IO.unit // 审核员权限允许发送通知
-          case _ => IO.raiseError(IllegalArgumentException("Invalid Permission"))
+          case _ => IO.raiseError(InvalidInputException("Invalid Permission"))
         }
       } yield ()
     } else {

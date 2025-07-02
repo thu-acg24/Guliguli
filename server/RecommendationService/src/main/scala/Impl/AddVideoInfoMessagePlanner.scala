@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -57,7 +58,7 @@ case class AddVideoInfoMessagePlanner(
       _ <- if (video.uploaderID == userID) {
         IO(logger.info(s"用户${userID}是视频ID [${info.videoID}] 的上传者"))
       }else{
-        IO.raiseError(IllegalArgumentException("User Are Not The Uploader Of Video"))
+        IO.raiseError(InvalidInputException("User Are Not The Uploader Of Video"))
       }
     } yield Unit
   }

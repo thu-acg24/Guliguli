@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.HistoryService.QueryHistoryMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserInfoMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
@@ -50,7 +51,7 @@ case class GetRecommendedVideosMessagePlanner(
 
   private def validateInputParams(using PlanContext): IO[Unit] = {
     if (videoID.isEmpty && userID.isEmpty)
-      IO.raiseError(new IllegalArgumentException("videoID 和 userID 至少需要一个有效值"))
+      IO.raiseError(new InvalidInputException("videoID 和 userID 至少需要一个有效值"))
     else
       for {
         _ <- videoID match {
@@ -73,7 +74,7 @@ case class GetRecommendedVideosMessagePlanner(
       case Some(_) =>
         IO(logger.info(s"视频ID ${id} 验证通过"))
       case None =>
-        IO.raiseError(new IllegalArgumentException(s"无效的视频ID：${id}"))
+        IO.raiseError(new InvalidInputException(s"无效的视频ID：${id}"))
     }
   }
 
@@ -82,7 +83,7 @@ case class GetRecommendedVideosMessagePlanner(
       case Some(_) =>
         IO(logger.info(s"用户ID ${id} 验证通过"))
       case None =>
-        IO.raiseError(new IllegalArgumentException(s"无效的用户ID：${id}"))
+        IO.raiseError(new InvalidInputException(s"无效的用户ID：${id}"))
     }
   }
 
@@ -97,7 +98,7 @@ case class GetRecommendedVideosMessagePlanner(
             IO(logger.info(s"基于视频ID ${vid} 的标签信息生成推荐视频"))
               .flatMap(_ => recommendByVideoID(vid))
           case None =>
-            IO.raiseError(new IllegalStateException("用户ID和视频ID都缺失，不可能生成推荐列表"))
+            IO.raiseError(new InvalidInputException("用户ID和视频ID都缺失，不可能生成推荐列表"))
         }
     }
   }
@@ -154,7 +155,7 @@ WHERE video_id = ? AND visible = true;
     QueryVideoInfoMessage(None, videoID).send.flatMap {
       case Some(video) => IO.pure(video)
       case None =>
-        IO.raiseError(new IllegalStateException(s"无法获取视频ID ${videoID} 的详情"))
+        IO.raiseError(new InvalidInputException(s"无法获取视频ID ${videoID} 的详情"))
     }
   }
 }

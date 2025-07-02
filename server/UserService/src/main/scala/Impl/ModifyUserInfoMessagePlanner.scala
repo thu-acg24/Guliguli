@@ -2,6 +2,7 @@ package Impl
 
 
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -46,7 +47,7 @@ case class ModifyUserInfoMessagePlanner(
   private def validateNewField(newField: UserInfo): IO[Unit] = {
     if (newField.username.length > 20 || newField.username.length < 3) {
       IO(logger.error(s"Username '${newField.username}' has invalid length")) >>
-      IO.raiseError(IllegalArgumentException("用户名长度不正确"))
+      IO.raiseError(InvalidInputException("用户名长度不正确"))
     } else {
       IO.unit
     }

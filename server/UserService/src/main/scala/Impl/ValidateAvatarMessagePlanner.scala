@@ -3,6 +3,7 @@ package Impl
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI.*
 import Common.Object.SqlParameter
+import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{minioClient, sessions}
@@ -45,10 +46,10 @@ case class ValidateAvatarMessagePlanner(
           processUploadedFile(session.objectName).as(session)
 
         case Some(_) =>
-          IO.raiseError(new RuntimeException(s"确认上传(token:$sessionToken)已经执行过，不需要再确认"))
+          IO.raiseError(new InvalidInputException(s"确认上传(token:$sessionToken)已经执行过，不需要再确认"))
 
         case None =>
-          IO.raiseError(new RuntimeException(s"不合法的sessionToken"))
+          IO.raiseError(new InvalidInputException(s"不合法的sessionToken"))
       }
       _ <- updateAvatarLinkInDB(session.userID, session.objectName)
     } yield()
@@ -65,13 +66,13 @@ case class ValidateAvatarMessagePlanner(
       )).map(stat => stat.size())
         .handleErrorWith(ex =>
           IO(logger.info(s"Object size not found!!")) *>
-            IO.raiseError(new RuntimeException(s"查找上传的文件时发生错误：${ex.getMessage}"))
+            IO.raiseError(new InvalidInputException(s"查找上传的文件时发生错误：${ex.getMessage}"))
         )
       _ <- IO(logger.info(s"Object size is ${getHumanReadableSize(fileSize)}"))
       _ <- if (fileSize < 10 * 1024) {
-        IO.raiseError(new RuntimeException(s"上传的文件过小(${getHumanReadableSize(fileSize)}, 至少需要 10KB)"))
+        IO.raiseError(new InvalidInputException(s"上传的文件过小(${getHumanReadableSize(fileSize)}, 至少需要 10KB)"))
       } else if (fileSize > 5 * 1024 * 1024) {
-        IO.raiseError(new RuntimeException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 5MB)"))
+        IO.raiseError(new InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 5MB)"))
       } else IO.unit
       _ <- IO(logger.info(s"Input is valid, moving file"))
       _ <- IO(minioClient.copyObject(

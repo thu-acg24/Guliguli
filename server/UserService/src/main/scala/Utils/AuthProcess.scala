@@ -2,6 +2,7 @@ package Utils
 
 
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -49,7 +50,7 @@ case object AuthProcess {
       json <- resultOpt match {
         case None =>
           IO(logger.info(s"用户ID ${userID} 不存在")) *>
-          IO.raiseError(new RuntimeException("用户不存在？"))
+          IO.raiseError(new InvalidInputException("用户不存在？"))
         case Some(json) => IO(json)
       }
       storedHash <- IO(decodeField[String](json, "password_hash"))
@@ -59,7 +60,7 @@ case object AuthProcess {
         IO(logger.info(s"用户ID ${userID} 的密码匹配成功"))
       } else {
         IO(logger.info(s"用户ID ${userID} 的密码验证失败")) *>
-        IO.raiseError(new RuntimeException(s"用户密码验证失败"))
+        IO.raiseError(new InvalidInputException(s"用户密码验证失败"))
       }
     } yield()
   }
@@ -82,7 +83,7 @@ case object AuthProcess {
           case Some(record) => IO(record)
           case None =>
             IO(logger.info(s"查询的Token ${token}不存在")) *>
-            IO.raiseError(new RuntimeException(s"Token不存在"))
+            IO.raiseError(new InvalidInputException(s"Token不存在"))
         }
       userID <- IO(decodeField[Int](record, "user_id"))
       expirationTime <- IO(new DateTime(decodeField[Long](record, "expiration_time")))
@@ -100,7 +101,7 @@ case object AuthProcess {
               val errorMessage = s"Failed to delete outdated token '${token}' from TokenTable: ${e.getMessage}"
               IO(logger.error(errorMessage))
           } *>
-          IO.raiseError(new RuntimeException(s"Token已过期，请重新登录"))
+          IO.raiseError(new InvalidInputException(s"Token已过期，请重新登录"))
         }
     } yield result
   }

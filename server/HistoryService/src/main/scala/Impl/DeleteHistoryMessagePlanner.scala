@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
@@ -95,7 +96,7 @@ case class DeleteHistoryMessagePlanner(
       exists <- checkHistoryRecordExistence(userID, videoID)
       _ <- if (!exists) {
         IO(logger.info(s"No history record found for userID: ${userID}, videoID: ${videoID}"))*>
-        IO.raiseError(IllegalArgumentException("Video not found"))
+        IO.raiseError(InvalidInputException("Video not found"))
       } else {
         val sqlQuery =
           s"""

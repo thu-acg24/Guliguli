@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.CommentService.QueryCommentByIDMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.GetUIDByTokenMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -38,7 +39,7 @@ case class ReportCommentContentMessagePlanner(
       // Step 3: 检查重复举报
       _ <- IO(logger.info(s"Checking for duplicate pending reports for commentID: ${commentID} and userID: ${userID}"))
       alreadyExists <- checkDuplicateReport(commentID, userID)
-      _ <- if alreadyExists then IO.raiseError(RuntimeException("已经举报过该评论")) else IO.unit
+      _ <- if alreadyExists then IO.raiseError(InvalidInputException("已经举报过该评论")) else IO.unit
       // Step 4: 插入举报记录
       _ <- IO(logger.info(s"Inserting new report for commentID: ${commentID}, userID: ${userID}, reason: ${reason}"))
       _ <- insertReportRecord(userID, commentID, reason)

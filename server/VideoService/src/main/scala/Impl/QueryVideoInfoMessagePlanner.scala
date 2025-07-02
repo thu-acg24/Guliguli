@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -79,11 +80,11 @@ case class QueryVideoInfoMessagePlanner(
             IO(logger.info("[Step 2.1] Video validation passed")) *> IO.unit
           } else {
             IO(logger.info("[Step 2.1] Video is not public or user has no access permission")) >>
-              IO.raiseError(IllegalArgumentException("Video does not exist"))
+              IO.raiseError(InvalidInputException("Video does not exist"))
           }
         case None =>
           IO(logger.info("[Step 2.1] Video does not exist")) >>
-            IO.raiseError(IllegalArgumentException("Video does not exist"))
+            IO.raiseError(InvalidInputException("Video does not exist"))
       }
     } yield ()
   }
@@ -107,7 +108,7 @@ case class QueryVideoInfoMessagePlanner(
             IO(decodeType[Video](json))
         case None =>
           IO(logger.info("[Step 3.1] No video details found in the database")) >>
-          IO.raiseError(IllegalArgumentException("Video does not exist"))
+          IO.raiseError(InvalidInputException("Video does not exist"))
       }
     } yield video
   }

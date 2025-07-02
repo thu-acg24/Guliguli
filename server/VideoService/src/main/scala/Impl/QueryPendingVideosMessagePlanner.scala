@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -40,7 +41,7 @@ case class QueryPendingVideosMessagePlanner(
           fetchPendingVideos()
         case _ =>
           IO(logger.info("[Step 2.1]: 用户权限无效或者Token无效")) >>
-          IO.raiseError(IllegalArgumentException("Invalid User Role"))
+          IO.raiseError(InvalidInputException("Invalid User Role"))
       }
 
     } yield pendingVideos

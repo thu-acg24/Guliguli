@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
@@ -55,11 +56,11 @@ case class DeleteVideoInfoMessagePlanner(
     IO(logger.info(s"Executing SQL to validate uploader: ${sql}"))>>
     readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
       case None =>
-        IO.raiseError(IllegalArgumentException("Video Not Found"))
+        IO.raiseError(InvalidInputException("Video Not Found"))
       case Some(json) =>
         val uploaderID = decodeField[Int](json, "uploader_id")
         if(uploaderID != userID)
-          IO.raiseError(IllegalArgumentException("You're Not the Uploader Of Video"))
+          IO.raiseError(InvalidInputException("You're Not the Uploader Of Video"))
         else IO.unit
     }
   }

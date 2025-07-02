@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
@@ -42,7 +43,7 @@ case class DeleteDanmakuMessagePlanner(
 
       _ <- if (!hasPermission) {
         IO(logger.info(s"用户无删除权限，用户ID：${userID}, 弹幕ID：${danmakuID}"))
-        IO.raiseError(IllegalArgumentException("Unauthorized Action"))
+        IO.raiseError(InvalidInputException("Unauthorized Action"))
       } else IO.unit
 
       _ <- IO(logger.info(s"开始删除弹幕记录，弹幕ID：${danmakuID}"))
@@ -53,7 +54,7 @@ case class DeleteDanmakuMessagePlanner(
         IO.unit
       } else {
         IO(logger.error(s"删除弹幕记录失败，弹幕ID：${danmakuID}"))
-        IO.raiseError(IllegalArgumentException("Failed to delete danmaku"))
+        IO.raiseError(InvalidInputException("Failed to delete danmaku"))
       }
     } yield ()
   }
@@ -70,7 +71,7 @@ case class DeleteDanmakuMessagePlanner(
          |WHERE danmaku_id = ?;
          |""".stripMargin
     readDBJsonOptional(sql, List(SqlParameter("Int", danmakuID.toString))).map {
-      case None => throw IllegalArgumentException("弹幕不存在")
+      case None => throw InvalidInputException("弹幕不存在")
       case Some(json) =>
         val videoID = decodeField[Int](json, "video_id")
         val senderID = decodeField[Int](json, "author_id")

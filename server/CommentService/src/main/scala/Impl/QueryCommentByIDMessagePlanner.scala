@@ -2,6 +2,7 @@ package Impl
 
 
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -33,13 +34,13 @@ case class QueryCommentByIDMessagePlanner(
       result <- if (!exists) {
         // Step 1.2: If commentID does not exist, return None
         IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 不存在")) >>
-          IO.raiseError(IllegalArgumentException("commentID=${commentID} 不存在"))
+          IO.raiseError(InvalidInputException("commentID=${commentID} 不存在"))
       } else {
         for {
           // Step 2: Retrieve comment details
           _ <- IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 存在，开始获取评论详细信息"))
           maybeComment <- fetchCommentDetails(commentID)
-          comment <- maybeComment.liftTo[IO](IllegalArgumentException("commentID=${commentID} 不存在"))
+          comment <- maybeComment.liftTo[IO](InvalidInputException("commentID=${commentID} 不存在"))
           // Step 3: Wrap result and return
           _ <- IO(logger.info(s"[QueryCommentByID] 封装返回结果完成"))
         } yield comment

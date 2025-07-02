@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.CommentService.QueryCommentByIDMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
@@ -68,7 +69,7 @@ case class PublishCommentMessagePlanner(
     if (commentContent.isEmpty || commentContent.length > 500) {
       IO {
         logger.error(s"无效的评论内容: commentContent='${commentContent}' 长度=${commentContent.length}")
-      } >> IO.raiseError(new IllegalArgumentException("Invalid Comment Content"))
+      } >> IO.raiseError(new InvalidInputException("Invalid Comment Content"))
     } else {
       IO.unit
     }

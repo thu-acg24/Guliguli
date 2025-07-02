@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.CommentService.DeleteCommentMessage
+import Common.APIException.InvalidInputException
 import APIs.CommentService.QueryCommentByIDMessage
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
@@ -71,11 +72,11 @@ case class ProcessCommentReportMessagePlanner(
       )
     } yield result match {
       case None =>
-        throw IllegalArgumentException("Report Not Found or Already Processed")
+        throw InvalidInputException("Report Not Found or Already Processed")
       case Some(json) =>
         val status = decodeField[String](json, "status")
         if (status != ReportStatus.Pending.toString) {
-          throw IllegalArgumentException("Report Not Found or Already Processed")
+          throw InvalidInputException("Report Not Found or Already Processed")
         } else {
           val reporterID = decodeField[Int](json, "reporter_id")
           val commentID = decodeField[Int](json, "comment_id")

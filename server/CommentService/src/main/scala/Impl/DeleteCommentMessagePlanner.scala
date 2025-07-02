@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
@@ -58,7 +59,7 @@ WHERE comment_id = ?;
 """.stripMargin
 
     readDBJsonOptional(sql, List(SqlParameter("Int", commentID.toString))).map {
-      case None => throw IllegalArgumentException("视频不存在")
+      case None => throw InvalidInputException("视频不存在")
       case Some(json) =>
         val authorID = decodeField[Int](json, "author_id")
         val videoID = decodeField[Int](json, "video_id")
@@ -98,7 +99,7 @@ WHERE comment_id = ?;
       for {
         isUploader <- videoPermissionCheck
         isAuditor <- roleCheck
-        _ <- IO.unit.ensure(new SecurityException("Permission denied")) { _ =>
+        _ <- IO.unit.ensure(new InvalidInputException("Permission denied")) { _ =>
           isUploader || isAuditor
         }
       } yield ()

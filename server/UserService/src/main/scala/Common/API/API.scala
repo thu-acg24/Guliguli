@@ -2,7 +2,7 @@ package Common.API
 
 
 import Common.DBAPI.DidRollbackException
-import Common.Exception.InvalidInputException
+import Common.APIException.InvalidInputException
 import Common.ServiceUtils.getURI
 import cats.data.NonEmptyList
 import cats.effect.*

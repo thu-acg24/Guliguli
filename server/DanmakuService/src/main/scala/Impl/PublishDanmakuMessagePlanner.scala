@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -47,7 +48,7 @@ case class PublishDanmakuMessagePlanner(
       _ <- IO(logger.info(s"danmakuColor合法性: ${colorValid}"))
 
       _ <- if (!colorValid) {
-        IO.raiseError(IllegalArgumentException("Color invalid"))
+        IO.raiseError(InvalidInputException("Color invalid"))
       } else {
         saveDanmaku(videoID, userID, timeInVideo, danmakuContent, danmakuColor)
       }

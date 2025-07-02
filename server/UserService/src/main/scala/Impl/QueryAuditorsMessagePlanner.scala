@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.QueryUserRoleMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
@@ -37,7 +38,7 @@ case class QueryAuditorsMessagePlanner(
       result <- userRole match {
         case role if role != UserRole.Admin =>
           IO(logger.warn(s"[Step 1.2] 用户角色无权限，当前角色：${role}")) *>
-            IO.raiseError(SecurityException("不具有管理员权限")) // 返回None表示非Admin无权限
+            IO.raiseError(InvalidInputException("不具有管理员权限")) // 返回None表示非Admin无权限
         case _ =>
           // Step 2: 查询审核员列表
           IO(logger.info(s"[Step 2] 用户角色校验通过，开始查询所有审核员")) *>

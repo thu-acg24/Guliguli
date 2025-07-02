@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.QueryUserRoleMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI.*
@@ -51,7 +52,7 @@ case class ChangeBanStatusMessagePlanner(
         case Some(_) => IO.unit // 查询到目标用户
         case None =>
             IO(logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=${userID})")) *>
-            IO.raiseError(new RuntimeException(s"未在数据库中找到目标用户"))
+            IO.raiseError(new InvalidInputException(s"未在数据库中找到目标用户"))
       }
   }
 
@@ -61,7 +62,7 @@ case class ChangeBanStatusMessagePlanner(
         case UserRole.Auditor | UserRole.Admin => IO.unit
         case role =>
           IO(logger.info(s"[ChangeBanStatus] 错误：角色'${role.toString}'无权访问")) *>
-          IO.raiseError(new RuntimeException(s"错误：角色'${role.toString}'无权访问"))
+          IO.raiseError(new InvalidInputException(s"错误：角色'${role.toString}'无权访问"))
       }
     }
   }

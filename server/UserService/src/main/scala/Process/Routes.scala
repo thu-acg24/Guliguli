@@ -5,7 +5,7 @@ package Process
 import Common.API.PlanContext
 import Common.API.TraceID
 import Common.DBAPI.DidRollbackException
-import Common.Exception.InvalidInputException
+import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.*
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime

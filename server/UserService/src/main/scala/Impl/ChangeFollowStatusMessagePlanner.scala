@@ -2,6 +2,7 @@ package Impl
 
 
 import Common.API.PlanContext
+import Common.APIException.InvalidInputException
 import Common.API.Planner
 import Common.DBAPI.*
 import Common.Object.SqlParameter
@@ -51,7 +52,7 @@ case class ChangeFollowStatusMessagePlanner(
         case Some(_) => IO.unit // 查询到目标用户
         case None =>
           IO(logger.info(s"[ChangeFollowStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
-          IO.raiseError(new RuntimeException("未在数据库中找到目标用户"))
+          IO.raiseError(new InvalidInputException("未在数据库中找到目标用户"))
       }
   }
 

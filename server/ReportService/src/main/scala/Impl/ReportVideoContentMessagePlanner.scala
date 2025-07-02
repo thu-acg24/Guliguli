@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -39,7 +40,7 @@ case class ReportVideoContentMessagePlanner(
       // Step 3: 检查重复举报
       _ <- IO(logger.info(s"Checking for duplicate pending reports for videoID: ${videoID} and userID: ${userID}"))
       alreadyExists <- checkDuplicateReport(videoID, userID)
-      _ <- if alreadyExists then IO.raiseError(RuntimeException("已经举报过该视频")) else IO.unit
+      _ <- if alreadyExists then IO.raiseError(InvalidInputException("已经举报过该视频")) else IO.unit
       // Step 4: 插入举报记录
       _ <- IO(logger.info(s"Inserting new report for videoID: ${videoID}, userID: ${userID}, reason: ${reason}"))
       _ <- insertReportRecord(userID, videoID, reason)

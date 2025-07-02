@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.DanmakuService.QueryDanmakuByIDMessage
+import Common.APIException.InvalidInputException
 import APIs.MessageService.SendMessageMessage
 import APIs.UserService.GetUIDByTokenMessage
 import Common.API.PlanContext
@@ -40,7 +41,7 @@ case class ReportDanmakuContentMessagePlanner(
       // Step 3: 检查重复举报
       _ <- IO(logger.info(s"Checking for duplicate pending reports for danmakuID: ${danmakuID} and userID: ${userID}"))
       alreadyExists <- checkDuplicateReport(danmakuID, userID)
-      _ <- if alreadyExists then IO.raiseError(RuntimeException("已经举报过该弹幕")) else IO.unit
+      _ <- if alreadyExists then IO.raiseError(InvalidInputException("已经举报过该弹幕")) else IO.unit
       // Step 4: 插入举报记录
       _ <- IO(logger.info(s"Inserting new report for danmakuID: ${danmakuID}, userID: ${userID}, reason: ${reason}"))
       _ <- insertReportRecord(userID, danmakuID, reason)

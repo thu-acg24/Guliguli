@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.CommentService.QueryCommentByIDMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.GetUIDByTokenMessage
 import Common.API.PlanContext
 import Common.API.Planner
@@ -55,7 +56,7 @@ case class UpdateLikeCommentMessagePlanner(
       _ <- likeRecordOption match {
         case Some(_) =>
           IO(logger.warn(s"[Perform Like] UserID ${userID} has already liked CommentID ${comment.commentID}")) *>
-            IO.raiseError(new IllegalStateException("Already Liked"))
+            IO.raiseError(new InvalidInputException("Already Liked"))
         case None =>
           for {
             // Increment likes in CommentTable
@@ -91,7 +92,7 @@ case class UpdateLikeCommentMessagePlanner(
       _ <- likeRecordOption match {
         case None =>
           IO(logger.warn(s"[Perform Unlike] UserID ${userID} hasn't liked CommentID ${comment.commentID} yet")) *>
-            IO.raiseError(new IllegalStateException("Not Liked Yet"))
+            IO.raiseError(new InvalidInputException("Not Liked Yet"))
         case Some(_) =>
           for {
             // Decrement likes in CommentTable

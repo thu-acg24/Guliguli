@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.DanmakuService.DeleteDanmakuMessage
+import Common.APIException.InvalidInputException
 import APIs.DanmakuService.QueryDanmakuByIDMessage
 import APIs.MessageService.SendMessageMessage
 import APIs.UserService.GetUIDByTokenMessage
@@ -68,11 +69,11 @@ case class ProcessDanmakuReportMessagePlanner(
       )
     } yield result match {
       case None =>
-        throw IllegalArgumentException("Report Not Found or Already Processed")
+        throw InvalidInputException("Report Not Found or Already Processed")
       case Some(json) =>
         val status = decodeField[String](json, "status")
         if (status != ReportStatus.Pending.toString) {
-          throw IllegalArgumentException("Report Not Found or Already Processed")
+          throw InvalidInputException("Report Not Found or Already Processed")
         } else {
           val reporterID = decodeField[Int](json, "reporter_id")
           val danmakuID = decodeField[Int](json, "danmaku_id")

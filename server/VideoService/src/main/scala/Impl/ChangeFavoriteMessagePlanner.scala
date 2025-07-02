@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
@@ -54,8 +55,8 @@ case class ChangeFavoriteMessagePlanner(
       readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
         case Some(json) =>
           val status = decodeField[String](json, "status")
-          if (status == "Approved") json else throw IllegalArgumentException("找不到视频")
-        case None => throw IllegalArgumentException("找不到视频")
+          if (status == "Approved") json else throw InvalidInputException("找不到视频")
+        case None => throw InvalidInputException("找不到视频")
       }
     }
   }

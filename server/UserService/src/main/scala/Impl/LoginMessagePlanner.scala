@@ -4,7 +4,7 @@ package Impl
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI.*
-import Common.Exception.InvalidInputException
+import Common.APIException.InvalidInputException
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -42,7 +42,7 @@ case class LoginMessagePlanner(
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
       response <- if (isBanned) {
         IO(logger.info("用户账户已被封禁")) *>
-        IO.raiseError(new RuntimeException("用户已被封禁"))
+        IO.raiseError(new InvalidInputException("用户已被封禁"))
       } else {
         generateTokenResponse(userID)
       }

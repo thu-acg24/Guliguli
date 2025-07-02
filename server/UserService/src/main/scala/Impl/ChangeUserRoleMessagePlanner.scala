@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.QueryUserRoleMessage
+import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
@@ -42,7 +43,7 @@ case class ChangeUserRoleMessagePlanner(
         IO(logger.info(s"Token=${token}对应用户角色=${UserRole.Admin}")).void
       case role =>
         IO(logger.info(s"Token=${token}对应用户角色=$role")) *>
-        IO.raiseError(new RuntimeException(s"操作人($role)权限不足"))
+        IO.raiseError(new InvalidInputException(s"操作人($role)权限不足"))
     }
   }
 
@@ -60,7 +61,7 @@ case class ChangeUserRoleMessagePlanner(
         case Some(_) => IO.unit // 查询到目标用户
         case None =>
           IO(logger.info(s"[ChangeUserRoleStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
-          IO.raiseError(new RuntimeException("未在数据库中找到目标用户"))
+          IO.raiseError(new InvalidInputException("未在数据库中找到目标用户"))
       }
   }
 
@@ -68,7 +69,7 @@ case class ChangeUserRoleMessagePlanner(
   private def validateNewRoleValidity()(using PlanContext): IO[Unit] = {
     if (newRole == UserRole.Admin) {
       IO(logger.error("无法将权限修改为管理员")) *>
-      IO.raiseError(new RuntimeException("无法将权限修改为管理员"))
+      IO.raiseError(new InvalidInputException("无法将权限修改为管理员"))
     } else {
       IO(UserRole.fromString(newRole.toString))
         .attempt // 将结果转换为Either[Throwable, UserRole]
@@ -77,7 +78,7 @@ case class ChangeUserRoleMessagePlanner(
             IO(logger.info(s"角色验证通过: $newRole")).void
           case Left(ex) =>
             IO(logger.error(s"无效角色: ${ex.getMessage}")) *>
-            IO.raiseError(new RuntimeException("给定权限不合法"))
+            IO.raiseError(new InvalidInputException("给定权限不合法"))
         }
     }
   }
@@ -102,7 +103,7 @@ case class ChangeUserRoleMessagePlanner(
       .map { updatedRows =>
         if (updatedRows <= 0)
           IO(logger.info(s"未更新任何记录，可能用户不存在(userID=$userID)")) *>
-            IO.raiseError(new RuntimeException(s"未更新任何记录，可能用户不存在"))
+            IO.raiseError(new InvalidInputException(s"未更新任何记录，可能用户不存在"))
       }
   }
 }

@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.ChangeVideoStatusMessage
 import Common.API.PlanContext
@@ -42,7 +43,7 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- IO(logger.info(s"[Substep 1.2] 获得用户角色: ${role.toString}"))
       _ <- role match {
         case UserRole.Auditor => IO.unit
-        case _ => throw IllegalArgumentException("权限不足")
+        case _ => throw InvalidInputException("权限不足")
       }
 
       // Step 2: 验证视频ID的存在性和状态
@@ -51,7 +52,7 @@ case class ChangeVideoStatusMessagePlanner(
           val sql = s"SELECT status FROM ${schemaName}.video_table WHERE video_id = ?;"
           readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
             case Some(json) => Unit
-            case None => throw IllegalArgumentException("找不到视频")
+            case None => throw InvalidInputException("找不到视频")
           }
         }
       
