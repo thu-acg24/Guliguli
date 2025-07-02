@@ -54,7 +54,6 @@ const WhisperTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userToken = useUserToken();
-
   useEffect(() => {
     if (userToken) {
       fetchConversations();
@@ -71,21 +70,24 @@ const WhisperTab: React.FC = () => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-function getUserIdByToken(userToken: string): number {
-   try {
+async function getUserIdByToken(userToken: string): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    try {
       new GetUIDByTokenMessage(userToken).send(
-          (info: string) => {
-              const userid = JSON.parse(info);
-              return userid
-          }, (e) => {
+        (info: string) => {
+          const userid = JSON.parse(info);
+          resolve(userid);
+        },
+        (e) => {
           materialAlertError('未找到用户', e);
-          throw new Error('未找到用户');
-          }
+          reject(new Error('未找到用户'));
+        }
       );
-  } catch (e) {
+    } catch (e) {
       materialAlertError('未找到用户', e);
-      throw new Error('未找到用户');
-  }
+      reject(new Error('未找到用户'));
+    }
+  });
 }
 
   const fetchConversations = async () => {
@@ -259,8 +261,8 @@ function getUserIdByToken(userToken: string): number {
             </div>
             
             <div className="message-list">
-              {messages.map(msg => {
-                const isMe = msg.senderID === getUserIdByToken(userToken);
+              {messages.map(async msg => {
+                const isMe = msg.senderID === await getUserIdByToken(userToken);
                 return (
                   <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}>
                     {!isMe && (
