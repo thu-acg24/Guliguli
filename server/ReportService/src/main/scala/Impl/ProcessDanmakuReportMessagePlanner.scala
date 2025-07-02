@@ -4,7 +4,7 @@ package Impl
 import APIs.DanmakuService.DeleteDanmakuMessage
 import Common.APIException.InvalidInputException
 import APIs.DanmakuService.QueryDanmakuByIDMessage
-import APIs.MessageService.SendMessageMessage
+import APIs.MessageService.SendNotificationMessage
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.QueryVideoInfoMessage
@@ -48,11 +48,11 @@ case class ProcessDanmakuReportMessagePlanner(
       (danmakuContent, danmakuAuthorID, videoTitle, videoID) <- validateDanmakuAndVideo(danmakuID)
       _ <- updateReportStatus(reportID, status)
       _ <- deleteDanmakuIfNeeded(danmakuID)
-      _ <- SendMessageMessage(token, reporterID,
-        s"您在视频 ${videoTitle} 下举报的弹幕 ${danmakuContent} 已被处理", true).send
+      _ <- SendNotificationMessage(token, reporterID,
+        s"您在视频 ${videoTitle} 下举报的弹幕 ${danmakuContent} 已被处理").send
       _ <- status match {
-        case ReportStatus.Resolved => SendMessageMessage(token, danmakuAuthorID,
-          s"您在视频 ${videoTitle} 下的弹幕 ${danmakuContent} 被举报并已被审核员删除", true).send
+        case ReportStatus.Resolved => SendNotificationMessage(token, danmakuAuthorID,
+          s"您在视频 ${videoTitle} 下的弹幕 ${danmakuContent} 被举报并已被审核员删除").send
         case _ => IO.unit
       }
     } yield ()

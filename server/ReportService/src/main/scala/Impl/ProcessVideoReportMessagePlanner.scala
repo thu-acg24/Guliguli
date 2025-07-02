@@ -1,7 +1,7 @@
 package Impl
 
 
-import APIs.MessageService.SendMessageMessage
+import APIs.MessageService.SendNotificationMessage
 import Common.APIException.InvalidInputException
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
@@ -47,11 +47,10 @@ case class ProcessVideoReportMessagePlanner(
       (videoTitle, uploaderID) <- validateVideo(videoID)
       _ <- updateReportStatus(reportID, status)
       _ <- privatizeVideoIfNeeded(videoID)
-      _ <- SendMessageMessage(token, reporterID,
-        s"您举报的视频 ${videoTitle} 已被处理", true).send
+      _ <- SendNotificationMessage(token, reporterID, s"您举报的视频 ${videoTitle} 已被处理").send
       _ <- status match {
-        case ReportStatus.Resolved => SendMessageMessage(token, uploaderID,
-          s"您的视频 ${videoTitle} 被举报并已被审核员下架", true).send
+        case ReportStatus.Resolved => SendNotificationMessage(token, uploaderID,
+          s"您的视频 ${videoTitle} 被举报并已被审核员下架").send
         case _ => IO.unit
       }
     } yield ()

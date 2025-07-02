@@ -3,7 +3,6 @@ package Impl
 
 import APIs.DanmakuService.QueryDanmakuByIDMessage
 import Common.APIException.InvalidInputException
-import APIs.MessageService.SendMessageMessage
 import APIs.UserService.GetUIDByTokenMessage
 import Common.API.PlanContext
 import Common.API.Planner
