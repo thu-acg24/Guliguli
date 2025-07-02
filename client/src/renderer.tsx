@@ -17,7 +17,7 @@ const Layout = () => {
         <>
             <HashRouter>Main
                 <Routes>
-                    <Route path="/" element={<MessagePage />} />
+                    <Route path="/" element={<MainPage />} />
                     <Route path={mainPagePath} element={<MainPage />} />
                     <Route path={videoPagePath} element={<VideoPage />} />
                     <Route path={`${messagePagePath}/:userId`} element={<MessagePage />}>  {/* 添加消息页面路由 */}

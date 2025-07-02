@@ -21,6 +21,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
+            setUsername("");
+            setPassword("");
+            setMessage("");
             onClose();
         }, 100); // 与动画时长保持一致
     };
