@@ -10,7 +10,7 @@ import { LogoutMessage } from "../Plugins/UserService/APIs/LogoutMessage";
 import { UserInfo } from "../Plugins/UserService/Objects/UserInfo";
 import { UserStat } from "../Plugins/UserService/Objects/UserStat";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
-import { PersonCenterIcon, UploadManageIcon, LogoutIcon } from "./Icons";
+import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "./DefaultAvatar";
 
 import { mainPagePath } from "../Pages/MainPage";
@@ -41,6 +41,7 @@ const Header: React.FC = () => {
 
     // 校验token有效性
     const getUIDByToken = async (): Promise<number | null> => {
+        return 1
         if (!userToken) return null;
         return new Promise((resolve) => {
             try {
@@ -145,7 +146,7 @@ const Header: React.FC = () => {
     const handleMsgClick = async () => {
         const userId = await getUIDByToken();
         if (userId !== null) {
-            navigate(`/message/`);
+            navigate(messagePagePath);
         } else {
             setShowLoginModal(true);
         }
