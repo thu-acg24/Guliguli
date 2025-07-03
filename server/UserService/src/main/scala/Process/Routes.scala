@@ -26,6 +26,7 @@ import Impl.QueryUserStatMessagePlanner
 import Impl.RegisterMessagePlanner
 import Impl.ModifyAvatarMessagePlanner
 import Impl.ValidateAvatarMessagePlanner
+import Impl.SearchUsersMessagePlanner
 import cats.effect.*
 import fs2.concurrent.Topic
 import io.circe.*
@@ -164,6 +165,13 @@ object Routes:
         IO(
           decode[ValidateAvatarMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateAvatarMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "SearchUsersMessage" =>
+        IO(
+          decode[SearchUsersMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SearchUsersMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
