@@ -79,7 +79,7 @@ case class QueryUserVideosMessagePlanner(
     
     val sql =
       s"""
-        SELECT video_id, title, description, duration, tag, server_path, cover_path, 
+        SELECT video_id, title, description, duration, tag, m3u8_name, ts_prefix, slice_count,
                uploader_id, views, likes, favorites, status, upload_time
         FROM ${schemaName}.video_table
         $whereClause

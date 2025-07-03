@@ -94,14 +94,17 @@ case class UploadVideoMessagePlanner(
   private def storeVideoInfo(userID: Int)(using PlanContext): IO[String] = {
     val sql =
       s"INSERT INTO ${schemaName}.video_table (title, description, tag, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?);"
-    val parameters = List(
-      SqlParameter("String", title),
-      SqlParameter("String", description),
-      SqlParameter("Array[String]", tag.asJson.noSpaces),
-      SqlParameter("Int", userID.toString),
-      SqlParameter("DateTime", DateTime.now().getMillis.toString)
-    )
-    writeDB(sql, parameters)
+    for {
+      timestamp <- IO(DateTime.now().getMillis.toString)
+      parameters = List(
+        SqlParameter("String", title),
+        SqlParameter("String", description),
+        SqlParameter("Array[String]", tag.asJson.noSpaces),
+        SqlParameter("Int", userID.toString),
+        SqlParameter("DateTime", timestamp)
+      )
+      result <- writeDB(sql, parameters)
+    } yield result
   }
 
   private def generateObjectName(userID: Int, info: String): IO[String] = {

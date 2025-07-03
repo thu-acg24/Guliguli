@@ -64,15 +64,15 @@ object Init {
        * description: 视频简介
        * duration: 时长（秒）
        * tag: 视频标签列表
-       * server_path: 视频存储路径
-       * cover_path: 视频封面路径
+       * m3u8_name: 视频m3u8文件名
+       * ts_prefix: 视频ts文件名前缀
+       * slice_count: 视频切片数
        * uploader_id: 上传者用户ID
        * views: 视频播放量
        * likes: 视频点赞量
        * favorites: 视频收藏量
        * status: 视频审核状态
        * upload_time: 视频上传时间
-       * last_modified_time: 最近修改时间
        */
       _ <- writeDB(
         s"""
@@ -80,17 +80,17 @@ object Init {
             video_id SERIAL NOT NULL PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT,
-            duration INT NOT NULL,
+            duration INT,
             tag TEXT NOT NULL,
-            server_path TEXT NOT NULL,
-            cover_path TEXT NOT NULL,
+            m3u8_name TEXT,
+            ts_prefix TEXT,
+            slice_count INT,
             uploader_id INT NOT NULL,
             views INT NOT NULL DEFAULT 0,
             likes INT NOT NULL DEFAULT 0,
             favorites INT NOT NULL DEFAULT 0,
-            status TEXT NOT NULL DEFAULT 'Pending',
+            status TEXT NOT NULL DEFAULT 'Uploading',
             upload_time TIMESTAMP NOT NULL,
-            last_modified_time TIMESTAMP
         );
          
         """,

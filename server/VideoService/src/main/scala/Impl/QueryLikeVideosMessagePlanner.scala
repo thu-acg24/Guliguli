@@ -31,7 +31,7 @@ case class QueryLikeVideosMessagePlanner(
 
   private def queryLikedVideos()(using PlanContext): IO[List[Video]] = {
     val sql = s"""
-      SELECT v.video_id, v.title, v.description, v.duration, v.tag, v.server_path, v.cover_path,
+      SELECT v.video_id, v.title, v.description, v.duration, v.tag,  v.m3u8_name, v.ts_prefix, v.slice_count,
              v.uploader_id, v.views, v.likes, v.favorites, v.status, v.upload_time
       FROM ${schemaName}.video_table v
       INNER JOIN ${schemaName}.like_record_table l ON v.video_id = l.video_id
