@@ -25,10 +25,6 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.text.DecimalFormat
 
-/**
- * Planner for ModifyUserInfoMessage: 根据用户Token校验身份后，更新用户表中newField对应字段的值，用于用户信息修改功能点
- */
-
 case class ValidateAvatarMessagePlanner(
                                          sessionToken: String,
                                          override val planContext: PlanContext
