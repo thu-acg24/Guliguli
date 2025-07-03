@@ -41,6 +41,7 @@ case class SendReplyNoticeMessagePlanner(
       _ <- if comment.authorID == userID then IO.unit else IO.raiseError(InvalidInputException("用户不是评论发布者"))
       replyComment <- QueryCommentByIDMessage(replyID).send
       receiverID = replyComment.authorID
+      videoID = replyComment.videoID
       // Step 3: 检测评论是否存在
       _ <- IO(logger.info("检查评论是否存在"))
       _ <- checkRecord(commentID)
@@ -48,7 +49,7 @@ case class SendReplyNoticeMessagePlanner(
       _ <- IO(logger.info("消息构造成功，开始插入数据库"))
       timestamp <- IO(DateTime.now())
       _ <- insertRecord(userID, receiverID, comment.content, commentID,
-        replyComment.content, replyComment.authorID, timestamp)
+        replyComment.content, replyComment.authorID, videoID, timestamp)
     } yield()
   }
 
@@ -64,13 +65,13 @@ case class SendReplyNoticeMessagePlanner(
   }
 
   private def insertRecord(senderID: Int, receiverID: Int, content: String, commentID: Int,
-                           originalContent: String, originalCommentID: Int, timestamp: DateTime)
+                           originalContent: String, originalCommentID: Int, videoID: Int, timestamp: DateTime)
                           (using PlanContext): IO[Unit] = {
     val sql =
       s"""
          INSERT INTO ${schemaName}.reply_notice_table
-         (sender_id, receiver_id, content, comment_id, original_content, original_comment_id, send_time)
-         VALUES (?, ?, ?, ?, ?, ?, ?);
+         (sender_id, receiver_id, content, comment_id, original_content, original_comment_id, video_id, send_time)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?);
        """
 
     writeDB(
@@ -82,6 +83,7 @@ case class SendReplyNoticeMessagePlanner(
         SqlParameter("Int", commentID.toString),
         SqlParameter("String", originalContent),
         SqlParameter("Int", originalCommentID.toString),
+        SqlParameter("Int", videoID.toString),
         SqlParameter("DateTime", timestamp.getMillis.toString),
       )
     ).as(())

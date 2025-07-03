@@ -62,7 +62,7 @@ case class QueryReplyNoticesMessagePlanner(
     val sql =
       s"""
          |SELECT notice_id, sender_id, content,
-         |comment_id, original_content, original_comment_id, send_time
+         |comment_id, original_content, original_comment_id, video_id, send_time
          |FROM $schemaName.reply_notice_table
          |WHERE receiver_id = ?
          |ORDER BY send_time DESC;
@@ -115,6 +115,7 @@ case class QueryReplyNoticesMessagePlanner(
       commentID = decodeField[Int](json, "comment_id"),
       originalContent = decodeField[String](json, "original_content"),
       originalCommentID = decodeField[Int](json, "original_comment_id"),
+      videoID = decodeField[Int](json, "video_id"),
       timestamp = decodeField[DateTime](json, "send_time"),
     )
   }
