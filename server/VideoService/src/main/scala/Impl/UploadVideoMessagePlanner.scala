@@ -67,9 +67,9 @@ case class UploadVideoMessagePlanner(
   }
 
   private def validateToken()(using PlanContext): IO[Option[Int]] = {
-    GetUIDByTokenMessage(token).send.map { optionalUserId =>
-      IO(logger.info(s"Token验证结果: $optionalUserId"))
-      optionalUserId
+    GetUIDByTokenMessage(token).send.map { optionalUserID =>
+      IO(logger.info(s"Token验证结果: $optionalUserID"))
+      optionalUserID
     }
   }
 
@@ -81,7 +81,7 @@ case class UploadVideoMessagePlanner(
     }
   }
 
-  private def checkUserPermission(userId: Int)(using PlanContext): IO[Boolean] = {
+  private def checkUserPermission(userID: Int)(using PlanContext): IO[Boolean] = {
     for {
       userRoleOpt <- QueryUserRoleMessage(token).send
       userRole <- userRoleOpt match {

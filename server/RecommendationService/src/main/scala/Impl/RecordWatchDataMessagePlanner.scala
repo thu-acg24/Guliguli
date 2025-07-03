@@ -32,7 +32,7 @@ case class RecordWatchDataMessagePlanner(
   override def plan(using PlanContext): IO[Option[String]] = {
     for {
       // Step 1: Validate token and get user ID
-      userIDOpt <- getUserIdByToken()
+      userIDOpt <- getUserIDByToken()
       _ <- IO(logger.info(s"Token校验结果: ${userIDOpt.map(_.toString).getOrElse("Invalid Token")}"))
       result <- userIDOpt match {
         case None =>
@@ -44,7 +44,7 @@ case class RecordWatchDataMessagePlanner(
     } yield result
   }
 
-  private def getUserIdByToken()(using PlanContext): IO[Option[Int]] = {
+  private def getUserIDByToken()(using PlanContext): IO[Option[Int]] = {
     logger.info(s"开始调用getUIDByTokenMessage解析Token: $token")
     GetUIDByTokenMessage(token).send
   }

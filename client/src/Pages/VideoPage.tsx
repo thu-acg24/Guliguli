@@ -12,7 +12,7 @@ const VideoPage: React.FC = () => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [commentInput, setCommentInput] = useState("");
     const [replyInput, setReplyInput] = useState("");
-    const [replyingTo, setReplyingTo] = useState<{id: string, username: string} | null>(null);
+    const [replyingTo, setReplyingTo] = useState<{ id: string, username: string } | null>(null);
     const [showReplyModal, setShowReplyModal] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
@@ -148,7 +148,7 @@ const VideoPage: React.FC = () => {
             return;
         }
         if (!commentInput.trim()) return;
-        
+
         // API call would go here
         // Example: fetch('/api/comment', { 
         //   method: 'POST', 
@@ -164,14 +164,14 @@ const VideoPage: React.FC = () => {
             return;
         }
         if (!replyInput.trim()) return;
-        
+
         // API call would go here
         // Example: fetch('/api/reply', { 
         //   method: 'POST', 
         //   body: JSON.stringify({ 
         //     commentId: replyingTo?.id, 
         //     content: replyInput,
-        //     replyToUserId: replyingTo?.id 
+        //     replyToUserID: replyingTo?.id 
         //   }) 
         // })
         alert(`回复 ${replyingTo?.username}: ${replyInput}`);
@@ -193,48 +193,48 @@ const VideoPage: React.FC = () => {
     return (
         <div className="video-page">
             <Header />
-            
+
             <div className="video-page-container">
                 {/* Main content area */}
                 <div className="video-main-content">
                     {/* Video player section */}
                     <div className="video-player-section">
                         <h1 className="video-title">{videoData.title}</h1>
-                        
+
                         <div className="video-meta">
                             <span>播放: {videoData.views}</span>
                             <span>弹幕: {videoData.danmaku}</span>
                             <span>投稿时间: {videoData.uploadDate}</span>
                         </div>
-                        
+
                         <div className="video-player-container">
-                            <img 
-                                src="https://picsum.photos/800/450?random=100" 
-                                alt="视频播放器" 
+                            <img
+                                src="https://picsum.photos/800/450?random=100"
+                                alt="视频播放器"
                                 className="video-player"
                                 onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTY5IiB2aWV3Qm94PSIwIDAgMzAwIDE2OSIgZmlsbD0iI2ZmY2NkNSI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjkiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZmY3Mjk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj7lm77niYflnLDor50v5paH5a2XPC90ZXh0Pjwvc3ZnPg=='; }}
                             />
                         </div>
-                        
+
                         <div className="video-actions">
-                            <button 
+                            <button
                                 className={`videopage-action-btn ${isLiked ? 'liked' : ''}`}
                                 onClick={() => likeVideo(videoData.id)}
                             >
                                 <span className="icon">👍</span> {isLiked ? '已点赞' : '点赞'}
                             </button>
-                            <button 
+                            <button
                                 className={`videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
                                 onClick={() => favoriteVideo(videoData.id)}
                             >
                                 <span className="icon">⭐</span> {isFavorited ? '已收藏' : '收藏'}
                             </button>
                         </div>
-                        
+
                         <div className="video-tags">
                             {videoData.tags.map(tag => (
-                                <span 
-                                    key={tag} 
+                                <span
+                                    key={tag}
                                     className="tag"
                                     onClick={() => alert(`搜索标签: ${tag}`)}
                                 >
@@ -243,17 +243,17 @@ const VideoPage: React.FC = () => {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Comments section */}
                     <div className="comments-section">
                         <h3 className="comments-title">评论 ({videoData.comments.length})</h3>
-                        
+
                         {/* Comment input */}
                         <div className="comment-input-container">
                             <div className="user-avatar">
-                                <img 
-                                    src={isLoggedIn ? "https://picsum.photos/50/50?random=9" : "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+"} 
-                                    alt="用户头像" 
+                                <img
+                                    src={isLoggedIn ? "https://picsum.photos/50/50?random=9" : "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+"}
+                                    alt="用户头像"
                                 />
                             </div>
                             <input
@@ -265,7 +265,7 @@ const VideoPage: React.FC = () => {
                                 onKeyPress={(e) => e.key === 'Enter' && postComment()}
                             />
                         </div>
-                        
+
                         {/* Comments list */}
                         <div className="comments-list">
                             {videoData.comments.map(comment => (
@@ -279,23 +279,23 @@ const VideoPage: React.FC = () => {
                                         <div className="comment-meta">
                                             <span className="comment-time">{comment.time}</span>
                                             <span className="comment-likes">{comment.likes}</span>
-                                            <button 
+                                            <button
                                                 className="like-btn"
                                                 onClick={() => likeComment(comment.id)}
                                             >
                                                 👍
                                             </button>
-                                            <button 
+                                            <button
                                                 className="reply-btn"
                                                 onClick={() => {
-                                                    setReplyingTo({id: comment.id, username: comment.user.name});
+                                                    setReplyingTo({ id: comment.id, username: comment.user.name });
                                                     setShowReplyModal(true);
                                                 }}
                                             >
                                                 回复
                                             </button>
                                         </div>
-                                        
+
                                         {/* Replies */}
                                         {comment.replies.length > 0 && (
                                             <div className="replies-list">
@@ -312,16 +312,16 @@ const VideoPage: React.FC = () => {
                                                             <div className="reply-meta">
                                                                 <span className="reply-time">{reply.time}</span>
                                                                 <span className="reply-likes">{reply.likes}</span>
-                                                                <button 
+                                                                <button
                                                                     className="like-btn"
                                                                     onClick={() => likeComment(reply.id)}
                                                                 >
                                                                     👍
                                                                 </button>
-                                                                <button 
+                                                                <button
                                                                     className="reply-btn"
                                                                     onClick={() => {
-                                                                        setReplyingTo({id: comment.id, username: reply.user.name});
+                                                                        setReplyingTo({ id: comment.id, username: reply.user.name });
                                                                         setShowReplyModal(true);
                                                                     }}
                                                                 >
@@ -339,7 +339,7 @@ const VideoPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Sidebar */}
                 <div className="video-sidebar">
                     {/* UP info */}
@@ -350,11 +350,11 @@ const VideoPage: React.FC = () => {
                         <div className="up-details">
                             <div className="up-name">{videoData.author.name}</div>
                             <div className="up-description" title={videoData.author.description}>
-                                {videoData.author.description.length > 20 
-                                    ? `${videoData.author.description.substring(0, 20)}...` 
+                                {videoData.author.description.length > 20
+                                    ? `${videoData.author.description.substring(0, 20)}...`
                                     : videoData.author.description}
                             </div>
-                            <button 
+                            <button
                                 className={`follow-btn ${isFollowing ? 'following' : ''}`}
                                 onClick={() => followUp(videoData.author.id)}
                             >
@@ -362,26 +362,26 @@ const VideoPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                    
+
                     {/* Recommended videos */}
                     <div className="recommended-videos">
                         <h3 className="recommended-title">推荐视频</h3>
                         {recommendedVideos.map(video => (
                             <div key={video.id} className="recommended-video">
-                                <div 
+                                <div
                                     className="recommended-cover"
                                     onClick={() => alert(`跳转到视频 ${video.id}`)}
                                 >
                                     <img src={video.cover} alt="视频封面" />
                                 </div>
                                 <div className="recommended-info">
-                                    <div 
+                                    <div
                                         className="recommended-title"
                                         onClick={() => alert(`跳转到视频 ${video.id}`)}
                                     >
                                         {video.title}
                                     </div>
-                                    <div 
+                                    <div
                                         className="recommended-author"
                                         onClick={() => alert(`跳转到UP主 ${video.author}`)}
                                     >
@@ -397,13 +397,13 @@ const VideoPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            
+
             {/* Login Modal */}
-            <LoginModal 
-                isOpen={showLoginModal} 
-                onClose={() => setShowLoginModal(false)} 
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
             />
-            
+
             {/* Reply Modal */}
             {showReplyModal && (
                 <div className="modal" onClick={() => setShowReplyModal(false)}>
@@ -422,7 +422,7 @@ const VideoPage: React.FC = () => {
                                 onKeyPress={(e) => e.key === 'Enter' && postReply()}
                                 autoFocus
                             />
-                            <button 
+                            <button
                                 className="login-btn"
                                 onClick={postReply}
                             >

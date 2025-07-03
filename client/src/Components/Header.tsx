@@ -27,10 +27,10 @@ const Header: React.FC = () => {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const userId = await getUIDByToken();
-            if (userId !== null) {
-                await fetchUserInfo(userId);
-                await fetchUserStat(userId);
+            const userID = await getUIDByToken();
+            if (userID !== null) {
+                await fetchUserInfo(userID);
+                await fetchUserStat(userID);
             } else {
                 setUserInfo(null);
                 setUserStat(null);
@@ -144,8 +144,8 @@ const Header: React.FC = () => {
     };
 
     const handleMsgClick = async () => {
-        const userId = await getUIDByToken();
-        if (userId !== null) {
+        const userID = await getUIDByToken();
+        if (userID !== null) {
             navigate(messagePagePath);
         } else {
             setShowLoginModal(true);

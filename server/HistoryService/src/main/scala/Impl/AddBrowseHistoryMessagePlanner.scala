@@ -31,19 +31,19 @@ case class AddBrowseHistoryMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info("Step 1: Validate user token and retrieve user ID"))
-      userId<- getUserIdByToken()
-      _ <-IO(logger.info(s"Validated user token, userId: ${userId}"))
+      userID<- getUserIDByToken()
+      _ <-IO(logger.info(s"Validated user token, userID: ${userID}"))
       _ <-IO(logger.info("Step 2: Validate videoID and retrieve video information"))
       video<-getVideoInfo(videoID)
       _ <-IO(logger.info(s"Video validated successfully: videoID=${video.videoID}, title=${video.title}"))
       _ <-IO(logger.info("Step 3: Add browse history to the database"))
-      _ <-addOrUpdateHistory(userId, video.videoID).map(_ => ())
+      _ <-addOrUpdateHistory(userID, video.videoID).map(_ => ())
     } yield ()
   }
 
-  private def getUserIdByToken()(using PlanContext): IO[Int] = {
-    GetUIDByTokenMessage(token).send.flatTap { userId =>
-      IO{logger.info(s"Retrieved user ID: ${userId} for token: ${token}")}
+  private def getUserIDByToken()(using PlanContext): IO[Int] = {
+    GetUIDByTokenMessage(token).send.flatTap { userID =>
+      IO{logger.info(s"Retrieved user ID: ${userID} for token: ${token}")}
       }
   }
 
@@ -53,22 +53,22 @@ case class AddBrowseHistoryMessagePlanner(
       }
   }
 
-  private def addOrUpdateHistory(userId: Int, videoId: Int)(using PlanContext): IO[Unit] = {
+  private def addOrUpdateHistory(userID: Int, videoId: Int)(using PlanContext): IO[Unit] = {
     for {
       timestamp <- IO(DateTime.now())
-      _ <- IO(logger.info(s"Step 3.1: Check if user ${userId} has already viewed video ${videoId}"))
-      exists <- checkExistingHistory(userId, videoId)
+      _ <- IO(logger.info(s"Step 3.1: Check if user ${userID} has already viewed video ${videoId}"))
+      exists <- checkExistingHistory(userID, videoId)
       _ <- if(exists){
-        IO(logger.info(s"User ${userId} has viewed video ${videoId} before, updating timestamp")) *>
-          updateHistoryTimestamp(userId, videoId, timestamp)
+        IO(logger.info(s"User ${userID} has viewed video ${videoId} before, updating timestamp")) *>
+          updateHistoryTimestamp(userID, videoId, timestamp)
       } else {
-           IO(logger.info(s"User ${userId} has not viewed video ${videoId} before, inserting new history record")) *>
-             insertNewHistoryRecord(userId, videoId, timestamp)
+           IO(logger.info(s"User ${userID} has not viewed video ${videoId} before, inserting new history record")) *>
+             insertNewHistoryRecord(userID, videoId, timestamp)
       }
     } yield ()
   }
 
-  private def checkExistingHistory(userId: Int, videoId: Int)(using PlanContext): IO[Boolean] = {
+  private def checkExistingHistory(userID: Int, videoId: Int)(using PlanContext): IO[Boolean] = {
     val sql =
       s"""
          |SELECT 1
@@ -76,12 +76,12 @@ case class AddBrowseHistoryMessagePlanner(
          |WHERE user_id = ? AND video_id = ?;
          """.stripMargin
     readDBJsonOptional(sql, List(
-      SqlParameter("Int", userId.toString),
+      SqlParameter("Int", userID.toString),
       SqlParameter("Int", videoId.toString)
     )).map(_.isDefined)
   }
 
-  private def updateHistoryTimestamp(userId: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
+  private def updateHistoryTimestamp(userID: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
          |UPDATE ${schemaName}.history_record_table
@@ -90,19 +90,19 @@ case class AddBrowseHistoryMessagePlanner(
          """.stripMargin
     writeDB(sql, List(
       SqlParameter("DateTime", timestamp.getMillis.toString),
-      SqlParameter("Int", userId.toString),
+      SqlParameter("Int", userID.toString),
       SqlParameter("Int", videoId.toString)
     )).as(())
   }
 
-  private def insertNewHistoryRecord(userId: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
+  private def insertNewHistoryRecord(userID: Int, videoId: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
          |INSERT INTO ${schemaName}.history_record_table (user_id, video_id, timestamp)
          |VALUES (?, ?, ?);
          """.stripMargin
     writeDB(sql, List(
-      SqlParameter("Int", userId.toString),
+      SqlParameter("Int", userID.toString),
       SqlParameter("Int", videoId.toString),
       SqlParameter("DateTime", timestamp.getMillis.toString)
     )).as(())

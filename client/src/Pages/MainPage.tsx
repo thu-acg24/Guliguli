@@ -42,10 +42,10 @@ const MainPage: React.FC = () => {
     };
 
     // API call placeholder for author click
-    const handleAuthorClick = (userId: string) => {
+    const handleAuthorClick = (userID: string) => {
         // API call would go here for fetching user profile
-        // Example: fetch(`/api/user/${userId}`)
-        alert(`跳转到UP主主页，用户ID: ${userId}`);
+        // Example: fetch(`/api/user/${userID}`)
+        alert(`跳转到UP主主页，用户ID: ${userID}`);
     };
 
     // API call placeholder for load more

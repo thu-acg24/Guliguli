@@ -38,7 +38,7 @@ case class DeleteHistoryMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate user identity
-      userID <- validateUserIdentity(token)
+      userID <- validateUserIDentity(token)
       _ <- deleteHistoryRecord(userID, videoID)
     } yield ()
   }
@@ -49,7 +49,7 @@ case class DeleteHistoryMessagePlanner(
    * @param token 用户的认证Token
    * @return IO[Int]
    */
-  private def validateUserIdentity(token: String)(using PlanContext): IO[Int] = {
+  private def validateUserIDentity(token: String)(using PlanContext): IO[Int] = {
     for {
       _ <- IO(logger.info(s"Calling GetUIDByTokenMessage with token: ${token}"))
       userID <- GetUIDByTokenMessage(token).send
