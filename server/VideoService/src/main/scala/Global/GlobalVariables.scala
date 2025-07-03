@@ -7,7 +7,7 @@ import Global.ServiceCenter.*
 import io.minio.MinioClient
 
 object GlobalVariables {
-  lazy val serviceCode : String = UserServiceCode
+  lazy val serviceCode : String = VideoServiceCode
   val projectIDLength:Int=20
   private val minioConfig = MinioConfig.fromConfig()
   val minioClient: MinioClient = {
