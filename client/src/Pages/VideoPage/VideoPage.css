@@ -1,17 +1,17 @@
 /* 视频栏 */
-.video-container {
+.video-page .video-container {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
 }
 
-.video-row {
+.video-page .video-row {
     display: flex;
     margin-bottom: 20px;
 }
 
-.large-ad {
+.video-page .large-ad {
     width: 60%;
     margin-right: 20px;
     background-color: #ddd;
@@ -20,14 +20,14 @@
     position: relative;
 }
 
-.large-ad-cover {
+.video-page .large-ad-cover {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-.video-grid {
+.video-page .video-grid {
     width: 40%;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -35,7 +35,7 @@
 }
 
 /* 视频项固定尺寸 */
-.video-item {
+.video-page .video-item {
     background-color: white;
     border-radius: 6px;
     overflow: hidden;
@@ -44,7 +44,7 @@
 }
 
 /* 固定封面框尺寸 */
-.video-cover-container {
+.video-page .video-cover-container {
     position: relative;
     width: 100%;
     padding-bottom: 56.25%;
@@ -52,7 +52,7 @@
     overflow: hidden;
 }
 
-.video-cover {
+.video-page .video-cover {
     position: absolute;
     top: 0;
     left: 0;
@@ -62,11 +62,11 @@
     display: block;
 }
 
-.video-info {
+.video-page .video-info {
     padding: 10px;
 }
 
-.video-title {
+.video-page .video-title {
     font-size: 14px;
     margin-bottom: 5px;
     display: -webkit-box;
@@ -77,23 +77,23 @@
     height: 40px;
 }
 
-.video-meta {
+.video-page .video-meta {
     display: flex;
     font-size: 12px;
     color: #999;
 }
 
-.video-author {
+.video-page .video-author {
     margin-right: 10px;
     cursor: pointer;
 }
 
-.video-author:hover {
+.video-page .video-author:hover {
     color: #fb7299;
 }
 
 /* 普通视频列表 */
-.normal-video-list {
+.video-page .normal-video-list {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 15px;
@@ -101,14 +101,14 @@
 }
 
 /* 加载更多 */
-.load-more {
+.video-page .load-more {
     text-align: center;
     padding: 20px 0;
     color: #999;
     cursor: pointer;
 }
 
-.load-more:hover {
+.video-page .load-more:hover {
     color: #fb7299;
 }
 
@@ -127,40 +127,40 @@
     padding: 20px;
 }
 
-.video-main-content {
+.video-page .video-main-content {
     flex: 1;
     margin-right: 20px;
 }
 
-.video-sidebar {
+.video-page .video-sidebar {
     width: 300px;
 }
 
 /* Video player section */
-.video-player-section {
+.video-page .video-player-section {
     background-color: white;
     padding: 20px;
     border-radius: 6px;
     margin-bottom: 20px;
 }
 
-.video-title {
+.video-page .video-title {
     font-size: 18px;
     margin-bottom: 10px;
     font-weight: bold;
 }
 
-.video-meta {
+.video-page .video-meta {
     font-size: 12px;
     color: #999;
     margin-bottom: 15px;
 }
 
-.video-meta span {
+.video-page .video-meta span {
     margin-right: 15px;
 }
 
-.video-player-container {
+.video-page .video-player-container {
     width: 100%;
     position: relative;
     padding-bottom: 56.25%;
@@ -169,7 +169,7 @@
     margin-bottom: 15px;
 }
 
-.video-player {
+.video-page .video-player {
     position: absolute;
     top: 0;
     left: 0;
@@ -178,12 +178,12 @@
     object-fit: contain;
 }
 
-.video-actions {
+.video-page .video-actions {
     display: flex;
     margin-bottom: 15px;
 }
 
-.videopage-action-btn {
+.video-page .videopage-action-btn {
     padding: 8px 15px;
     margin-right: 10px;
     background-color: #f4f4f4;
@@ -194,25 +194,25 @@
     align-items: center;
 }
 
-.videopage-action-btn .icon {
+.video-page .videopage-action-btn .icon {
     margin-right: 5px;
 }
 
-.videopage-action-btn.liked {
+.video-page .videopage-action-btn.liked {
     background-color: #fb7299;
     color: white;
 }
 
-.videopage-action-btn.favorited {
+.video-page .videopage-action-btn.favorited {
     background-color: #fb7299;
     color: white;
 }
 
-.video-tags {
+.video-page .video-tags {
     margin-bottom: 15px;
 }
 
-.tag {
+.video-page .tag {
     display: inline-block;
     padding: 4px 8px;
     background-color: #f4f4f4;
@@ -223,29 +223,29 @@
     cursor: pointer;
 }
 
-.tag:hover {
+.video-page .tag:hover {
     background-color: #e5e5e5;
 }
 
 /* Comments section */
-.comments-section {
+.video-page .comments-section {
     background-color: white;
     padding: 20px;
     border-radius: 6px;
 }
 
-.comments-title {
+.video-page .comments-title {
     font-size: 16px;
     margin-bottom: 15px;
     font-weight: bold;
 }
 
-.comment-input-container {
+.video-page .comment-input-container {
     display: flex;
     margin-bottom: 20px;
 }
 
-.user-avatar {
+.video-page .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -254,13 +254,13 @@
     flex-shrink: 0;
 }
 
-.user-avatar img {
+.video-page .user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.comment-input {
+.video-page .comment-input {
     flex: 1;
     padding: 10px 15px;
     border: 1px solid #e7e7e7;
@@ -268,22 +268,22 @@
     outline: none;
 }
 
-.comment-input:focus {
+.video-page .comment-input:focus {
     border-color: #fb7299;
 }
 
-.comments-list {
+.video-page .comments-list {
     margin-top: 20px;
 }
 
-.comment-item {
+.video-page .comment-item {
     display: flex;
     margin-bottom: 15px;
     padding-bottom: 15px;
     border-bottom: 1px solid #f0f0f0;
 }
 
-.comment-user-avatar {
+.video-page .comment-user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -292,44 +292,44 @@
     flex-shrink: 0;
 }
 
-.comment-user-avatar img {
+.video-page .comment-user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.comment-content {
+.video-page .comment-content {
     flex: 1;
 }
 
-.comment-user-name {
+.video-page .comment-user-name {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
-.comment-text {
+.video-page .comment-text {
     font-size: 14px;
     margin-bottom: 8px;
 }
 
-.comment-meta {
+.video-page .comment-meta {
     font-size: 12px;
     color: #999;
     display: flex;
     align-items: center;
 }
 
-.comment-time {
+.video-page .comment-time {
     margin-right: 15px;
 }
 
-.comment-likes {
+.video-page .comment-likes {
     margin-right: 5px;
 }
 
-.like-btn,
-.reply-btn {
+.video-page .like-btn,
+.video-page .reply-btn {
     background: none;
     border: none;
     color: #999;
@@ -338,23 +338,23 @@
     margin-left: 10px;
 }
 
-.like-btn:hover,
-.reply-btn:hover {
+.video-page .like-btn:hover,
+.video-page .reply-btn:hover {
     color: #fb7299;
 }
 
-.replies-list {
+.video-page .replies-list {
     margin-top: 15px;
     padding-left: 10px;
     border-left: 2px solid #f0f0f0;
 }
 
-.reply-item {
+.video-page .reply-item {
     display: flex;
     margin-bottom: 10px;
 }
 
-.reply-user-avatar {
+.video-page .reply-user-avatar {
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -363,49 +363,49 @@
     flex-shrink: 0;
 }
 
-.reply-user-avatar img {
+.video-page .reply-user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.reply-content {
+.video-page .reply-content {
     flex: 1;
 }
 
-.reply-user-name {
+.video-page .reply-user-name {
     font-size: 13px;
     font-weight: bold;
     margin-bottom: 3px;
 }
 
-.reply-to {
+.video-page .reply-to {
     color: #fb7299;
     font-weight: normal;
 }
 
-.reply-text {
+.video-page .reply-text {
     font-size: 13px;
     margin-bottom: 5px;
 }
 
-.reply-meta {
+.video-page .reply-meta {
     font-size: 11px;
     color: #999;
     display: flex;
     align-items: center;
 }
 
-.reply-time {
+.video-page .reply-time {
     margin-right: 10px;
 }
 
-.reply-likes {
+.video-page .reply-likes {
     margin-right: 3px;
 }
 
 /* Sidebar styles */
-.up-info {
+.video-page .up-info {
     background-color: white;
     padding: 15px;
     border-radius: 6px;
@@ -413,7 +413,7 @@
     display: flex;
 }
 
-.up-avatar {
+.video-page .up-avatar {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -422,23 +422,23 @@
     flex-shrink: 0;
 }
 
-.up-avatar img {
+.video-page .up-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.up-details {
+.video-page .up-details {
     flex: 1;
 }
 
-.up-name {
+.video-page .up-name {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
-.up-description {
+.video-page .up-description {
     font-size: 12px;
     color: #666;
     margin-bottom: 10px;
@@ -447,7 +447,7 @@
     text-overflow: ellipsis;
 }
 
-.follow-btn {
+.video-page .follow-btn {
     padding: 4px 10px;
     background-color: #fb7299;
     color: white;
@@ -457,30 +457,30 @@
     cursor: pointer;
 }
 
-.follow-btn.following {
+.video-page .follow-btn.following {
     background-color: #f4f4f4;
     color: #666;
 }
 
-.recommended-videos {
+.video-page .recommended-videos {
     background-color: white;
     padding: 15px;
     border-radius: 6px;
 }
 
-.recommended-title {
+.video-page .recommended-title {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 15px;
 }
 
-.recommended-video {
+.video-page .recommended-video {
     display: flex;
     margin-bottom: 15px;
     cursor: pointer;
 }
 
-.recommended-cover {
+.video-page .recommended-cover {
     width: 160px;
     height: 90px;
     border-radius: 4px;
@@ -489,17 +489,17 @@
     flex-shrink: 0;
 }
 
-.recommended-cover img {
+.video-page .recommended-cover img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.recommended-info {
+.video-page .recommended-info {
     flex: 1;
 }
 
-.recommended-title {
+.video-page .recommended-title {
     font-size: 14px;
     margin-bottom: 5px;
     display: -webkit-box;
@@ -509,17 +509,17 @@
     height: 40px;
 }
 
-.recommended-author {
+.video-page .recommended-author {
     font-size: 12px;
     color: #666;
     margin-bottom: 5px;
 }
 
-.recommended-meta {
+.video-page .recommended-meta {
     font-size: 11px;
     color: #999;
 }
 
-.recommended-meta span {
+.video-page .recommended-meta span {
     margin-right: 10px;
 }
