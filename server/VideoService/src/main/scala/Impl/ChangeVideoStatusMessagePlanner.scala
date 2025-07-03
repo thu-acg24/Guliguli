@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import APIs.RecommendationService.UpdateVideoInfoMessage
 import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import APIs.VideoService.ChangeVideoStatusMessage
@@ -15,6 +16,7 @@ import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Objects.RecommendationService.VideoInfo
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits._
@@ -60,6 +62,9 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- IO(logger.info(s"[Step 3] 开始修改视频状态为: $status..."))
       _ <- updateVideoStatus(videoID, status)
 
+      // Step 4: 通知 RecommendationService 更新视频可见性
+      _ <- notifyRecommendationService(videoID, status)
+
     } yield ()
   }
 
@@ -70,6 +75,42 @@ case class ChangeVideoStatusMessagePlanner(
         SqlParameter("String", status.toString),
         SqlParameter("Int", videoID.toString)
       ))
+    }
+  }
+
+  private def notifyRecommendationService(videoID: Int, status: VideoStatus)(using PlanContext): IO[Unit] = {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video status change: videoID=${videoID}, status=${status}")) >> {
+      // 获取视频详细信息
+      getVideoInfo(videoID).flatMap { videoInfo =>
+        // 根据视频状态决定可见性：只有 Approved 状态的视频才可见
+        val visible = status == VideoStatus.Approved
+        val updatedVideoInfo = videoInfo.copy(visible = visible)
+        
+        UpdateVideoInfoMessage(token, updatedVideoInfo).send.handleErrorWith { error =>
+          IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
+        }
+      }
+    }
+  }
+
+  private def getVideoInfo(videoID: Int)(using PlanContext): IO[VideoInfo] = {
+    IO(logger.info(s"[getVideoInfo] Fetching video info for videoID=${videoID}")) >> {
+      val sql = s"SELECT video_id, title, description, tag, uploader_id, views, likes, favorites FROM ${schemaName}.video_table WHERE video_id = ?;"
+      readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
+        case Some(json) =>
+          VideoInfo(
+            videoID = decodeField[Int](json, "video_id"),
+            title = decodeField[String](json, "title"),
+            description = decodeField[String](json, "description"),
+            tag = decodeField[String](json, "tag").split(",").toList.map(_.trim).filter(_.nonEmpty),
+            uploaderID = decodeField[Int](json, "uploader_id"),
+            views = decodeField[Int](json, "views"),
+            likes = decodeField[Int](json, "likes"),
+            favorites = decodeField[Int](json, "favorites"),
+            visible = true // 默认值，后续会根据状态更新
+          )
+        case None => throw InvalidInputException("找不到视频")
+      }
     }
   }
 }

@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import APIs.RecommendationService.DeleteVideoInfoMessage
 import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
@@ -48,7 +49,11 @@ case class DeleteVideoMessagePlanner(
     _ <- IO(logger.info(s"权限校验结果: ${hasPermission}"))
     _ <- IO.raiseUnless(hasPermission)(InvalidInputException("Permission Denied"))
 
-    // Step 4: Delete the video
+    // Step 4: Notify RecommendationService before deletion
+    _ <- IO(logger.info(s"通知 RecommendationService 删除视频信息, videoID=${videoID}"))
+    _ <- notifyRecommendationService(videoID)
+
+    // Step 5: Delete the video
     _ <- IO(logger.info(s"开始删除视频记录, videoID=${videoID}"))
     _ <- deleteVideo(videoID)
 
@@ -98,5 +103,16 @@ case class DeleteVideoMessagePlanner(
         WHERE video_id = ?;
       """
     writeDB(sql, List(SqlParameter("Int", videoID.toString)))
+  }
+
+  /**
+   * 通知 RecommendationService 删除视频信息
+   */
+  private def notifyRecommendationService(videoID: Int)(using PlanContext): IO[Unit] = {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video deletion: videoID=${videoID}")) >> {
+      DeleteVideoInfoMessage(token, videoID).send.handleErrorWith { error =>
+        IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
+      }
+    }
   }
 }

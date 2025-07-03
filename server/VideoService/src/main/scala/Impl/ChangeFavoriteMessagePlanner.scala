@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.GetUIDByTokenMessage
+import APIs.RecommendationService.UpdateFeedbackFavoriteMessage
 import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
@@ -38,8 +39,11 @@ case class ChangeFavoriteMessagePlanner(
       videoStatus <- validateVideoStatus(videoID)
       _ <- IO(logger.info(s"VideoStatus: ${videoStatus}"))
 
-      // Step 3: Proceed based on video validation result
+      // Step 3: Update favorite record
       result <- updateFavoriteRecord(userID, videoID, isFav)
+      
+      // Step 4: Notify RecommendationService
+      _ <- notifyRecommendationService(userID, videoID, isFav)
     } yield result
   }
 
@@ -111,6 +115,14 @@ case class ChangeFavoriteMessagePlanner(
             ))
             _ <- writeDB(updateSql, List(SqlParameter("Int", videoID.toString)))
           } yield ()
+      }
+    }
+  }
+
+  private def notifyRecommendationService(userID: Int, videoID: Int, isFav: Boolean)(using PlanContext): IO[Unit] = {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about favorite change: userID=${userID}, videoID=${videoID}, isFav=${isFav}")) >> {
+      UpdateFeedbackFavoriteMessage(token, videoID, isFav).send.handleErrorWith { error =>
+        IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
       }
     }
   }

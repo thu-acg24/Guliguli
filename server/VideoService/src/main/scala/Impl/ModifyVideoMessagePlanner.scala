@@ -2,6 +2,7 @@ package Impl
 
 
 import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
+import APIs.RecommendationService.UpdateVideoInfoMessage
 import Common.API.PlanContext
 import Common.APIException.InvalidInputException
 import Common.API.Planner
@@ -11,6 +12,7 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
+import Objects.RecommendationService.VideoInfo
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -54,6 +56,9 @@ case class ModifyVideoMessagePlanner(
 
       // Step 4: Update video fields
       _ <- updateVideo(videoID, videoPath, title, coverPath, description, tag, duration)
+
+      // Step 5: Notify RecommendationService about video update
+      _ <- notifyRecommendationService(videoID)
     } yield ()
   }
 
@@ -117,5 +122,44 @@ case class ModifyVideoMessagePlanner(
         writeDB(sql, parameters)
       }
     } yield result
+  }
+
+  /**
+   * 通知 RecommendationService 视频信息更新
+   */
+  private def notifyRecommendationService(videoID: Int)(using PlanContext): IO[Unit] = {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video update: videoID=${videoID}")) >> {
+      // 获取更新后的视频详细信息
+      getUpdatedVideoInfo(videoID).flatMap { videoInfo =>
+        UpdateVideoInfoMessage(token, videoInfo).send.handleErrorWith { error =>
+          IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
+        }
+      }
+    }
+  }
+
+  /**
+   * 获取更新后的视频信息
+   */
+  private def getUpdatedVideoInfo(videoID: Int)(using PlanContext): IO[VideoInfo] = {
+    IO(logger.info(s"[getUpdatedVideoInfo] Fetching updated video info for videoID=${videoID}")) >> {
+      val sql = s"SELECT video_id, title, description, tag, uploader_id, views, likes, favorites, status FROM ${schemaName}.video_table WHERE video_id = ?;"
+      readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
+        case Some(json) =>
+          val status = decodeField[String](json, "status")
+          VideoInfo(
+            videoID = decodeField[Int](json, "video_id"),
+            title = decodeField[String](json, "title"),
+            description = decodeField[String](json, "description"),
+            tag = decodeField[String](json, "tag").split(",").toList.map(_.trim).filter(_.nonEmpty),
+            uploaderID = decodeField[Int](json, "uploader_id"),
+            views = decodeField[Int](json, "views"),
+            likes = decodeField[Int](json, "likes"),
+            favorites = decodeField[Int](json, "favorites"),
+            visible = status == "Approved" // 根据状态设置可见性
+          )
+        case None => throw InvalidInputException("找不到视频")
+      }
+    }
   }
 }
