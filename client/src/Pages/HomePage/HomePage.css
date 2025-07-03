@@ -1,4 +1,5 @@
-/* HomePage 页面私有样式 */.home-error-message {
+/* HomePage 页面私有样式 */
+.home-error-message {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -6,6 +7,7 @@
     font-size: 24px;
     color: #666;
 }
+
 .home-loading {
     display: flex;
     justify-content: center;
@@ -15,13 +17,15 @@
     color: #666;
 }
 
-/* 用户信息区域样式 */.home-user-info-section {
+/* 用户信息区域样式 */
+.home-user-info-section {
     background-color: #fb7299;
     color: white;
     padding: 30px 20px;
     display: flex;
     align-items: center;
 }
+
 .home-user-avatar {
     width: 100px;
     height: 100px;
@@ -30,49 +34,59 @@
     margin-right: 30px;
     border: 3px solid white;
 }
+
 .home-user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
 .home-user-details {
     flex: 1;
 }
+
 .home-user-name {
     font-size: 24px;
     margin-bottom: 15px;
     font-weight: bold;
 }
+
 .home-user-stats {
     display: flex;
     margin-bottom: 15px;
 }
+
 .home-stat-item {
     margin-right: 30px;
     text-align: center;
     cursor: pointer;
 }
+
 .home-stat-number {
     font-size: 18px;
     font-weight: bold;
     display: block;
 }
+
 .home-stat-label {
     font-size: 14px;
     display: block;
 }
+
 .home-user-description {
     font-size: 14px;
     line-height: 1.5;
     max-width: 600px;
 }
 
-/* 内容区域 */.home-content-section {
+/* 内容区域 */
+.home-content-section {
     display: flex;
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
 }
+
 .home-sidebar {
     width: 200px;
     margin-right: 20px;
@@ -82,6 +96,7 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     height: fit-content;
 }
+
 .home-sidebar-item {
     padding: 14px 24px;
     cursor: pointer;
@@ -89,15 +104,18 @@
     color: #666;
     transition: all 0.2s;
 }
+
 .home-sidebar-item:hover {
     background-color: #f5f5f5;
     color: #fb7299;
 }
+
 .home-sidebar-item.active {
     background-color: #fb7299;
     color: white;
     font-weight: bold;
 }
+
 .home-main-content {
     flex: 1;
     background-color: white;
@@ -105,6 +123,7 @@
     padding: 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
+
 .home-tab-title {
     font-size: 20px;
     margin-bottom: 20px;
@@ -112,18 +131,22 @@
     border-bottom: 1px solid #e7e7e7;
 }
 
-/* 视频列表 */.home-video-list {
+/* 视频列表 */
+.home-video-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
 }
+
 .home-video-item {
     cursor: pointer;
     transition: transform 0.2s;
 }
+
 .home-video-item:hover {
     transform: translateY(-5px);
 }
+
 .home-video-cover-container {
     position: relative;
     width: 100%;
@@ -131,6 +154,7 @@
     overflow: hidden;
     border-radius: 4px;
 }
+
 .home-video-cover {
     position: absolute;
     top: 0;
@@ -139,9 +163,11 @@
     height: 100%;
     object-fit: cover;
 }
+
 .home-video-info {
     padding: 10px 0;
 }
+
 .home-video-title {
     font-size: 14px;
     margin-bottom: 5px;
@@ -152,29 +178,35 @@
     height: 40px;
     line-height: 1.4;
 }
+
 .home-video-meta {
     font-size: 12px;
     color: #999;
     display: flex;
     flex-wrap: wrap;
 }
+
 .home-video-meta span {
     margin-right: 10px;
 }
 
-/* 用户列表 */.home-user-list {
+/* 用户列表 */
+.home-user-list {
     display: flex;
     flex-direction: column;
 }
+
 .home-user-item {
     display: flex;
     padding: 15px;
     border-bottom: 1px solid #f0f0f0;
     align-items: center;
 }
+
 .home-user-item:hover {
     background-color: #f9f9f9;
 }
+
 .home-user-avatar {
     width: 50px;
     height: 50px;
@@ -183,23 +215,28 @@
     margin-right: 15px;
     cursor: pointer;
 }
+
 .home-user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
 .home-user-info {
     flex: 1;
 }
+
 .home-user-name {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 5px;
     cursor: pointer;
 }
+
 .home-user-name:hover {
     color: #fb7299;
 }
+
 .home-follow-btn {
     padding: 6px 12px;
     background-color: #fb7299;
@@ -210,36 +247,46 @@
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .home-follow-btn:hover {
     background-color: #ff85ad;
 }
 
-/* 设置表单 */.home-settings-form {
+/* 设置表单 */
+.home-settings-form {
     max-width: 600px;
 }
+
 .home-form-group {
     margin-bottom: 20px;
 }
+
 .home-form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
 }
-.home-form-group input[type="text"],.home-form-group input[type="password"],.home-form-group textarea {
+
+.home-form-group input[type="text"],
+.home-form-group input[type="password"],
+.home-form-group textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #e7e7e7;
     border-radius: 4px;
     font-size: 14px;
 }
+
 .home-form-group textarea {
     min-height: 100px;
     resize: vertical;
 }
+
 .home-avatar-upload {
     display: flex;
     align-items: center;
 }
+
 .home-current-avatar {
     width: 80px;
     height: 80px;
@@ -247,6 +294,7 @@
     margin-right: 20px;
     object-fit: cover;
 }
+
 .home-upload-btn {
     padding: 8px 15px;
     background-color: #f4f4f4;
@@ -255,9 +303,11 @@
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .home-upload-btn:hover {
     background-color: #e7e7e7;
 }
+
 .home-save-btn {
     padding: 10px 20px;
     background-color: #fb7299;
@@ -268,9 +318,11 @@
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .home-save-btn:hover {
     background-color: #ff85ad;
 }
+
 .home-load-more {
     text-align: center;
     padding: 20px 0;
@@ -278,6 +330,110 @@
     cursor: pointer;
     margin-top: 20px;
 }
+
 .home-load-more:hover {
     color: #fb7299;
+}
+
+/* 成功和错误消息样式 */
+.home-settings-success-message {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background-color: #f0fff4;
+    border: 1px solid #c6f6d5;
+    border-radius: 4px;
+    color: #2e7d32;
+    font-size: 14px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.home-settings-success-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    background-color: #2e7d32;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.home-settings-error-message {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background-color: #fff6f6;
+    border: 1px solid #ffcccc;
+    border-radius: 4px;
+    color: #d32f2f;
+    font-size: 14px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.home-settings-error-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    background-color: #d32f2f;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.home-settings-message-text {
+    line-height: 1.4;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.home-save-btn:disabled {
+    background-color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.home-upload-btn:disabled {
+    background-color: #d1d5db;
+    cursor: not-allowed;
+}
+
+/* 设置页面分节样式 */
+.home-settings-section {
+    margin-bottom: 40px;
+    padding: 25px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e7e7e7;
+}
+
+.home-section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #fb7299;
+    display: inline-block;
 }

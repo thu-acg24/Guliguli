@@ -21,8 +21,8 @@ import scala.util.Try
  */
 
 case class ValidateAvatarMessage(
-  token: String
-) extends API[List[String]](UserServiceCode)
+  sessionToken: String
+) extends API[Unit](UserServiceCode)
 
 case object ValidateAvatarMessage{
 
@@ -40,12 +40,12 @@ case object ValidateAvatarMessage{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given ChangeBanStatusMessageEncoder: Encoder[ValidateAvatarMessage] = Encoder.instance { config =>
+  given ValidateAvatarMessageEncoder: Encoder[ValidateAvatarMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given ChangeBanStatusMessageDecoder: Decoder[ValidateAvatarMessage] = Decoder.instance { cursor =>
+  given ValidateAvatarMessageDecoder: Decoder[ValidateAvatarMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
