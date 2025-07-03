@@ -13,6 +13,7 @@ import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 export class Notification extends Serializable {
     constructor(
         public  notificationID: number,
+        public  title: string,
         public  content: string,
         public  timestamp: string,
     ) {
