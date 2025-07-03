@@ -1,11 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter, Route, Routes } from 'react-router-dom';
-import MainPage, { mainPagePath } from "Pages/MainPage";
+import MainPage, { mainPagePath } from "Pages/MainPage/MainPage";
 import './Styles/index.css';
-import MessagePage, { messagePagePath } from 'Pages/MessagePage';
-import VideoPage, { videoPagePath } from 'Pages/VideoPage';
+import VideoPage, { videoPagePath } from 'Pages/VideoPage/VideoPage';
 import { AlertGadget } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
+import MessagePage, { messagePagePath } from 'Pages/MessagePage/MessagePage';
 import WhisperTab from 'Pages/MessagePage/WhisperTab';
 import ReplyTab from 'Pages/MessagePage/ReplyTab';
 import SystemTab from 'Pages/MessagePage/SystemTab';

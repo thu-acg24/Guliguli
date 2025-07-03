@@ -1,10 +1,10 @@
 // VideoPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../Components/Header";
-import LoginModal from "../Components/LoginModal";
+import Header from "../../Components/Header";
+import LoginModal from "../../Components/LoginModal";
 
-export const videoPagePath = "/video/:id";
+export const videoPagePath = "/gv";
 
 const VideoPage: React.FC = () => {
     const navigate = useNavigate();

@@ -1,8 +1,8 @@
 // MainPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../Components/Header";
-
+import Header from "../../Components/Header";
+import { videoPagePath } from "../VideoPage/VideoPage"; // Importing the video page path
 export const mainPagePath = "/mainpage"
 const MainPage: React.FC = () => {
     const navigate = useNavigate();
@@ -38,7 +38,9 @@ const MainPage: React.FC = () => {
     const handleVideoClick = (videoId: string) => {
         // API call would go here for tracking or fetching video details
         // Example: fetch(`/api/video/${videoId}/view`)
-        alert(`跳转到视频页面，视频ID: ${videoId}`);
+        navigate(videoPagePath);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        // alert(`跳转到视频页面，视频ID: ${videoId}`);
     };
 
     // API call placeholder for author click

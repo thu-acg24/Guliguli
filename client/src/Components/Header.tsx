@@ -13,8 +13,8 @@ import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "./DefaultAvatar";
 
-import { mainPagePath } from "../Pages/MainPage";
-import { messagePagePath } from "../Pages/MessagePage";
+import { mainPagePath } from "../Pages/MainPage/MainPage";
+import { messagePagePath } from "../Pages/MessagePage/MessagePage";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
