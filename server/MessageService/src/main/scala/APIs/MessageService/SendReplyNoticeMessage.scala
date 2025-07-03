@@ -42,12 +42,12 @@ case object SendReplyNoticeMessage{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given sendMessageMessageEncoder: Encoder[SendReplyNoticeMessage] = Encoder.instance { config =>
+  given sendReplyNoticeMessageEncoder: Encoder[SendReplyNoticeMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given sendMessageMessageDecoder: Decoder[SendReplyNoticeMessage] = Decoder.instance { cursor =>
+  given sendReplyNoticeMessageDecoder: Decoder[SendReplyNoticeMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

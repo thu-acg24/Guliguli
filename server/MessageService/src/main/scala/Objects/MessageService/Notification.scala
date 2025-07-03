@@ -14,14 +14,16 @@ import scala.util.Try
 
 /**
  * Notification
- * desc: 消息实体，包含发送方、接收方等基本信息
- * @param NotificationID: Int (消息的唯一ID)
- * @param content: String (消息内容)
- * @param timestamp: DateTime (消息发送的时间戳)
+ * desc: 通知
+ * @param notificationID: Int (通知的唯一ID)
+ * @param title: String (通知标题)
+ * @param content: String (通知内容)
+ * @param timestamp: DateTime (通知发送的时间戳)
  */
 
 case class Notification(
-  NotificationID: Int,
+  notificationID: Int,
+  title: String,
   content: String,
   timestamp: DateTime
 ){

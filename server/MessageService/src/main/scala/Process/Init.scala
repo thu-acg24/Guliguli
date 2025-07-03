@@ -59,6 +59,7 @@ object Init {
         CREATE TABLE IF NOT EXISTS "${schemaName}"."notification_table" (
             notification_id SERIAL NOT NULL PRIMARY KEY,
             receiver_id INT NOT NULL,
+            title TEXT NOT NULL,
             content TEXT NOT NULL,
             send_time TIMESTAMP NOT NULL,
             unread BOOLEAN NOT NULL DEFAULT TRUE

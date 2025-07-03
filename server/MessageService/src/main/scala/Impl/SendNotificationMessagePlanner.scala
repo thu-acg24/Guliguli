@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory
 case class SendNotificationMessagePlanner(
     token: String,
     receiverID: Int,
+    title: String,
     messageContent: String,
     override val planContext: PlanContext
 ) extends Planner[Unit] {
@@ -45,14 +46,15 @@ case class SendNotificationMessagePlanner(
     val sql =
       s"""
            INSERT INTO ${schemaName}.notification_table
-           (receiver_id, content, send_time)
-           VALUES (?, ?, ?);
+           (receiver_id, title, content, send_time)
+           VALUES (?, ?, ?, ?);
          """
 
     writeDB(
       sql,
       List(
         SqlParameter("Int", receiverID.toString),
+        SqlParameter("String", title),
         SqlParameter("String", messageContent),
         SqlParameter("DateTime", DateTime.now.getMillis.toString)
       )

@@ -42,12 +42,12 @@ case object QueryNoticesCountMessage{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given queryMessagesMessageEncoder: Encoder[QueryNoticesCountMessage] = Encoder.instance { config =>
+  given queryNoticesCountMessageEncoder: Encoder[QueryNoticesCountMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given queryMessagesMessageDecoder: Decoder[QueryNoticesCountMessage] = Decoder.instance { cursor =>
+  given queryNoticesCountMessageDecoder: Decoder[QueryNoticesCountMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
