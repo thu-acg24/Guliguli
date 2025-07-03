@@ -1,9 +1,9 @@
 package Global
 
+import Common.Object.UploadSession
 import scala.collection.mutable
 import Global.MinioConfig
 import Global.ServiceCenter.*
-import Objects.UserService.UploadSession
 import io.minio.MinioClient
 
 object GlobalVariables {

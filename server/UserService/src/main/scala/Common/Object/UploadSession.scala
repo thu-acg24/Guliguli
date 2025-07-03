@@ -1,4 +1,4 @@
-package Objects.UserService
+package Common.Object
 
 case class UploadSession(
                           token: String,          // 唯一标识符（与键相同）

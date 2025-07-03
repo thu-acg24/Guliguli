@@ -4,14 +4,13 @@ package Impl
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI.*
-import Common.Object.SqlParameter
+import Common.Object.{SqlParameter, UploadSession}
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.minioClient
 import Global.GlobalVariables.sessions
 import Objects.UserService.UserInfo
-import Objects.UserService.UploadSession
 import Utils.AuthProcess.validateToken
 import cats.effect.IO
 import cats.effect.std.Random

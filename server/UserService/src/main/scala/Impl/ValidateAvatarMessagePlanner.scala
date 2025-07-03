@@ -2,12 +2,12 @@ package Impl
 
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI.*
-import Common.Object.SqlParameter
+import Common.Object.{SqlParameter, UploadSession}
 import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{minioClient, sessions}
-import Objects.UserService.{UploadSession, UserInfo}
+import Objects.UserService.UserInfo
 import Utils.AuthProcess.validateToken
 import cats.effect.IO
 import cats.effect.std.Random
