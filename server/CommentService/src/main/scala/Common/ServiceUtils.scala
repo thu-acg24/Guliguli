@@ -3,7 +3,6 @@ package Common
 
 import Global.GlobalVariables
 import Global.GlobalVariables.serviceCode
-import Global.MinioConfig.getConfigPath
 import Global.ServiceCenter.fullNameMap
 import cats.effect.IO
 import com.comcast.ip4s.Port
