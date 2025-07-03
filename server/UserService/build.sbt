@@ -102,6 +102,7 @@ libraryDependencies ++= Seq(
 
 // 引入mindrot进行密码加密
 libraryDependencies += "org.mindrot" % "jbcrypt" % "0.4"
+
 libraryDependencies += "io.minio" % "minio" % "8.5.17"
 
 libraryDependencies += "com.typesafe" % "config" % "1.4.3"

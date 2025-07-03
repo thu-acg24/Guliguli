@@ -3,10 +3,14 @@ package Common
 
 import Global.GlobalVariables
 import Global.GlobalVariables.serviceCode
+import Global.MinioConfig.getConfigPath
 import Global.ServiceCenter.fullNameMap
 import cats.effect.IO
 import com.comcast.ip4s.Port
+import com.typesafe.config.{Config, ConfigFactory}
 import org.http4s.Uri
+
+import java.io.File
 
 object ServiceUtils{
   def getURI(serviceCode: String): IO[Uri] =
@@ -16,7 +20,7 @@ object ServiceUtils{
       ))
     else
       IO.fromEither(Uri.fromString(
-        "http://localhost:" + getPort(serviceCode).value.toString + "/"
+          config.getString(serviceCode) + ":" + getPort(serviceCode).value.toString + "/"
       ))
 
   def getPort(serviceCode: String): Port =
@@ -45,4 +49,26 @@ object ServiceUtils{
       case false => srcSchemaName
     }
   }
+
+  private def getConfigPath(relativePath: String): String = {
+    val currentDir = new File(".").getCanonicalPath
+    val configFile = new File(currentDir, relativePath).getCanonicalPath
+
+    if (!new File(configFile).exists()) {
+      throw new RuntimeException(s"Config file not found: $configFile")
+    }
+
+    configFile
+  }
+
+  // 加载配置
+  private def load(relativePath: String = "../server-config.env"): Config = {
+    val configPath = getConfigPath(relativePath)
+    println(s"Loading server ip config from: $configPath")
+    ConfigFactory.parseFile(new File(configPath))
+      .withFallback(ConfigFactory.load()) // 回退到 application.conf
+      .resolve() // 解析变量引用
+  }
+
+  private lazy val config = load()
 }
