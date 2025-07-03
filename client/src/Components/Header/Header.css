@@ -1,5 +1,4 @@
-/* 主页栏样式 */
-.header {
+/* 主页栏样式 */.header-header {
     position: fixed;
     top: 0;
     left: 0;
@@ -12,8 +11,7 @@
     padding: 0 20px;
     z-index: 1000;
 }
-
-.logo {
+.header-logo {
     height: 60px;
     display: flex;
     align-items: center;
@@ -22,27 +20,23 @@
     cursor: pointer;
     padding: 8px;
 }
-
-.logo-icon {
+.header-logo-icon {
     height: 100%;
     width: auto;
     object-fit: contain;
 }
-
-.search-container {
+.header-search-container {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     width: 400px;
 }
-
-.search-box {
+.header-search-box {
     width: 100%;
     height: 40px;
     display: flex;
 }
-
-.search-input {
+.header-search-input {
     flex: 1;
     height: 100%;
     padding: 0 15px;
@@ -52,12 +46,10 @@
     outline: none;
     font-size: 14px;
 }
-
-.search-input:focus {
+.header-search-input:focus {
     border-color: #fb7299;
 }
-
-.search-btn {
+.header-search-btn {
     width: 60px;
     height: 100%;
     background-color: #fb7299;
@@ -67,14 +59,12 @@
     cursor: pointer;
     font-size: 16px;
 }
-
-.header-actions {
+.header-header-actions {
     display: flex;
     align-items: center;
     margin-left: auto;
 }
-
-.user-avatar {
+.header-user-avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -85,14 +75,12 @@
     align-items: center;
     justify-content: center;
 }
-
-.user-avatar img {
+.header-user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-
-.header-action-btn {
+.header-header-action-btn {
     margin-left: 10px;
     font-size: 14px;
     color: #666;
@@ -100,13 +88,11 @@
     padding: 8px 15px;
     border-radius: 4px;
 }
-
-.header-action-btn:hover {
+.header-header-action-btn:hover {
     color: #fb7299;
     background-color: #f5f5f5;
 }
-
-.header-upload-btn {
+.header-header-upload-btn {
     margin-left: 10px;
     padding: 8px 15px;
     background-color: #fb7299;
@@ -116,20 +102,17 @@
     cursor: pointer;
     border-width: 0;
 }
-
-.header-upload-btn:hover {
+.header-header-upload-btn:hover {
     background-color: #ff85ad;
 }
 
 
 
-/* 用户头像容器和悬浮面板样式 */
-.user-avatar-container {
+/* 用户头像容器和悬浮面板样式 */.header-user-avatar-container {
     position: relative;
     display: inline-block;
 }
-
-.user-panel-popover {
+.header-user-panel-popover {
     position: absolute;
     top: 100%;
     right: 0;
@@ -141,18 +124,15 @@
     z-index: 1001;
     border: 1px solid #e1e1e1;
 }
-
-.user-panel-content {
+.header-user-panel-content {
     padding: 16px;
 }
-
-.user-basic-info {
+.header-user-basic-info {
     display: flex;
     align-items: center;
     margin-bottom: 16px;
 }
-
-.user-avatar-large {
+.header-user-avatar-large {
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -160,20 +140,17 @@
     overflow: hidden;
     margin-right: 12px;
 }
-
-.user-avatar-large img {
+.header-user-avatar-large img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-
-.user-nickname {
+.header-user-nickname {
     font-size: 16px;
     font-weight: bold;
     color: #333;
 }
-
-.user-stats {
+.header-user-stats {
     display: flex;
     justify-content: space-around;
     margin-bottom: 16px;
@@ -181,33 +158,27 @@
     border-top: 1px solid #f0f0f0;
     border-bottom: 1px solid #f0f0f0;
 }
-
-.stat-item {
+.header-stat-item {
     text-align: center;
     cursor: pointer;
 }
-
-.stat-item:hover {
+.header-stat-item:hover {
     color: #fb7299;
 }
-
-.stat-number {
+.header-stat-number {
     font-size: 18px;
     font-weight: bold;
     color: #333;
     margin-bottom: 4px;
 }
-
-.stat-label {
+.header-stat-label {
     font-size: 12px;
     color: #666;
 }
-
-.panel-links {
+.header-panel-links {
     margin-bottom: 16px;
 }
-
-.panel-link-item {
+.header-panel-link-item {
     display: flex;
     align-items: center;
     padding: 8px 12px;
@@ -217,33 +188,27 @@
     color: #666;
     transition: all 0.2s ease;
 }
-
-.panel-link-item:hover {
+.header-panel-link-item:hover {
     background-color: #f5f5f5;
     color: #fb7299;
 }
-
-.panel-link-item svg {
+.header-panel-link-item svg {
     margin-right: 8px;
     width: 16px;
     height: 16px;
 }
-
-.panel-link-item span {
+.header-panel-link-item span {
     font-size: 14px;
 }
-
-.panel-divider {
+.header-panel-divider {
     height: 1px;
     background-color: #f0f0f0;
     margin: 12px 0;
 }
-
-.logout-section {
+.header-logout-section {
     margin-top: 12px;
 }
-
-.logout-btn {
+.header-logout-btn {
     display: flex;
     align-items: center;
     padding: 8px 12px;
@@ -252,25 +217,21 @@
     color: #666;
     transition: all 0.2s ease;
 }
-
-.logout-btn:hover {
+.header-logout-btn:hover {
     background-color: #fff0f0;
     color: #ff4757;
 }
-
-.logout-btn svg {
+.header-logout-btn svg {
     margin-right: 8px;
     width: 16px;
     height: 16px;
 }
-
-.logout-btn span {
+.header-logout-btn span {
     font-size: 14px;
 }
 
 
-/* 三角箭头样式 */
-.user-panel-popover::before {
+/* 三角箭头样式 */.header-user-panel-popover::before {
     content: '';
     position: absolute;
     top: -8px;
@@ -281,8 +242,7 @@
     border-right: 8px solid transparent;
     border-bottom: 8px solid #e1e1e1;
 }
-
-.user-panel-popover::after {
+.header-user-panel-popover::after {
     content: '';
     position: absolute;
     top: -7px;

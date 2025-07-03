@@ -1,5 +1,4 @@
-/* 弹窗样式 */
-.modal {
+/* 弹窗样式 */.modal-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -11,8 +10,7 @@
     align-items: center;
     justify-content: center;
 }
-
-.modal-content {
+.modal-modal-content {
     background-color: white;
     width: 400px;
     border-radius: 8px;
@@ -43,62 +41,51 @@
         transform: translateY(-50px);
     }
 }
-
-.modal-content.closing {
+.modal-modal-content.closing {
     animation: modalFadeOut 0.3s forwards;
 }
-
-.modal-header {
+.modal-modal-header {
     padding: 15px 20px;
     border-bottom: 1px solid #e7e7e7;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
-
-.modal-title {
+.modal-modal-title {
     font-size: 18px;
     font-weight: bold;
 }
-
-.modal-close {
+.modal-modal-close {
     font-size: 24px;
     cursor: pointer;
     color: #999;
 }
-
-.modal-body {
+.modal-modal-body {
     padding: 20px;
 }
-
-.login-form {
+.modal-login-form {
     display: flex;
     flex-direction: column;
 }
-
-.form-group {
+.modal-form-group {
     margin-bottom: 15px;
 }
-
-.form-label {
+.modal-form-label {
     display: block;
     margin-bottom: 5px;
     font-size: 14px;
 }
-
-.form-input {
+.modal-form-input {
     width: 100%;
     padding: 10px;
     border: 1px solid #e7e7e7;
     border-radius: 4px;
     font-size: 14px;
 }
-
-.form-input:focus {
+.modal-form-input:focus {
     border-color: #fb7299;
 }
-
-.login-btn {
+.modal-login-btn {
     padding: 10px;
     background-color: #fb7299;
     color: white;
@@ -108,23 +95,19 @@
     cursor: pointer;
     margin-top: 10px;
 }
-
-.login-btn:hover {
+.modal-login-btn:hover {
     background-color: #ff85ad;
 }
-
-.register-link {
+.modal-register-link {
     text-align: center;
     margin-top: 15px;
     font-size: 14px;
 }
-
-.register-link a {
+.modal-register-link a {
     color: #fb7299;
     text-decoration: underline;
 }
-
-.error-message {
+.modal-error-message {
     display: flex;
     align-items: center;
     padding: 10px 15px;
@@ -136,8 +119,7 @@
     font-size: 14px;
     animation: fadeIn 0.3s ease-in-out;
 }
-
-.error-icon {
+.modal-error-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,8 +134,7 @@
     flex-shrink: 0;
 }
 
-/* 成功消息样式 */
-.success-message {
+/* 成功消息样式 */.modal-success-message {
     display: flex;
     align-items: center;
     padding: 10px 15px;
@@ -165,8 +146,7 @@
     font-size: 14px;
     animation: fadeIn 0.3s ease-in-out;
 }
-
-.success-icon {
+.modal-success-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -180,8 +160,7 @@
     font-size: 12px;
     flex-shrink: 0;
 }
-
-.modal-message-text {
+.modal-modal-message-text {
     line-height: 1.4;
 }
 

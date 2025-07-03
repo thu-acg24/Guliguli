@@ -1,4 +1,4 @@
-const ServerAddr = {
+export const ServerAddr = {
     "Comment": "127.0.0.1:10010",
     "Danmaku": "127.0.0.1:10014",
     "History": "127.0.0.1:10017",

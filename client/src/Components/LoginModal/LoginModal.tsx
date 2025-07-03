@@ -61,41 +61,41 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
     return (
         <>
-            <div className="modal" onClick={handleBackdropClick}>
-                <div className={`modal-content ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <div className="modal-title">登录</div>
-                        <div className="modal-close" onClick={handleClose}>&times;</div>
+            <div className="modal-modal" onClick={handleBackdropClick}>
+                <div className={`modal-modal-content ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-modal-header">
+                        <div className="modal-modal-title">登录</div>
+                        <div className="modal-modal-close" onClick={handleClose}>&times;</div>
                     </div>
-                    <div className="modal-body">
-                        <form className="login-form" onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label className="form-label">用户名</label>
-                                <input type="text" className="form-input" placeholder="请输入用户名"
+                    <div className="modal-modal-body">
+                        <form className="modal-login-form" onSubmit={handleSubmit}>
+                            <div className="modal-form-group">
+                                <label className="modal-form-label">用户名</label>
+                                <input type="text" className="modal-form-input" placeholder="请输入用户名"
                                     value={username} onChange={(e) => setUsername(e.target.value)} />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">密码</label>
-                                <input type="password" className="form-input" placeholder="请输入密码"
+                            <div className="modal-form-group">
+                                <label className="modal-form-label">密码</label>
+                                <input type="password" className="modal-form-input" placeholder="请输入密码"
                                     value={password} onChange={(e) => setPassword(e.target.value)} />
                             </div>
                             {message && (
                                 isSuccess ? (
-                                    <div className="success-message">
-                                        <div className="success-icon">✓</div>
-                                        <div className="modal-message-text">{message}</div>
+                                    <div className="modal-success-message">
+                                        <div className="modal-success-icon">✓</div>
+                                        <div className="modal-modal-message-text">{message}</div>
                                     </div>
                                 ) : (
-                                    <div className="error-message">
-                                        <div className="error-icon">!</div>
-                                        <div className="modal-message-text">{message}</div>
+                                    <div className="modal-error-message">
+                                        <div className="modal-error-icon">!</div>
+                                        <div className="modal-modal-message-text">{message}</div>
                                     </div>
                                 )
                             )}
-                            <button type="submit" className="login-btn">
+                            <button type="submit" className="modal-login-btn">
                                 登录
                             </button>
-                            <div className="register-link">
+                            <div className="modal-register-link">
                                 还没有账户？<a href="#" onClick={(e) => {
                                     e.preventDefault();
                                     setShowRegisterModal(true);

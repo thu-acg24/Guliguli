@@ -183,80 +183,80 @@ const Header: React.FC = () => {
     };
 
     return (
-        <header className="header">
-            <div className="logo" onClick={() => {
+        <header className="header-header">
+            <div className="header-logo" onClick={() => {
                 navigate(mainPagePath);
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }}>
-                <img src={iconSrc} alt="GULIGULI" className="logo-icon" />
+                <img src={iconSrc} alt="GULIGULI" className="header-logo-icon" />
             </div>
-            <div className="search-container">
-                <div className="search-box">
+            <div className="header-search-container">
+                <div className="header-search-box">
                     <input
                         type="text"
-                        className="search-input"
+                        className="header-search-input"
                         placeholder="搜索视频、UP主"
                         value={searchKeyword}
                         onChange={(e) => setSearchKeyword(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && performSearch()}
                     />
-                    <button className="search-btn" onClick={performSearch}>搜索</button>
+                    <button className="header-search-btn" onClick={performSearch}>搜索</button>
                 </div>
             </div>
             {userToken ? (
-                <div className="header-actions">
+                <div className="header-header-actions">
                     <div
-                        className="user-avatar-container"
+                        className="header-user-avatar-container"
                         onMouseEnter={handleAvatarMouseEnter}
                         onMouseLeave={handleAvatarMouseLeave}
                     >
-                        <div className="user-avatar" onClick={handleAvatarClick}>
+                        <div className="header-user-avatar" onClick={handleAvatarClick}>
                             <img
                                 src={userInfo?.avatarPath || DEFAULT_AVATAR}
                                 alt="用户头像"
                             />
                         </div>
                         {showUserPanel && (
-                            <div className="user-panel-popover">
-                                <div className="user-panel-content">
-                                    <div className="user-basic-info">
-                                        <div className="user-avatar-large">
+                            <div className="header-user-panel-popover">
+                                <div className="header-user-panel-content">
+                                    <div className="header-user-basic-info">
+                                        <div className="header-user-avatar-large">
                                             <img
                                                 src={userInfo?.avatarPath || DEFAULT_AVATAR}
                                                 alt="用户头像"
                                             />
                                         </div>
-                                        <div className="user-nickname">
+                                        <div className="header-user-nickname">
                                             {userInfo?.username || "用户"}
                                         </div>
                                     </div>
 
-                                    <div className="user-stats">
-                                        <div className="stat-item">
-                                            <div className="stat-number">{userStat?.followingCount || 0}</div>
-                                            <div className="stat-label">关注</div>
+                                    <div className="header-user-stats">
+                                        <div className="header-stat-item">
+                                            <div className="header-stat-number">{userStat?.followingCount || 0}</div>
+                                            <div className="header-stat-label">关注</div>
                                         </div>
-                                        <div className="stat-item">
-                                            <div className="stat-number">{userStat?.followerCount || 0}</div>
-                                            <div className="stat-label">粉丝</div>
+                                        <div className="header-stat-item">
+                                            <div className="header-stat-number">{userStat?.followerCount || 0}</div>
+                                            <div className="header-stat-label">粉丝</div>
                                         </div>
-                                        <div className="stat-item">
-                                            <div className="stat-number">0</div>
-                                            <div className="stat-label">视频</div>
+                                        <div className="header-stat-item">
+                                            <div className="header-stat-number">0</div>
+                                            <div className="header-stat-label">视频</div>
                                         </div>
                                     </div>
 
-                                    <div className="panel-links">
-                                        <div className="panel-link-item" onClick={handleAvatarClick}>
+                                    <div className="header-panel-links">
+                                        <div className="header-panel-link-item" onClick={handleAvatarClick}>
                                             <PersonCenterIcon />
                                             <span>个人中心</span>
                                         </div>
                                     </div>
 
-                                    <div className="panel-divider"></div>
+                                    <div className="header-panel-divider"></div>
 
-                                    <div className="logout-section">
-                                        <div className="logout-btn" onClick={handleLogout}>
+                                    <div className="header-logout-section">
+                                        <div className="header-logout-btn" onClick={handleLogout}>
                                             <LogoutIcon />
                                             <span>退出登录</span>
                                         </div>
@@ -265,15 +265,15 @@ const Header: React.FC = () => {
                             </div>
                         )}
                     </div>
-                    <div className="header-action-btn" onClick={handleMsgClick}>消息</div>
-                    <div className="header-action-btn" onClick={handleDynamicClick}>动态</div>
-                    <div className="header-action-btn" onClick={handleFavClick}>收藏</div>
-                    <div className="header-action-btn" onClick={handleHistoryClick}>历史</div>
-                    <div className="header-upload-btn" onClick={handleUploadClick}>投稿</div>
+                    <div className="header-header-action-btn" onClick={handleMsgClick}>消息</div>
+                    <div className="header-header-action-btn" onClick={handleDynamicClick}>动态</div>
+                    <div className="header-header-action-btn" onClick={handleFavClick}>收藏</div>
+                    <div className="header-header-action-btn" onClick={handleHistoryClick}>历史</div>
+                    <div className="header-header-upload-btn" onClick={handleUploadClick}>投稿</div>
                 </div>
             ) : (
-                <div className="header-actions">
-                    <button className="header-upload-btn" onClick={() => setShowLoginModal(true)}>登录</button>
+                <div className="header-header-actions">
+                    <button className="header-header-upload-btn" onClick={() => setShowLoginModal(true)}>登录</button>
                 </div>
             )}
             <LoginModal

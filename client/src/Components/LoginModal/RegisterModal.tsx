@@ -99,52 +99,52 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     }
 
     return (
-        <div className="modal" onClick={handleBackdropClick}>
-            <div className={`modal-content ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <div className="modal-title">注册</div>
-                    <div className="modal-close" onClick={handleClose}>&times;</div>
+        <div className="modal-modal" onClick={handleBackdropClick}>
+            <div className={`modal-modal-content ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
+                <div className="modal-modal-header">
+                    <div className="modal-modal-title">注册</div>
+                    <div className="modal-modal-close" onClick={handleClose}>&times;</div>
                 </div>
-                <div className="modal-body">
-                    <form className="login-form" onSubmit={handleSubmit}>
-                        <div className="form-group">
-                            <label className="form-label">用户名</label>
+                <div className="modal-modal-body">
+                    <form className="modal-login-form" onSubmit={handleSubmit}>
+                        <div className="modal-form-group">
+                            <label className="modal-form-label">用户名</label>
                             <input
                                 type="text"
-                                className="form-input"
+                                className="modal-form-input"
                                 placeholder="请输入用户名"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="form-label">邮箱</label>
+                        <div className="modal-form-group">
+                            <label className="modal-form-label">邮箱</label>
                             <input
                                 type="email"
-                                className="form-input"
+                                className="modal-form-input"
                                 placeholder="请输入邮箱"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="form-label">密码</label>
+                        <div className="modal-form-group">
+                            <label className="modal-form-label">密码</label>
                             <input
                                 type="password"
-                                className="form-input"
+                                className="modal-form-input"
                                 placeholder="请输入密码"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="form-label">确认密码</label>
+                        <div className="modal-form-group">
+                            <label className="modal-form-label">确认密码</label>
                             <input
                                 type="password"
-                                className="form-input"
+                                className="modal-form-input"
                                 placeholder="请再次输入密码"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -153,21 +153,21 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
                         </div>
                         {message && (
                             isSuccess ? (
-                                <div className="success-message">
-                                    <div className="success-icon">✓</div>
-                                    <div className="modal-message-text">{message}</div>
+                                <div className="modal-success-message">
+                                    <div className="modal-success-icon">✓</div>
+                                    <div className="modal-modal-message-text">{message}</div>
                                 </div>
                             ) : (
-                                <div className="error-message">
-                                    <div className="error-icon">!</div>
-                                    <div className="modal-message-text">{message}</div>
+                                <div className="modal-error-message">
+                                    <div className="modal-error-icon">!</div>
+                                    <div className="modal-modal-message-text">{message}</div>
                                 </div>
                             )
                         )}
-                        <button type="submit" className="login-btn">
+                        <button type="submit" className="modal-login-btn">
                             注册
                         </button>
-                        <div className="register-link">
+                        <div className="modal-register-link">
                             已有账户？<a href="#" onClick={(e) => {
                                 e.preventDefault();
                                 handleClose();
