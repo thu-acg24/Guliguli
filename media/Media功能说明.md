@@ -121,3 +121,33 @@ docker-compose up -d --build
 ```
 docker-compose logs -f media-processor
 ```
+
+## 测试示例
+
+### 图片处理测试
+
+bash
+
+```
+curl -X POST http://localhost:5000/image \
+  -F "id=user123" \
+  -F "file_name=avatar.png" \
+  -F "task=avatar"
+```
+
+### 视频处理测试
+
+bash
+
+```
+curl -X POST http://localhost:5000/video \
+  -F "id=user456" \
+  -F "token=abc123-xyz" \
+  -F "file_name=video.mp4"
+```
+
+## 监控与日志
+
+- 日志路径：`/var/log/media-processor.log`（容器内）
+- GPU使用监控：`nvidia-smi` 命令
+- MinIO控制台：`http://localhost:5004
