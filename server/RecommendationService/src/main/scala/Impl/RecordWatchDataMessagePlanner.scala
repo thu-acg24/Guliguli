@@ -26,61 +26,45 @@ case class RecordWatchDataMessagePlanner(
   videoID: Int,
   watchDuration: Float,
   override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate token and get user ID
-      userIDOpt <- getUserIDByToken()
-      _ <- IO(logger.info(s"Token校验结果: ${userIDOpt.map(_.toString).getOrElse("Invalid Token")}"))
-      result <- userIDOpt match {
-        case None =>
-          IO(logger.info("Token无效，返回Invalid Token")) *> IO.pure(Some("Invalid Token"))
-        case Some(userID) =>
-          // Step 2: Check if video ID is valid
-          validateVideo(userID)
-      }
-    } yield result
+      userID <- getUserIDByToken()
+      _ <- validateVideo(userID)
+      _ <- recordWatchData(userID, videoID)
+    } yield ()
   }
 
-  private def getUserIDByToken()(using PlanContext): IO[Option[Int]] = {
+  private def getUserIDByToken()(using PlanContext): IO[Int] = {
     logger.info(s"开始调用getUIDByTokenMessage解析Token: $token")
     GetUIDByTokenMessage(token).send
   }
 
-  private def validateVideo(userID: Int)(using PlanContext): IO[Option[String]] = {
-    logger.info(s"开始检查视频ID是否有效: $videoID")
-    QueryVideoInfoMessage(Some(token), videoID).send.flatMap {
-      case None =>
-        IO(logger.info("视频不存在或状态为删除，返回Video Not Found")) *> IO.pure(Some("Video Not Found"))
-      case Some(video) if video.status == VideoStatus.Rejected || video.status == VideoStatus.Pending =>
-        IO(logger.info(s"视频状态为${video.status}，返回Video Not Found")) *> IO.pure(Some("Video Not Found"))
-      case Some(video) =>
-        IO(logger.info(s"视频合法且存在: ${video.videoID}")) *> recordWatchData(userID, video.videoID)
-    }
+  private def validateVideo(userID: Int)(using PlanContext): IO[Video] = {
+    logger.info(s"开始获取视频: $videoID")
+    QueryVideoInfoMessage(Some(token), videoID).send
   }
 
-  private def recordWatchData(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
+  private def recordWatchData(userID: Int, videoID: Int)(using PlanContext): IO[String] = {
     logger.info(s"开始记录观看数据: userID=$userID, videoID=$videoID, watchDuration=$watchDuration")
     val sql =
       s"""
       INSERT INTO ${schemaName}.watch_detail_table
-      (user_id, video_id, watch_duration, timestamp)
+      (user_id, video_id, watch_duration, created_at)
       VALUES (?, ?, ?, ?)
       """
-    val parameters = List(
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", videoID.toString),
-      SqlParameter("Float", watchDuration.toString),
-      SqlParameter("DateTime", DateTime.now().getMillis.toString)
-    )
-    writeDB(sql, parameters).attempt.flatMap {
-      case Right(_) =>
-        IO(logger.info("观看记录插入成功")) *> IO.pure(None)
-      case Left(exception) =>
-        logger.error(s"观看记录插入失败，异常: ${exception.getMessage}")
-        IO.pure(Some("Unable to record watch detail"))
-    }
+    for {
+      createdAt <- IO(DateTime.now().getMillis.toString)
+      parameters = List(
+        SqlParameter("Int", userID.toString),
+        SqlParameter("Int", videoID.toString),
+        SqlParameter("Float", watchDuration.toString),
+        SqlParameter("DateTime", createdAt)
+      )
+      result <- writeDB(sql, parameters)
+    } yield result
   }
 }
