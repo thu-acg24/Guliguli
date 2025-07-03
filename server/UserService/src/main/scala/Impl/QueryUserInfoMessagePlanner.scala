@@ -73,7 +73,7 @@ case class QueryUserInfoMessagePlanner(
             .method(Method.GET)
             .bucket("avatar")
             .`object`(avatarPath)
-            .expiry(1, TimeUnit.MINUTES)
+            .expiry(1, TimeUnit.DAYS)
             .build()
         )
       }

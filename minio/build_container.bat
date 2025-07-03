@@ -22,8 +22,8 @@ docker run -d ^
   -v %DATA_FILE%:/data ^
   -v %CONFIG_FILE%:/root/.minio ^
   --env-file .env ^
-  --name minio-with-ffmpeg ^
-  custom-minio ^
+  --name minio-service ^
+  minio/minio ^
   server /data --console-address ":9001"
 
 echo MinIO 已启动：

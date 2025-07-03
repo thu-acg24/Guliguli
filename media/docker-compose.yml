@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  media-processor:
+    build: .
+    container_name: media-processor
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, utility]
+    depends_on:
+      - minio
+    networks:
+      - media-network
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":5004" --address ":5003"
+    env_file:
+      - .env
+    volumes:
+      - minio-data:/data
+      - minio-config:/root/.minio
+    ports:
+      - "5003:5003"
+      - "5004:5004"
+    networks:
+      - media-network
+
+networks:
+  media-network:
+    driver: bridge
+
+volumes:
+  minio-data:
+  minio-config:

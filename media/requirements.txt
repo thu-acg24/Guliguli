@@ -1,0 +1,8 @@
+flask
+minio
+imageio
+imageio[ffmpeg]
+werkzeug
+requests
+python-dotenv
+gunicorn
