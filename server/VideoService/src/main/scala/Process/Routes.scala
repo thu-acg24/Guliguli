@@ -16,6 +16,10 @@ import Impl.ModifyVideoMessagePlanner
 import Impl.QueryPendingVideosMessagePlanner
 import Impl.QueryUserVideosMessagePlanner
 import Impl.QueryVideoInfoMessagePlanner
+import Impl.QueryLikeVideosMessagePlanner
+import Impl.QueryFavoriteVideosMessagePlanner
+import Impl.QueryLikeMessagePlanner
+import Impl.QueryFavoriteMessagePlanner
 import Impl.UploadVideoMessagePlanner
 import cats.effect.*
 import fs2.concurrent.Topic
@@ -97,6 +101,34 @@ object Routes:
         IO(
           decode[ChangeLikeMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ChangeLikeMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "QueryLikeVideosMessage" =>
+        IO(
+          decode[QueryLikeVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikeVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "QueryFavoriteVideosMessage" =>
+        IO(
+          decode[QueryFavoriteVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "QueryLikeMessage" =>
+        IO(
+          decode[QueryLikeMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikeMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "QueryFavoriteMessage" =>
+        IO(
+          decode[QueryFavoriteMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
