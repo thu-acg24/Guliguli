@@ -14,9 +14,9 @@ import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 export class Message extends Serializable {
     constructor(
         public  messageID: number,
-        public  receiverID: number,
+        public  senderID: number,
         public  content: string,
-        public  timestamp: number,
+        public  timestamp: string,
     ) {
         super()
     }

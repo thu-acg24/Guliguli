@@ -425,17 +425,45 @@
 .like-btn.liked {
     color: #fb7299;
 }
-
 .original-comment {
-    margin-top: 12px;
-    padding: 10px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
+    /* 核心布局 */
+    width: 280px;
+    margin-left: auto; /* 强制右对齐 */
+    margin-top: 8px;
+    box-sizing: border-box;
+    
+    /* 文字样式 */
     font-size: 13px;
     color: #666;
-    cursor: pointer;
+    line-height: 1.5; /* 必须设置为绝对值 */
+    word-break: break-word; /* 重要：允许单词断开 */
+    
+    /* 背景与边框 */
+    padding: 10px 12px;
+    background-color: #f8f8f8;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    
+    /* 截断控制 - 关键代码 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* 单行模式（强制不换行） */
+.original-comment.single-line {
+    -webkit-line-clamp: 1;
+    height: 40px; /* line-height 1.5 × 1 + padding */
+    white-space: nowrap; /* 关键：禁止换行 */
+}
+
+/* 双行模式（允许换行） */
+.original-comment.double-line {
+    -webkit-line-clamp: 2;
+    height: 60px; /* line-height 1.5 × 2 + padding */
+    white-space: normal; /* 关键：允许换行 */
+}
 /* 系统通知样式 */
 .system-container {
     height: 100%;

@@ -1,18 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { useUserToken } from '../../Globals/GlobalStore';
-import { materialAlertError } from '../../Plugins/CommonUtils/Gadgets/AlertGadget';
-
+import { useUserToken } from 'Globals/GlobalStore';
+import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
+import { QueryNotificationsMessage } from 'Plugins/MessageService/APIs/QueryNotificationsMessage';
+import { useUserInfo } from 'Hooks/useUseInfo';
 const SystemTab: React.FC = () => {
   const [notices, setNotices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const userToken = useUserToken();
+  const { userInfo, fetchUserInfo, getUserIDByToken } = useUserInfo();
 
   useEffect(() => {
     if (userToken) fetchNotices();
   }, [userToken]);
-
+  
+    const fetchNotifications = async (): Promise<void> => {
+      try {
+        // 将回调式API转换为Promise
+        const notifications = await new Promise<any>((resolve, reject) => {
+          new QueryNotificationsMessage(userToken).send(
+            (info: string) => {
+              try {
+                const data = JSON.parse(info);
+                resolve(data); // 成功时返回解析的数据
+              } catch (e) {
+                reject(new Error("通知解析失败")); // JSON解析错误
+              }
+            },
+            (e: string) => {
+              reject(new Error(e)); // 网络或业务错误
+            }
+          );
+        });
+  
+        // 处理通知数据
+        console.log('Notifications:', notifications);
+  
+      } catch (error) {
+        console.error('加载通知失败', error instanceof Error ? error.message : String(error));
+      }
+    };
   const fetchNotices = async () => {
-    setLoading(true);
     try {
       setNotices([
         { 
@@ -33,7 +59,6 @@ const SystemTab: React.FC = () => {
     } catch (error) {
       materialAlertError('加载失败', error.message);
     } finally {
-      setLoading(false);
     }
   };
 

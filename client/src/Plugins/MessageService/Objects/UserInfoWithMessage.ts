@@ -12,11 +12,11 @@ import {UserInfo} from "Plugins/UserService/Objects/UserInfo";
 
 
 
-export class Notification extends Serializable {
+export class UserInfoWithMessage extends Serializable {
     constructor(
         public  userInfo: UserInfo,
         public  unreadCount: number,
-        public  timestamp: number,
+        public  timestamp: string,
         public  content: string,
     ) {
         super()

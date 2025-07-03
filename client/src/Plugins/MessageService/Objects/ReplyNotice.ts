@@ -14,15 +14,15 @@ import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
-export class Message extends Serializable {
+export class ReplyNotice extends Serializable {
     constructor(
         public  noticeID: number,
-        public  receiverID: number,
+        public  senderID: number,
         public  content: string,
         public  commentID: number,
         public  originalContent: string,
         public  originalCommentID: number,
-        public  timestamp: number
+        public  timestamp: string
     ) {
         super()
     }

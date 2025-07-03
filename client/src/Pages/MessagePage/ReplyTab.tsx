@@ -1,54 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { useUserToken } from '../../Globals/GlobalStore';
-import { materialAlertError } from '../../Plugins/CommonUtils/Gadgets/AlertGadget';
-
+import { useUserToken } from 'Globals/GlobalStore';
+import { QueryReplyNoticesMessage } from 'Plugins/MessageService/APIs/QueryReplyNoticesMessage';
+import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
+import { useUserInfo } from 'Hooks/useUseInfo';
+import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
+import { formatTime } from 'Components/GetTime';
 const ReplyTab: React.FC = () => {
-  const [replies, setReplies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  interface ReplyWithUserInfo{
+    replyNotice: ReplyNotice;
+    userInfo: UserInfo; 
+  }
+  const [replies, setReplies] = useState<ReplyWithUserInfo[]>([]);
   const userToken = useUserToken();
-
+  const { fetchOtherUserInfo } = useUserInfo();
   useEffect(() => {
-    if (userToken) fetchReplies();
+    if (userToken) fetchRepliesWithUserInfo();
   }, [userToken]);
-
-  const fetchReplies = async () => {
-    setLoading(true);
+  const fetchRepliesWithUserInfo = async () => {
     try {
-      setReplies([
-        { 
-          id: '1', 
-          user: { name: '用户A' }, 
-          content: '这个视频很棒！', 
-          time: '2小时前', 
-          liked: false,
-          likes: 5,
-          originalComment: '关于React的教程非常实用...'
-        },
-        { 
-          id: '2', 
-          user: { name: '用户B' }, 
-          content: '学到了很多新知识', 
-          time: '昨天', 
-          liked: true,
-          likes: 12,
-          originalComment: '前端开发的最佳实践...'
-        }
-      ]);
+      const notices = await fetchReplies();
+
+      const repliesWithUserInfo = await Promise.all(
+        notices.map(async (reply) => {
+          const userInfo = await fetchOtherUserInfo(reply.senderID);
+          return {replyNotice: reply, userInfo }; // 合并用户信息到回复对象
+        })
+      );
+      setReplies(repliesWithUserInfo);
     } catch (error) {
-      materialAlertError('加载失败', error.message);
-    } finally {
-      setLoading(false);
-    }
+      console.error('加载失败:', error);
+    } finally {}
   };
 
-  const toggleLike = (replyId: string) => {
-    setReplies(replies.map(reply => 
-      reply.id === replyId ? { 
-        ...reply, 
-        liked: !reply.liked,
-        likes: reply.liked ? reply.likes - 1 : reply.likes + 1
-      } : reply
-    ));
+  // 原始获取回复的函数（保持不变）
+  const fetchReplies = async (): Promise<ReplyNotice[]> => {
+    return new Promise((resolve, reject) => {
+      new QueryReplyNoticesMessage(userToken).send(
+        (info: string) => {
+          try {
+            const data: ReplyNotice[] = JSON.parse(info);
+            resolve(data);
+          } catch (e) {
+            reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
+          }
+        },
+        (e: string) => reject(new Error(`请求失败: ${e}`))
+      );
+    });
   };
 
   return (
@@ -59,27 +57,22 @@ const ReplyTab: React.FC = () => {
       
       <div className="reply-list">
         {replies.map(reply => (
-          <div key={reply.id} className="reply-item">
+          <div key={reply.replyNotice.noticeID} className="reply-item">
             <div className="reply-user">
               <div className="user-avatar">
-                <img src={`data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWReLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+`} alt="头像" />
+                <img src={reply.userInfo.avatarPath} alt="头像" />
               </div>
-              <div className="user-name">{reply.user.name}</div>
+              <div className="user-name">{reply.userInfo.username}</div>
             </div>
             
             <div className="reply-content">
-              <div className="reply-text">{reply.content}</div>
+              <div className="reply-text">{reply.replyNotice.content}</div>
               
               <div className="reply-meta">
-                <span className="reply-time">{reply.time}</span>
-                
+                <span className="reply-time">{
+                                formatTime(reply.replyNotice.timestamp)}</span>
+
                 <div className="action-buttons">
-                  <button 
-                    className={`like-btn ${reply.liked ? 'liked' : ''}`}
-                    onClick={() => toggleLike(reply.id)}
-                  >
-                    {reply.liked ? '已赞' : '点赞'} ({reply.likes})
-                  </button>
                   
                   <button 
                     className="reply-btn"
@@ -92,7 +85,7 @@ const ReplyTab: React.FC = () => {
             </div>
             
             <div className="original-comment">
-              {reply.originalComment}
+              {reply.replyNotice.originalContent}
             </div>
           </div>
         ))}

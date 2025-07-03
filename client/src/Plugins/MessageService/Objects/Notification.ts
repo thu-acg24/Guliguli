@@ -14,7 +14,7 @@ export class Notification extends Serializable {
     constructor(
         public  notificationID: number,
         public  content: string,
-        public  timestamp: number,
+        public  timestamp: string,
     ) {
         super()
     }
