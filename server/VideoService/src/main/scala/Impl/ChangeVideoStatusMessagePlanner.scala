@@ -37,8 +37,8 @@ case class ChangeVideoStatusMessagePlanner(
     LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
+    if status == VideoStatus.Uploading then return IO.raiseError(InvalidInputException("请使用换源API"))
     for {
-
       // Step 1: 验证Token并获取用户ID
       _ <- IO(logger.info(s"调用QueryUserRoleMessage校验用户审核员权限..."))
       role <- QueryUserRoleMessage(token).send
@@ -46,8 +46,7 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- role match {
         case UserRole.Auditor => IO.unit
         case _ =>
-          if (status != VideoStatus.Private && status != VideoStatus.Uploading) then
-            IO.raiseError(InvalidInputException("权限不足"))
+          if (status != VideoStatus.Private) then IO.raiseError(InvalidInputException("权限不足"))
           else IO.unit
       }
 

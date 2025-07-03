@@ -13,6 +13,7 @@ import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
 import Objects.RecommendationService.VideoInfo
+import Objects.VideoService.VideoStatus
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -25,12 +26,9 @@ import org.slf4j.LoggerFactory
 case class ModifyVideoMessagePlanner(
                                       token: String,
                                       videoID: Int,
-                                      videoPath: Option[String],
                                       title: Option[String],
-                                      coverPath: Option[String],
                                       description: Option[String],
                                       tag: Option[List[String]],
-                                      duration: Option[Int],
                                       override val planContext: PlanContext
                                     ) extends Planner[Unit] {
 
@@ -45,8 +43,8 @@ case class ModifyVideoMessagePlanner(
 
       // Step 2: Validate video existence and fetch uploader ID
       _ <- IO(logger.info(s"开始校验视频ID是否合法, videoID=${videoID}"))
-      uploaderID <- fetchUploaderID(videoID)
-      _ <- IO(logger.info(s"获取到视频的上传者ID: ${uploaderID}"))
+      (uploaderID, status) <- fetchUploaderIDAndStatus(videoID)
+      _ <- IO(logger.info(s"获取到视频的上传者ID: ${uploaderID} 状态: ${status}"))
 
       // Step 3: Check user permissions
       _ <- IO(logger.info(s"开始校验用户是否有权限修改该视频, userID=${userID}, uploaderID=${uploaderID}"))
@@ -55,7 +53,7 @@ case class ModifyVideoMessagePlanner(
       _ <- IO.raiseUnless(hasPermission)(InvalidInputException("Permission Denied"))
 
       // Step 4: Update video fields
-      _ <- updateVideo(videoID, videoPath, title, coverPath, description, tag, duration)
+      _ <- updateVideo(videoID, title, description, tag, status)
 
       // Step 5: Notify RecommendationService about video update
       _ <- notifyRecommendationService(videoID)
@@ -68,41 +66,37 @@ case class ModifyVideoMessagePlanner(
   }
 
   /**
-   * 校验视频ID是否存在，并获取上传者ID
+   * 校验视频ID是否存在，并获取上传者ID与视频状态
    */
-  private def fetchUploaderID(videoID: Int)(using PlanContext): IO[Int] = {
+  private def fetchUploaderIDAndStatus(videoID: Int)(using PlanContext): IO[(Int, VideoStatus)] = {
     val sql =
       s"""
-        SELECT uploader_id
+        SELECT uploader_id, video_status
         FROM ${schemaName}.video_table
         WHERE video_id = ?;
       """
     readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
       case None => throw InvalidInputException("视频不存在")
-      case Some(json) => decodeField[Int](json, "uploader_id")
+      case Some(json) => (decodeField[Int](json, "uploader_id"), decodeField[VideoStatus](json, "video_status"))
     }
   }
 
   private def updateVideo(
                            videoID: Int,
-                           videoPath: Option[String],
                            title: Option[String],
-                           coverPath: Option[String],
                            description: Option[String],
                            tag: Option[List[String]],
-                           duration: Option[Int]
+                           status: VideoStatus
                          )(using PlanContext): IO[String] = {
     for {
       currentTime <- IO(DateTime.now().getMillis.toString)
       updates <- IO {
         List(
-          videoPath.map { path => "server_path = ?" -> SqlParameter("String", path) },
           title.map { t => "title = ?" -> SqlParameter("String", t) },
-          coverPath.map { path => "cover_path = ?" -> SqlParameter("String", path) },
           description.map { desc => "description = ?" -> SqlParameter("String", desc) },
           tag.map {t => "tag = ?" -> SqlParameter("Array[String]", t.asJson.noSpaces)},
-          duration.map { d => "duration = ?" -> SqlParameter("Int", d.toString) },
-          Some("status = ?" -> SqlParameter("String", "Pending")),
+          Some("status = ?" -> SqlParameter("String",
+            if status == VideoStatus.Uploading then "Uploading" else "Pending")),
           Some("upload_time = ?" -> SqlParameter("DateTime", currentTime))
         ).flatten
       }
