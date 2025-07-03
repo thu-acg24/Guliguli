@@ -53,7 +53,7 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- {
           val sql = s"SELECT status FROM ${schemaName}.video_table WHERE video_id = ?;"
           readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
-            case Some(json) => Unit
+            case Some(json) => ()
             case None => throw InvalidInputException("找不到视频")
           }
         }
