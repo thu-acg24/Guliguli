@@ -67,20 +67,12 @@ def handle_image():
             "message": "Invalid task type. Must be 'avatar' or 'cover'"
         }), 400
     
-    # 安全处理文件名
-    safe_file_name = secure_filename(file_name)
-    if not safe_file_name:
-        return jsonify({
-            "status": "failure",
-            "message": "Invalid file name"
-        }), 400
-    
     # 临时文件路径
-    local_path = f"/tmp/{safe_file_name}"
+    local_path = f"/tmp/{file_name}"
     
     try:
         # 从MinIO下载文件
-        minio_client.fget_object("temp", safe_file_name, local_path)
+        minio_client.fget_object("temp", file_name, local_path)
         
         # 处理图片
         image_path = process_image(user_id, local_path, task)
@@ -89,7 +81,7 @@ def handle_image():
         os.remove(local_path)
         
         # 删除MinIO中的原始文件
-        minio_client.remove_object("temp", safe_file_name)
+        minio_client.remove_object("temp", file_name)
         
         return jsonify({
             "status": "success",

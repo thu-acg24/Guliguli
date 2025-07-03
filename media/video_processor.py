@@ -6,6 +6,7 @@ import requests
 from flask import request, jsonify
 from minio.error import S3Error
 import os
+import shutil
 
 from common import minio_client, CALLBACK_API, CALLBACK_API_NAME
     
@@ -62,11 +63,11 @@ def validate_video(file_path):
     except Exception as e:
         raise RuntimeError(f"Video validation failed: {str(e)}")
 
-def process_video_async(user_id, token, file_name, local_path):
+def process_video_async(video_id, token, file_name, local_path):
     """异步处理视频转码和切片"""
     try:
         # 生成唯一视频ID作为前缀
-        video_prefix = f"{user_id}/{uuid.uuid4().hex}"
+        video_prefix = f"{video_id}/{file_name.split('.')[0]}"
         output_dir = f"/tmp/{video_prefix}"
         os.makedirs(output_dir, exist_ok=True)
         
@@ -193,11 +194,11 @@ def questPost(data: dict):
 @app.route('/video', methods=['POST'])
 def handle_video():
     # 获取请求参数
-    user_id = request.form.get('id')
+    video_id = request.form.get('id')
     token = request.form.get('token')
-    file_name = secure_filename(request.form.get('file_name'))
+    file_name = request.form.get('file_name')
     
-    if not all([user_id, token, file_name]):
+    if not all([video_id, token, file_name]):
         return jsonify({"status": "failure", "message": "Missing parameters"}), 400
     
     # 临时文件路径
@@ -213,7 +214,7 @@ def handle_video():
         # 启动异步处理线程
         threading.Thread(
             target=process_video_async,
-            args=(user_id, token, file_name, local_path),
+            args=(video_id, token, file_name, local_path),
             daemon=True
         ).start()
         
