@@ -59,7 +59,7 @@ object Init {
        * user_id: 观看用户的ID
        * video_id: 观看的视频ID
        * watch_duration: 用户观看视频的时长（秒）
-       * timestamp: 记录添加时间
+       * created_at: 记录添加时间
        */
       _ <- writeDB(
         s"""
@@ -68,7 +68,7 @@ object Init {
             user_id INT NOT NULL,
             video_id INT NOT NULL,
             watch_duration REAL NOT NULL,
-            timestamp TIMESTAMP NOT NULL
+            created_at TIMESTAMP NOT NULL
         );
          
         """,
@@ -80,7 +80,7 @@ object Init {
        * video_id: 视频ID
        * like: 是否点赞
        * favorite: 是否收藏
-       * timestamp: 反馈时间
+       * created_at: 反馈时间
        */
       _ <- writeDB(
         s"""
@@ -90,7 +90,7 @@ object Init {
             video_id INT NOT NULL,
             like BOOLEAN NOT NULL,
             favorite BOOLEAN NOT NULL,
-            timestamp TIMESTAMP NOT NULL
+            created_at TIMESTAMP NOT NULL
         );
          
         """,

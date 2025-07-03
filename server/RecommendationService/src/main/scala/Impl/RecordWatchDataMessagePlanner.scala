@@ -53,15 +53,18 @@ case class RecordWatchDataMessagePlanner(
     val sql =
       s"""
       INSERT INTO ${schemaName}.watch_detail_table
-      (user_id, video_id, watch_duration, timestamp)
+      (user_id, video_id, watch_duration, created_at)
       VALUES (?, ?, ?, ?)
       """
-    val parameters = List(
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", videoID.toString),
-      SqlParameter("Float", watchDuration.toString),
-      SqlParameter("DateTime", DateTime.now().getMillis.toString)
-    )
-    writeDB(sql, parameters)
+    for {
+      createdAt <- IO(DateTime.now().getMillis.toString)
+      parameters = List(
+        SqlParameter("Int", userID.toString),
+        SqlParameter("Int", videoID.toString),
+        SqlParameter("Float", watchDuration.toString),
+        SqlParameter("DateTime", createdAt)
+      )
+      result <- writeDB(sql, parameters)
+    } yield result
   }
 }
