@@ -14,6 +14,7 @@ import Impl.ChangeVideoStatusMessagePlanner
 import Impl.DeleteVideoMessagePlanner
 import Impl.ModifyVideoMessagePlanner
 import Impl.QueryPendingVideosMessagePlanner
+import Impl.QueryUserVideosMessagePlanner
 import Impl.QueryVideoInfoMessagePlanner
 import Impl.UploadVideoMessagePlanner
 import cats.effect.*
@@ -68,6 +69,13 @@ object Routes:
         IO(
           decode[QueryPendingVideosMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryPendingVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryUserVideosMessage" =>
+        IO(
+          decode[QueryUserVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryUserVideosMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
