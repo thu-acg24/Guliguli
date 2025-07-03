@@ -7,6 +7,7 @@
  * @param replyToCommentID: Int (回复的目标评论ID，可空。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

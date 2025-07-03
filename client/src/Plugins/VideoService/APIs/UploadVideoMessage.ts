@@ -10,6 +10,7 @@
  * @param duration: Int (视频时长（秒）)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

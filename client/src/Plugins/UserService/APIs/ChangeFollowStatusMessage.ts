@@ -6,6 +6,7 @@
  * @param isFollow: Boolean (操作类型，true表示关注，false表示取消关注)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

@@ -6,6 +6,7 @@
  * @param password: String (明文密码，用于注册时计算用户的密码哈希值)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

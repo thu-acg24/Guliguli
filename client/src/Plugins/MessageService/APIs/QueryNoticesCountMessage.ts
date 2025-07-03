@@ -5,6 +5,7 @@
  * @return messages: NoticesCount (未读信息数)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

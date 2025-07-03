@@ -6,6 +6,7 @@
  * @param status: ReportStatus (举报记录的新状态，例如待处理、已处理或驳回。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 import { ReportStatus } from 'Plugins/ReportService/Objects/ReportStatus';
 
 

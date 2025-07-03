@@ -7,6 +7,7 @@
  * @return followerList: FollowRelation[] (包含粉丝列表的关注关系列表，每个关系包括粉丝的相关信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

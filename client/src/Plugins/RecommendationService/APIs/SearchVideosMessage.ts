@@ -7,6 +7,7 @@
  * @return searchResult: Video[] (返回的视频列表，包含匹配的所有视频信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

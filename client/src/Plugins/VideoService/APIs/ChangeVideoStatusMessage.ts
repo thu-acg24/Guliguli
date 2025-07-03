@@ -6,6 +6,7 @@
  * @param status: VideoStatus (目标审核状态，例如待审核、审核通过或审核拒绝)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 import { VideoStatus } from 'Plugins/VideoService/Objects/VideoStatus';
 
 

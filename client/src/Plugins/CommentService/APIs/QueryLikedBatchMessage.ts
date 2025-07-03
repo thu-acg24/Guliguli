@@ -6,6 +6,7 @@
  * @return liked: Boolean[] (是否点赞过对应评论)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

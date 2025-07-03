@@ -5,6 +5,7 @@
  * @param info: VideoInfo(包含视频数据信息的对象。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 import { VideoInfo } from 'Plugins/RecommendationService/Objects/VideoInfo';
 
 

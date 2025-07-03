@@ -6,6 +6,7 @@
  * @return isLiked: boolean (true表示用户喜欢该视频，false表示不喜欢)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

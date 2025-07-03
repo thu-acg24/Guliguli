@@ -5,6 +5,7 @@
  * @return reports: ReportVideo (视频举报记录的列表，每条记录包含举报详情字段)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

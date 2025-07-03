@@ -5,6 +5,7 @@
  * @return user: UserInfo (查询返回的用户基本信息，包括ID、用户名、头像路径和封禁状态)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

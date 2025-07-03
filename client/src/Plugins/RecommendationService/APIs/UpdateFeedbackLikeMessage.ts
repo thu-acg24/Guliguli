@@ -6,6 +6,7 @@
  * @param isLike: Boolean (是否是点赞操作，true为点赞，false为取消点赞)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

@@ -6,6 +6,7 @@
  * @param messageContent: String (发送的私信内容。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

@@ -7,6 +7,7 @@
  * @return followList: FollowRelation[] (目标用户的关注记录列表。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 
