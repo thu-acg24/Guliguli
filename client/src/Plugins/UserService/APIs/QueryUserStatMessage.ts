@@ -15,7 +15,7 @@ export class QueryUserStatMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10012"
+        return ServerAddr["User"]
     }
 }
 

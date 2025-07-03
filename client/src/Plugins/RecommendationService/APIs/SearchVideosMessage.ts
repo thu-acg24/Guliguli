@@ -19,7 +19,7 @@ export class SearchVideosMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServerAddr["Recommendation"]
     }
 }
 

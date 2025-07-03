@@ -26,7 +26,7 @@ export class UploadVideoMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10016"
+        return ServerAddr["Video"]
     }
 }
 

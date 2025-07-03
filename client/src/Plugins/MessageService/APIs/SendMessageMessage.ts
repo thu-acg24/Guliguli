@@ -18,7 +18,7 @@ export class SendMessageMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10013"
+        return ServerAddr["Message"]
     }
 }
 

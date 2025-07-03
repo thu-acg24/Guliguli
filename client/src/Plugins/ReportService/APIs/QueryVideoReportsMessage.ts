@@ -15,7 +15,7 @@ export class QueryVideoReportsMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10015"
+        return ServerAddr["Report"]
     }
 }
 

@@ -15,7 +15,7 @@ export class QueryVideoDanmakuMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10014"
+        return ServerAddr["Danmaku"]
     }
 }
 

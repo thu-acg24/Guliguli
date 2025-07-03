@@ -17,7 +17,7 @@ export class QueryLikedBatchMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServerAddr["Comment"]
     }
 }
 

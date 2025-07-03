@@ -14,7 +14,7 @@ export class ClearHistoryMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10017"
+        return ServerAddr["History"]
     }
 }
 
