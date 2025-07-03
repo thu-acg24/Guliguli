@@ -6,6 +6,7 @@
  * @param status: ReportStatus (要更新的举报状态)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 import { ReportStatus } from 'Plugins/ReportService/Objects/ReportStatus';
 
 

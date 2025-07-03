@@ -5,6 +5,7 @@
  * @param commentID: Int (目标评论的ID)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

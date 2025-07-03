@@ -5,6 +5,7 @@
  * @return userRole: UserRole (用户的角色信息，如管理员、审核员或普通用户。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

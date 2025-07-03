@@ -5,6 +5,7 @@
  * @return result: String (上传URL)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 export class ModifyAvatarMessage extends TongWenMessage {

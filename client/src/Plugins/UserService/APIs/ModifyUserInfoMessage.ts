@@ -5,6 +5,7 @@
  * @param newField: UserInfo:1100 (需要更新的用户字段值)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 
 

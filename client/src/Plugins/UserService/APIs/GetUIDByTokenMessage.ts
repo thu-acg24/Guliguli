@@ -5,6 +5,7 @@
  * @return userID: Int (Token解析后的用户ID。若Token无效则返回None。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

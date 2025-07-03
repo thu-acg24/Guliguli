@@ -6,6 +6,7 @@
  * @return messages: Message[] (私信记录的列表，包含用户之间的消息内容、时间和其他相关字段。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

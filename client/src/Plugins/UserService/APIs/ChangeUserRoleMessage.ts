@@ -6,6 +6,7 @@
  * @param newRole: UserRole (指定角色的新值，用于将用户设置为审核员或普通用户。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 import { UserRole } from 'Plugins/UserService/Objects/UserRole';
 
 

@@ -6,6 +6,7 @@
  * @param newPassword: String (用户的新密码，用于更新密码哈希)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

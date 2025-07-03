@@ -8,6 +8,7 @@
  * @param danmakuColor: String (弹幕的颜色值（例如：#FFFFFF）)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

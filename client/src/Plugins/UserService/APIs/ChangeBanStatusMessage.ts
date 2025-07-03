@@ -6,6 +6,7 @@
  * @param isBan: Boolean (标识是否封禁用户，true为封禁，false为解封。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

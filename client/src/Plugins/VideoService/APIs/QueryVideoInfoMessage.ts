@@ -6,6 +6,7 @@
  * @return video: Video (封装的视频详情对象，若视频不存在则返回None。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

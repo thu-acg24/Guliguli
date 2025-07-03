@@ -6,6 +6,7 @@
  * @return recommendedVideos: Video[] (推荐的视频列表，包含视频的完整信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

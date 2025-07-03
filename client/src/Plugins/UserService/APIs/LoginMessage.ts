@@ -6,6 +6,7 @@
  * @return token: String (用户Token)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

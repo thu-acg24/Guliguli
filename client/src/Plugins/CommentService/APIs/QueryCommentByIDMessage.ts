@@ -5,6 +5,7 @@
  * @return comment: Comment:1140 (返回的评论对象，包含评论的详细信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

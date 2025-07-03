@@ -5,6 +5,7 @@
  * @return reports: ReportComment (查询结果，包含所有待处理的评论举报记录。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

@@ -5,6 +5,7 @@
  * @return replyNotices: ReplyNotice[] (回复评论通知列表)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

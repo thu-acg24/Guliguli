@@ -5,6 +5,7 @@
  * @return searchResultCount: Int (符合条件的视频总数。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

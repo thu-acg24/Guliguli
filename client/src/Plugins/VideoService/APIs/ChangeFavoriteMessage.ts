@@ -6,6 +6,7 @@
  * @param isFav: Boolean (表示是否收藏(true表示新增收藏，false表示取消收藏))
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

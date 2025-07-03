@@ -6,6 +6,7 @@
  * @return isFavorited: boolean (true表示用户收藏了该视频，false表示未收藏)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

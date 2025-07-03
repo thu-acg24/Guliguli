@@ -5,6 +5,7 @@
  * @return contacts: UserInfoWithMessage[] (与当前用户有私信联系的用户信息列表，包括基本信息如昵称与头像路径。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

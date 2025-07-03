@@ -7,6 +7,7 @@
  * @return comments: Comment:1140 (查询到的评论列表，每个评论包含评论内容及相关信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

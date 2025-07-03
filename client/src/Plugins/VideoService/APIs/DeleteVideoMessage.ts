@@ -5,6 +5,7 @@
  * @param videoID: Int (需要删除的视频的唯一标识ID。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

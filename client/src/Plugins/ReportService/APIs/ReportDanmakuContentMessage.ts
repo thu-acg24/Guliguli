@@ -6,6 +6,7 @@
  * @param reason: String (举报该弹幕的理由。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

@@ -6,6 +6,7 @@
  * @param watchDuration: Float (用户的观看时长，单位为秒)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

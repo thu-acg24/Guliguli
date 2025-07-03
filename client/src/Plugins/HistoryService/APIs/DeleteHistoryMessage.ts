@@ -5,6 +5,7 @@
  * @param videoID: Int (需要删除的历史记录中对应的视频ID。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

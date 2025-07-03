@@ -5,6 +5,7 @@
  * @return danmaku: Danmaku (查询返回的弹幕信息，包括弹幕内容、所属视频、时间点、颜色及作者等)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

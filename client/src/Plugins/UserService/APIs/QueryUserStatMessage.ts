@@ -5,6 +5,7 @@
  * @return user: UserStat (用户统计数据，追随者数量、粉丝数量等。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

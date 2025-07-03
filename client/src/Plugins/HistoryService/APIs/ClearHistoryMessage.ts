@@ -4,6 +4,7 @@
  * @param token: String (用户的身份Token，用于身份验证。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

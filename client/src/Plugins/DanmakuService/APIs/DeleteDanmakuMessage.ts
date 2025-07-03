@@ -5,6 +5,7 @@
  * @param danmakuID: Int (弹幕的唯一标识ID)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 

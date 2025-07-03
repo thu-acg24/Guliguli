@@ -7,6 +7,7 @@
  * @return history: HistoryRecord[] (返回用户观看历史记录的列表)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServerAddr } from '../../../server-config';
 
 
 
