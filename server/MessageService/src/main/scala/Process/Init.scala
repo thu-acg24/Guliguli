@@ -75,6 +75,7 @@ object Init {
        * comment_id: 回复ID
        * original_content: 原评论内容
        * original_comment_id: 原评
+       * video_id: 视频ID
        * send_time: 私信发送时间
        * unread: 是否未读
        */
@@ -88,6 +89,7 @@ object Init {
             comment_id INT NOT NULL,
             original_content TEXT NOT NULL,
             original_comment_id INT NOT NULL,
+            video_id INT NOT NULL,
             send_time TIMESTAMP NOT NULL,
             unread BOOLEAN NOT NULL DEFAULT TRUE
         );

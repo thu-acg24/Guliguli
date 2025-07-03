@@ -45,7 +45,10 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- IO(logger.info(s"[Substep 1.2] 获得用户角色: ${role.toString}"))
       _ <- role match {
         case UserRole.Auditor => IO.unit
-        case _ => throw InvalidInputException("权限不足")
+        case _ =>
+          if (status != VideoStatus.Private && status != VideoStatus.Uploading) then
+            IO.raiseError(InvalidInputException("权限不足"))
+          else IO.unit
       }
 
       // Step 2: 验证视频ID的存在性和状态

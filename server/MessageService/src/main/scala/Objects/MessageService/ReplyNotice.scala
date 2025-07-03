@@ -13,7 +13,7 @@ import java.util.UUID
 import scala.util.Try
 
 /**
- * Message
+ * ReplyNotice
  * desc: 回复通知
  * @param noticeID: Int (通知的唯一ID)
  * @param senderID: Int (发送者的用户ID)
@@ -21,6 +21,7 @@ import scala.util.Try
  * @param commentID: Int (回复ID)
  * @param originalContent: String (原评论内容)
  * @param originalCommentID: String (原评论ID)
+ * @param videoID: Int (视频ID)
  * @param timestamp: DateTime (消息发送的时间戳)
  */
 
@@ -31,6 +32,7 @@ case class ReplyNotice(
   commentID: Int,
   originalContent: String,
   originalCommentID: Int,
+  videoID: Int,
   timestamp: DateTime,
 ){
 
@@ -54,12 +56,12 @@ case object ReplyNotice{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given messageEncoder: Encoder[ReplyNotice] = Encoder.instance { config =>
+  given replyNoticeEncoder: Encoder[ReplyNotice] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given messageDecoder: Decoder[ReplyNotice] = Decoder.instance { cursor =>
+  given replyNoticeDecoder: Decoder[ReplyNotice] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

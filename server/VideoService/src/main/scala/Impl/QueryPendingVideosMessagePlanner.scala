@@ -50,7 +50,8 @@ case class QueryPendingVideosMessagePlanner(
   private def fetchPendingVideos()(using PlanContext): IO[List[Video]] = {
     val sql =
       s"""
-        SELECT video_id, title, description, duration, tag, server_path, cover_path, uploader_id, views, likes, favorites, status, upload_time
+        SELECT video_id, title, description, duration, tag,  m3u8_name, ts_prefix, slice_count,
+        uploader_id, views, likes, favorites, status, upload_time
         FROM ${schemaName}.video_table
         WHERE status = ?
         ORDER BY upload_time DESC;
