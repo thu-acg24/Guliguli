@@ -100,15 +100,6 @@ const WhisperTab: React.FC = () => {
       });
     }
   }, [userToken]);
-  useEffect(() => {
-    if (userToken) {
-      getUserIDByToken(userToken).then(userID => fetchUserInfo(userID)).then(() => {
-        fetchConversations();
-        fetchNotifications();
-        fetchReplyNotices();
-      });
-    }
-  }, [userToken]);
 
   useEffect(() => {
     if (selectedUser) {
