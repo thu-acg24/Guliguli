@@ -1,5 +1,6 @@
 flask
 minio
+pillow
 imageio
 imageio[ffmpeg]
 werkzeug

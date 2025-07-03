@@ -1,0 +1,237 @@
+import threading
+import subprocess
+import hashlib
+import json
+import requests
+from flask import request, jsonify
+from minio.error import S3Error
+import os
+
+from common import minio_client, CALLBACK_API, CALLBACK_API_NAME
+    
+def validate_video(file_path):
+    """验证视频文件合法性"""
+    try:
+        # 使用FFprobe检查视频文件
+        cmd = [
+            "ffprobe",
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=codec_name,width,height,duration",
+            "-of", "json",
+            file_path
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30  # 30秒超时
+        )
+        
+        if result.returncode != 0:
+            raise RuntimeError(f"FFprobe error: {result.stderr.decode()}")
+        
+        # 解析视频信息
+        video_info = json.loads(result.stdout)
+        streams = video_info.get("streams", [])
+        
+        if not streams:
+            raise ValueError("No video stream found")
+        
+        stream = streams[0]
+        width = int(stream.get("width", 0))
+        height = int(stream.get("height", 0))
+        duration = float(stream.get("duration", 0))
+        
+        # 验证视频参数
+        if width < 100 or height < 100:
+            raise ValueError("Video resolution too small (min 100x100)")
+        
+        if width > 3840 or height > 2160:
+            raise ValueError("Video resolution too large (max 3840x2160)")
+        
+        if duration < 1:
+            raise ValueError("Video too short (min 1 second)")
+        
+        if duration > 3600:  # 60分钟
+            raise ValueError("Video too long (max 60 minutes)")
+        
+        return True
+        
+    except Exception as e:
+        raise RuntimeError(f"Video validation failed: {str(e)}")
+
+def process_video_async(user_id, token, file_name, local_path):
+    """异步处理视频转码和切片"""
+    try:
+        # 生成唯一视频ID作为前缀
+        video_prefix = f"{user_id}/{uuid.uuid4().hex}"
+        output_dir = f"/tmp/{video_prefix}"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 设置输出文件路径
+        m3u8_file = f"{output_dir}/index.m3u8"
+        ts_pattern = f"{output_dir}/segment_%05d.ts"
+        
+        # 转码命令
+        cmd = [
+            "ffmpeg",
+            "-hwaccel", "cuda",         # 启用 CUDA 硬件加速
+            "-hwaccel_output_format", "cuda",  # 设置输出格式
+            "-i", local_path,
+            "-c:v", "h264_nvenc",       # 使用 NVIDIA H.264 编码器
+            "-preset", "p4",            # Windows 下建议使用 p4 预设
+            "-profile:v", "main",       # H.264 profile
+            "-level", "4.1",            # H.264 level
+            "-b:v", "5M",               # 视频码率
+            "-maxrate", "10M",          # 最大码率
+            "-bufsize", "10M",          # 缓冲区大小
+            "-c:a", "aac",              # 音频编码
+            "-b:a", "128k",             # 音频码率
+            "-hls_time", "10",          # HLS 片段时长
+            "-hls_list_size", "0",      # 无限播放列表
+            "-hls_segment_filename", ts_pattern,
+            "-f", "hls",
+            m3u8_file
+        ]
+        
+        # 执行转码
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        # 等待转码完成
+        stdout, stderr = process.communicate(timeout=3600)  # 1小时超时
+        
+        if process.returncode != 0:
+            raise RuntimeError(f"FFmpeg failed: {stderr.decode()}")
+        
+        # 获取生成的ts文件列表
+        ts_files = [f for f in os.listdir(output_dir) if f.endswith('.ts')]
+        ts_count = len(ts_files)
+        
+        # 上传所有文件到MinIO
+        for filename in ["index.m3u8"] + ts_files:
+            remote_path = f"{video_prefix}/{filename}"
+            minio_client.fput_object(
+                "video-server",
+                remote_path,
+                os.path.join(output_dir, filename)
+            )
+        
+        # 准备回调数据
+        callback_data = {
+            "token": token,
+            "status": "success",
+            "m3u8_path": f"{video_prefix}/index.m3u8",
+            "ts_path_prefix": f"{video_prefix}/segment_",
+            "ts_count": ts_count
+        }
+        
+        # 发送回调请求
+        questPost(callback_data)
+        
+    except Exception as e:
+        # 准备错误回调数据
+        callback_data = {
+            "token": token,
+            "status": "failure",
+            "m3u8_path": "",
+            "ts_path_prefix": "",
+            "ts_count": 0,
+            "error": str(e)
+        }
+        questPost(callback_data)
+        
+    finally:
+        # 清理资源
+        try:
+            minio_client.remove_object("temp", file_name)
+        except:
+            pass
+        
+        try:
+            os.remove(local_path)
+        except:
+            pass
+        
+        try:
+            if os.path.exists(output_dir):
+                shutil.rmtree(output_dir)
+        except:
+            pass
+
+def questPost(data: dict):
+    """发送回调请求到API"""
+    # 添加服务标识
+    data["serviceName"] = "Tong-Wen"
+    data["message_type"] = CALLBACK_API_NAME
+    
+    # 计算哈希值
+    body_str = json.dumps(data, separators=(',', ':'))
+    x_hash = hashlib.md5(body_str.encode('utf-8')).hexdigest()
+    
+    headers = {
+        "Content-Type": "application/json",
+        "X-Hash": x_hash,
+    }
+    
+    try:
+        response = requests.post(
+            url=CALLBACK_API,
+            headers=headers,
+            data=body_str,
+            timeout=10
+        )
+        print(f"Callback Status: {response.status_code}, Response: {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"Callback failed: {str(e)}")
+
+@app.route('/video', methods=['POST'])
+def handle_video():
+    # 获取请求参数
+    user_id = request.form.get('id')
+    token = request.form.get('token')
+    file_name = secure_filename(request.form.get('file_name'))
+    
+    if not all([user_id, token, file_name]):
+        return jsonify({"status": "failure", "message": "Missing parameters"}), 400
+    
+    # 临时文件路径
+    local_path = f"/tmp/{file_name}"
+    
+    try:
+        # 从MinIO下载文件
+        minio_client.fget_object("temp", file_name, local_path)
+        
+        # 验证视频文件
+        validate_video(local_path)
+        
+        # 启动异步处理线程
+        threading.Thread(
+            target=process_video_async,
+            args=(user_id, token, file_name, local_path),
+            daemon=True
+        ).start()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Video processing started"
+        }), 200
+        
+    except S3Error as e:
+        return jsonify({
+            "status": "failure",
+            "message": f"Storage error: {str(e)}"
+        }), 500
+    except Exception as e:
+        # 清理可能残留的文件
+        if os.path.exists(local_path):
+            os.remove(local_path)
+        return jsonify({
+            "status": "failure",
+            "message": str(e)
+        }), 500
