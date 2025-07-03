@@ -22,6 +22,7 @@ export class ReplyNotice extends Serializable {
         public  commentID: number,
         public  originalContent: string,
         public  originalCommentID: number,
+        public  videoID: number,
         public  timestamp: string
     ) {
         super()

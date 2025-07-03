@@ -5,7 +5,9 @@ import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
 import { useUserInfo } from 'Hooks/useUseInfo';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { formatTime } from 'Components/GetTime';
+import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import "./MessagePage.css"; 
+import './ReplyTab.module.css'
 
 const ReplyTab: React.FC = () => {
   interface ReplyWithUserInfo{
@@ -13,6 +15,7 @@ const ReplyTab: React.FC = () => {
     userInfo: UserInfo; 
   }
   const [replies, setReplies] = useState<ReplyWithUserInfo[]>([]);
+  const [replyingComment, setReplyingComment] = useState<ReplyNotice | null>(null);
   const userToken = useUserToken();
   const { fetchOtherUserInfo } = useUserInfo();
   useEffect(() => {
@@ -50,48 +53,66 @@ const ReplyTab: React.FC = () => {
       );
     });
   };
-
-  return (
+ return (
     <div className="reply-container">
       <div className="reply-header">
         <h3>回复我的</h3>
       </div>
       
-      <div className="reply-list">
+      <div className="reply-list-container">
         {replies.map(reply => (
           <div key={reply.replyNotice.noticeID} className="reply-item">
-            <div className="reply-user">
-              <div className="user-avatar">
-                <img src={reply.userInfo.avatarPath} alt="头像" />
+            <div className="reply-user-section">
+              <div className="reply-avatar">
+                <img 
+                  src={reply.userInfo.avatarPath || '/default-avatar.png'} 
+                  alt={reply.userInfo.username}
+                />
               </div>
-              <div className="user-name">{reply.userInfo.username}</div>
+              <div className="reply-username">
+                {reply.userInfo.username}
+              </div>
             </div>
             
-            <div className="reply-content">
-              <div className="reply-text">{reply.replyNotice.content}</div>
+            <div className="reply-content-section">
+              <div className="reply-main-text">
+                {reply.replyNotice.content}
+              </div>
               
-              <div className="reply-meta">
-                <span className="reply-time">{
-                                formatTime(reply.replyNotice.timestamp)}</span>
-
-                <div className="action-buttons">
-                  
-                  <button 
-                    className="reply-btn"
-                    onClick={() => alert('回复功能')}
-                  >
-                    回复
-                  </button>
+              {reply.replyNotice.originalContent && (
+                <div className="reply-original-wrapper">
+                  <div className="reply-original-text">
+                    {reply.replyNotice.originalContent}
+                  </div>
                 </div>
+              )}
+              
+              <div className="reply-footer">
+                <span className="reply-time">
+                  {formatTime(reply.replyNotice.timestamp)}
+                </span>
+                <button 
+                  className="reply-action-btn"
+                  onClick={() => setReplyingComment(reply.replyNotice)}
+                >
+                  回复
+                </button>
               </div>
-            </div>
-            
-            <div className="original-comment">
-              {reply.replyNotice.originalContent}
             </div>
           </div>
         ))}
       </div>
+
+
+      {replyingComment && (
+        <ReplyModal
+          replyingComment={replyingComment}
+          onClose={() => setReplyingComment(null)}
+          onSuccess={() => {
+            // 可以添加刷新列表的逻辑
+          }}
+        />
+      )}
     </div>
   );
 };
