@@ -5,116 +5,122 @@ import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
+import Common.APIException.InvalidInputException
 import Common.DBAPI._
-import Common.Object.SqlParameter
+import Common.Object.{SqlParameter, UploadSession}
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Global.GlobalVariables.minioClient
+import Global.GlobalVariables.sessions
 import Objects.UserService.UserRole
+import Objects.VideoService.UploadPath
 import cats.effect.IO
+import cats.effect.std.Random
 import cats.implicits.*
 import cats.implicits._
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import io.minio.http.Method
+import java.util.concurrent.TimeUnit
+import java.util.UUID
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 case class UploadVideoMessagePlanner(
     token: String,
-    videoPath: String,
     title: String,
-    coverPath: String,
     description: String,
     tag: List[String],
-    duration: Int,
     override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[UploadPath] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[UploadPath] = {
     for {
       // Step 1: Validate token and retrieve uploaderID
       _ <- IO(logger.info("Step 1: 校验Token是否合法并获取用户ID"))
-      maybeUploaderId <- validateToken()
-      uploaderId <- maybeUploaderId match {
-        case Some(uid) => IO.pure(uid)
-        case None =>
-          IO(logger.info("Token无效")) >>
-            IO.pure(None) // Return None in case of invalid token
-      }
-      _ <- IO(logger.info(s"获取到上传者ID: $uploaderId"))
+      userID <- validateToken()
 
       // Step 2: Validate video information integrity
       _ <- IO(logger.info("Step 2: 校验视频信息完整性"))
-      validationError <- IO(validateVideoInfo())
-      _ <- validationError.fold(IO.unit)(_ => IO(logger.info(s"视频信息校验失败: ${validationError.get}")))
-      if (validationError.isDefined) {
-        IO.pure(Some("Invalid Video Information"))
-      } else { IO.unit }
+      _ <- validateVideoInfo()
 
       // Step 3: Check if the user has upload permissions
       _ <- IO(logger.info("Step 3: 检查用户是否有上传权限"))
-      hasPermission <- checkUserPermission(uploaderId)
-      if (!hasPermission) IO(logger.info("用户没有权限上传视频")) >> IO.pure(Some("Permission Denied")) else IO.unit
+      _ <- checkUserPermission(userID)
 
       // Step 4: Store video information in the database
       _ <- IO(logger.info("Step 4: 添加视频到数据库"))
-      writeResult <- storeVideoInfo(uploaderId)
-      _ <- if (writeResult.isEmpty) IO(logger.info("视频上传成功")) else IO(logger.info(s"视频上传失败: ${writeResult.get}"))
-    } yield writeResult
+      _ <- storeVideoInfo(userID)
+
+      // Step 5: Generate MinIO links
+      coverName <- generateObjectName(userID, "cover")
+      coverUploadUrl <- generateUploadUrl(coverName)
+      coverToken <- IO(UUID.randomUUID().toString)
+      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, userID, coverUploadUrl)))
+      videoName <- generateObjectName(userID, "video")
+      videoUploadUrl <- generateUploadUrl(videoName)
+      videoToken <- IO(UUID.randomUUID().toString)
+      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, userID, videoUploadUrl)))
+    } yield UploadPath(coverUploadUrl, coverToken, videoUploadUrl, videoToken)
   }
 
-  private def validateToken()(using PlanContext): IO[Option[Int]] = {
-    GetUIDByTokenMessage(token).send.map { optionalUserID =>
-      IO(logger.info(s"Token验证结果: $optionalUserID"))
-      optionalUserID
-    }
+  private def validateToken()(using PlanContext): IO[Int] = {
+    GetUIDByTokenMessage(token).send
   }
 
-  private def validateVideoInfo(): Option[String] = {
-    if (videoPath.isEmpty || title.isEmpty || coverPath.isEmpty || tag.isEmpty || duration <= 0) {
-      Some("Missing or invalid video information.")
+  private def validateVideoInfo(): IO[Unit] = {
+    if (title.isEmpty) {
+      IO.raiseError(InvalidInputException("输入不合法"))
     } else {
-      None
+      IO.unit
     }
   }
 
-  private def checkUserPermission(userID: Int)(using PlanContext): IO[Boolean] = {
+  private def checkUserPermission(userID: Int)(using PlanContext): IO[Unit] = {
     for {
-      userRoleOpt <- QueryUserRoleMessage(token).send
-      userRole <- userRoleOpt match {
-        case Some(value) => IO.pure(value)
-        case None =>
-          IO(logger.info("用户角色获取失败，可能Token无效或异常")) >> IO.pure(None)
-      }
+      userRole <- QueryUserRoleMessage(token).send
       result <- userRole match {
-        case UserRole.Admin | UserRole.Normal => IO.pure(true)
+        case UserRole.Admin | UserRole.Normal => IO.unit
         case UserRole.Auditor =>
-          IO(logger.info("用户状态: 角色为审核员，权限受限")) >> IO.pure(false)
+          IO(logger.info("用户状态: 角色为审核员，权限受限")) >> IO.raiseError(InvalidInputException("审核员不允许上传视频"))
       }
     } yield result
   }
 
-  private def storeVideoInfo(uploaderId: Int)(using PlanContext): IO[Option[String]] = {
+  private def storeVideoInfo(userID: Int)(using PlanContext): IO[String] = {
     val sql =
-      s"INSERT INTO ${schemaName}.video_table (title, description, duration, tag, server_path, cover_path, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
+      s"INSERT INTO ${schemaName}.video_table (title, description, tag, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?);"
     val parameters = List(
       SqlParameter("String", title),
       SqlParameter("String", description),
-      SqlParameter("Int", duration.toString),
       SqlParameter("Array[String]", tag.asJson.noSpaces),
-      SqlParameter("String", videoPath),
-      SqlParameter("String", coverPath),
-      SqlParameter("Int", uploaderId.toString),
+      SqlParameter("Int", userID.toString),
       SqlParameter("DateTime", DateTime.now().getMillis.toString)
     )
-
     writeDB(sql, parameters)
-      .map(_ => None) // Success case
-      .handleErrorWith { ex =>
-        IO(logger.error(s"数据库存储视频信息过程发生异常: ${ex.getMessage}")) >> IO.pure(Some("Failed to upload video"))
-      }
+  }
+
+  private def generateObjectName(userID: Int, info: String): IO[String] = {
+    for {
+      timestamp <- IO.realTimeInstant.map(_.toEpochMilli)
+      random <- Random.scalaUtilRandom[IO].flatMap(_.betweenInt(0, 10000))
+    } yield s"$userID/$timestamp-$info-$random.jpg"
+  }
+
+  private def generateUploadUrl(objectName: String): IO[String] = {
+    IO.blocking { // 包装阻塞IO操作
+      minioClient.getPresignedObjectUrl(
+        io.minio.GetPresignedObjectUrlArgs.builder()
+          .method(Method.PUT)
+          .bucket("temp")
+          .`object`(objectName)
+          .expiry(3, TimeUnit.MINUTES)
+          .build()
+      )
+    }
   }
 }
