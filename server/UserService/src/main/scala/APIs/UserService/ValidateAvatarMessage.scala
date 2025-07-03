@@ -21,8 +21,8 @@ import scala.util.Try
  */
 
 case class ValidateAvatarMessage(
-  token: String
-) extends API[List[String]](UserServiceCode)
+  sessionToken: String
+) extends API[Unit](UserServiceCode)
 
 case object ValidateAvatarMessage{
 

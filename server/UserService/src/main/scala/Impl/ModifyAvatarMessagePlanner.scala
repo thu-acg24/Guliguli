@@ -43,7 +43,7 @@ case class ModifyAvatarMessagePlanner(
       objectName <- generateObjectName(userID)
       uploadUrl <- generateUploadUrl(objectName)
       sessionToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(sessionToken, UploadSession(sessionToken, userID, uploadUrl)))
+      _ <- IO(sessions.put(sessionToken, UploadSession(sessionToken, userID, objectName)))
     } yield List(uploadUrl, sessionToken)
   }
 
