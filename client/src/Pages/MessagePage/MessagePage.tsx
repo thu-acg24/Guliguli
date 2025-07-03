@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
-import Header from "Components/Header";
+import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { mainPagePath } from "Pages/MainPage/MainPage";

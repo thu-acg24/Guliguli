@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import iconSrc from "../icon.png";
-import LoginModal from "./LoginModal";
-import { useUserToken, setUserToken } from "../Globals/GlobalStore";
-import { GetUIDByTokenMessage } from "../Plugins/UserService/APIs/GetUIDByTokenMessage";
-import { QueryUserInfoMessage } from "../Plugins/UserService/APIs/QueryUserInfoMessage";
-import { QueryUserStatMessage } from "../Plugins/UserService/APIs/QueryUserStatMessage";
-import { LogoutMessage } from "../Plugins/UserService/APIs/LogoutMessage";
-import { UserInfo } from "../Plugins/UserService/Objects/UserInfo";
-import { UserStat } from "../Plugins/UserService/Objects/UserStat";
+import iconSrc from "icon.png";
+import LoginModal from "Components/LoginModal/LoginModal";
+import { useUserToken, setUserToken } from "Globals/GlobalStore";
+import { GetUIDByTokenMessage } from "Plugins/UserService/APIs/GetUIDByTokenMessage";
+import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
+import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
+import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
+import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
+import { UserStat } from "Plugins/UserService/Objects/UserStat";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { PersonCenterIcon, LogoutIcon } from "./Icons";
-import { DEFAULT_AVATAR } from "./DefaultAvatar";
+import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
 
-import { mainPagePath } from "../Pages/MainPage/MainPage";
-import { messagePagePath } from "../Pages/MessagePage/MessagePage";
+import { mainPagePath } from "Pages/MainPage/MainPage";
+import { messagePagePath } from "Pages/MessagePage/MessagePage";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
@@ -126,12 +126,13 @@ const Header: React.FC = () => {
 
     // 跳转函数
     const handleAvatarClick = async () => {
-        if (await getUIDByToken() !== null) {
-            // TODO: 跳转到个人中心页面
+        const userID = await getUIDByToken();
+        if (userID !== null) {
+            navigate(`/home/${userID}`);
         } else {
             setShowLoginModal(true);
         }
-    };
+    }
 
     // 处理头像鼠标悬浮
     const handleAvatarMouseEnter = async () => {

@@ -1,9 +1,11 @@
 // MainPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../../Components/Header";
-import { videoPagePath } from "../VideoPage/VideoPage"; // Importing the video page path
+import Header from "Components/Header/Header";
+import { videoPagePath } from "Pages/VideoPage/VideoPage"; // Importing the video page path
+
 export const mainPagePath = "/mainpage"
+
 const MainPage: React.FC = () => {
     const navigate = useNavigate();
     const [showCategoryModal, setShowCategoryModal] = useState(false);

@@ -39,15 +39,29 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // 验证输入
-        if (!username.trim()) {
+        // 更严格的用户名校验：非空，长度3-20
+        const trimmedUsername = username.trim();
+        if (!trimmedUsername) {
             setIsSuccess(false);
             setMessage("请输入用户名");
             return;
         }
-        if (!email.trim()) {
+        if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
+            setIsSuccess(false);
+            setMessage("用户名长度需为3-20个字符");
+            return;
+        }
+        // 更严格的邮箱校验
+        const trimmedEmail = email.trim();
+        if (!trimmedEmail) {
             setIsSuccess(false);
             setMessage("请输入邮箱");
+            return;
+        }
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailRegex.test(trimmedEmail)) {
+            setIsSuccess(false);
+            setMessage("请输入有效的邮箱地址");
             return;
         }
         if (!password) {
@@ -58,14 +72,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         if (password !== confirmPassword) {
             setIsSuccess(false);
             setMessage("两次输入的密码不一致");
-            return;
-        }
-
-        // 简单的邮箱格式验证
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            setIsSuccess(false);
-            setMessage("请输入有效的邮箱地址");
             return;
         }
 
