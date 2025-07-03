@@ -1,6 +1,2 @@
 /* 主样式入口文件 - 导入所有样式 */
 @import './global.css';
-@import './header.css';
-@import './video.css';
-@import './modal.css';
-@import './message.css';

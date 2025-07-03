@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { RegisterMessage } from "Plugins/UserService/APIs/RegisterMessage";
+import "./Modal.css";
 
 interface RegisterModalProps {
     isOpen: boolean;

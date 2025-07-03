@@ -5,6 +5,8 @@ import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
 import { useUserInfo } from 'Hooks/useUseInfo';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { formatTime } from 'Components/GetTime';
+import "./MessagePage.css"; 
+
 const ReplyTab: React.FC = () => {
   interface ReplyWithUserInfo{
     replyNotice: ReplyNotice;

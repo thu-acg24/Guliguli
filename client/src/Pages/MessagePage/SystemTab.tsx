@@ -3,6 +3,8 @@ import { useUserToken } from 'Globals/GlobalStore';
 import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
 import { QueryNotificationsMessage } from 'Plugins/MessageService/APIs/QueryNotificationsMessage';
 import { useUserInfo } from 'Hooks/useUseInfo';
+import "./MessagePage.css";
+
 const SystemTab: React.FC = () => {
   const [notices, setNotices] = useState<any[]>([]);
   const userToken = useUserToken();

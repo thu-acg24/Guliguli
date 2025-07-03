@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { setUserToken } from "Globals/GlobalStore"
 import { LoginMessage } from "Plugins/UserService/APIs/LoginMessage";
-import RegisterModal from "RegisterModal";
+import RegisterModal from "./RegisterModal";
+import "./Modal.css"
 
 interface LoginModalProps {
     isOpen: boolean;

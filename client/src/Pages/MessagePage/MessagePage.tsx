@@ -4,6 +4,7 @@ import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { mainPagePath } from "Pages/MainPage/MainPage";
+import "./MessagePage.css"; 
 
 export const messagePagePath = "/message";
 

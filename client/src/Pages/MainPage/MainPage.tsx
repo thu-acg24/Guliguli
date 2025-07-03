@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { videoPagePath } from "Pages/VideoPage/VideoPage"; // Importing the video page path
+import "./MainPage.css"; 
 
 export const mainPagePath = "/mainpage"
 

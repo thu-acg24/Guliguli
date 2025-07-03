@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import iconSrc from "icon.png";
+import iconSrc from "./icon.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken } from "Globals/GlobalStore";
 import { GetUIDByTokenMessage } from "Plugins/UserService/APIs/GetUIDByTokenMessage";
@@ -12,6 +12,7 @@ import { UserStat } from "Plugins/UserService/Objects/UserStat";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
+import "./Header.css"; 
 
 import { mainPagePath } from "Pages/MainPage/MainPage";
 import { messagePagePath } from "Pages/MessagePage/MessagePage";

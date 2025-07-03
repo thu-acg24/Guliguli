@@ -9,6 +9,7 @@ import { Message } from 'Plugins/MessageService/Objects/Message';
 import { UserInfoWithMessage } from 'Plugins/MessageService/Objects/UserInfoWithMessage';
 import { useUserInfo } from 'Hooks/useUseInfo';
 import { formatTime } from 'Components/GetTime';
+import "./MessagePage.css";
 
 
 const WhisperTab: React.FC = () => {
