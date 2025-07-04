@@ -1,6 +1,5 @@
 /* message.css */
 .message-page {
-    padding-top: 60px;
     background-color: #f4f4f4;
     min-height: 100vh;
 }
@@ -9,7 +8,7 @@
     display: flex;
     max-width: 1400px;
     margin: 0 auto;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 60px); /* 保留这个，因为这是为了适应Header的sticky定位 */
 }
 
 .message-sidebar {

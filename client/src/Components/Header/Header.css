@@ -1,5 +1,5 @@
 /* 主页栏样式 */.header-header {
-    position: fixed;
+    position: sticky;  /* 改为sticky定位 */
     top: 0;
     left: 0;
     width: 100%;

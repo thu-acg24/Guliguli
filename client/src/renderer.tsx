@@ -20,7 +20,7 @@ import SettingsTab from 'Pages/HomePage/SettingsTab';
 const Layout = () => {
     return (
         <>
-            <HashRouter>Main
+            <HashRouter>
                 <Routes>
                     <Route path="/" element={<MainPage />} />
                     <Route path={mainPagePath} element={<MainPage />} />

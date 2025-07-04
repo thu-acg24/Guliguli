@@ -3,7 +3,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 60px); /* 仍然需要减去Header高度，因为这是用于居中显示 */
     font-size: 24px;
     color: #666;
 }
@@ -12,7 +12,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 60px); /* 仍然需要减去Header高度，因为这是用于居中显示 */
     font-size: 18px;
     color: #666;
 }
