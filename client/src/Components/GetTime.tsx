@@ -1,16 +1,24 @@
-
 export const formatTime = (timestamp: string) => {
     const now = new Date();
     const date = new Date(timestamp);
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays === 1) {
-    return '昨天';
-    } else if (diffDays < 7) {
-    return `${diffDays}天前`;
-    } else {
-    return date.toLocaleDateString([], { month: 'numeric', day: 'numeric' });
+    
+    // Check if it's today
+    if (now.toDateString() === date.toDateString()) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
+    
+    // Check if it was yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (yesterday.toDateString() === date.toDateString()) {
+        return `昨天 ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    // Check if it's the current year
+    if (now.getFullYear() === date.getFullYear()) {
+        return `${date.getMonth() + 1}月${date.getDate()}日 ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    // For previous years
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 };

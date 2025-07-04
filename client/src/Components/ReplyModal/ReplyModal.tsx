@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
 import { PublishCommentMessage } from 'Plugins/CommentService/APIs/PublishCommentMessage';
 import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
-import './ReplyModal.module.css'; // 确保有对应的CSS样式文件
+import './ReplyModal.css';
+
 interface ReplyModalProps {
   replyingComment: ReplyNotice;
   onClose: () => void;
@@ -20,7 +21,12 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ replyingComment, onClose, onSuc
     setIsSubmitting(true);
     try {
       await new Promise((resolve, reject) => {
-        new PublishCommentMessage(userToken, replyingComment.videoID, replyContent, replyingComment.commentID).send(
+        new PublishCommentMessage(
+          userToken, 
+          replyingComment.videoID, 
+          replyContent, 
+          replyingComment.commentID
+        ).send(
           () => {
             resolve(true);
             onSuccess?.();
@@ -37,37 +43,61 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ replyingComment, onClose, onSuc
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className="reply-modal-overlay">
-      <div className="reply-modal-main">
-        <div className="reply-modal-header">
-          <h3 className="reply-modal-title">回复评论</h3>
-          <button className="reply-modal-close" onClick={onClose}>×</button>
+    <div className="replymodal-overlay">
+      <div className="replymodal-main">
+        <div className="replymodal-header">
+          <h3 className="replymodal-title">回复评论</h3>
+          <button 
+            className="replymodal-close"
+            onClick={onClose}
+            aria-label="关闭弹窗"
+          >
+            ×
+          </button>
         </div>
         
-        <div className="reply-modal-body">
+        <div className="replymodal-body">
+          <div className="replymodal-original-comment">
+            <span className="replymodal-original-label">评论：</span>
+            {replyingComment.content}
+          </div>
           <textarea
-            className="reply-modal-textarea"
+            className="replymodal-textarea"
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="请输入回复内容..."
+            autoFocus
           />
         </div>
         
-        <div className="reply-modal-footer">
+        <div className="replymodal-footer">
           <button 
-            className="reply-modal-cancel"
+            className="replymodal-cancel"
             onClick={onClose}
             disabled={isSubmitting}
           >
             取消
           </button>
           <button
-            className="reply-modal-submit"
+            className="replymodal-submit"
             onClick={handleSubmit}
             disabled={isSubmitting || !replyContent.trim()}
           >
-            {isSubmitting ? '发送中...' : '发送回复'}
+            {isSubmitting ? (
+              <>
+                <span className="replymodal-spinner" />
+                发送中...
+              </>
+            ) : '发送回复'}
           </button>
         </div>
       </div>

@@ -7,37 +7,38 @@ import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { formatTime } from 'Components/GetTime';
 import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import "./MessagePage.css"; 
-import './ReplyTab.module.css'
+import "./ReplyTab.css";
 
 const ReplyTab: React.FC = () => {
-  interface ReplyWithUserInfo{
+  interface ReplyWithUserInfo {
     replyNotice: ReplyNotice;
-    userInfo: UserInfo; 
+    userInfo: UserInfo;
   }
+  
   const [replies, setReplies] = useState<ReplyWithUserInfo[]>([]);
   const [replyingComment, setReplyingComment] = useState<ReplyNotice | null>(null);
   const userToken = useUserToken();
   const { fetchOtherUserInfo } = useUserInfo();
+
   useEffect(() => {
     if (userToken) fetchRepliesWithUserInfo();
   }, [userToken]);
+
   const fetchRepliesWithUserInfo = async () => {
     try {
       const notices = await fetchReplies();
-
       const repliesWithUserInfo = await Promise.all(
         notices.map(async (reply) => {
           const userInfo = await fetchOtherUserInfo(reply.senderID);
-          return {replyNotice: reply, userInfo }; // 合并用户信息到回复对象
+          return { replyNotice: reply, userInfo };
         })
       );
       setReplies(repliesWithUserInfo);
     } catch (error) {
       console.error('加载失败:', error);
-    } finally {}
+    }
   };
 
-  // 原始获取回复的函数（保持不变）
   const fetchReplies = async (): Promise<ReplyNotice[]> => {
     return new Promise((resolve, reject) => {
       new QueryReplyNoticesMessage(userToken).send(
@@ -53,39 +54,45 @@ const ReplyTab: React.FC = () => {
       );
     });
   };
- return (
-    <div className="reply-container">
-      <div className="reply-header">
+
+  const handleOriginalClick = (videoUrl: number) => {
+    
+  };
+
+  return (
+    <div className="system-container">
+      <div className="system-header">
         <h3>回复我的</h3>
       </div>
       
-      <div className="reply-list-container">
+      <div className="reply-list">
         {replies.map(reply => (
           <div key={reply.replyNotice.noticeID} className="reply-item">
             <div className="reply-user-section">
-              <div className="reply-avatar">
+              <div className="user-avatar">
                 <img 
                   src={reply.userInfo.avatarPath || '/default-avatar.png'} 
                   alt={reply.userInfo.username}
                 />
               </div>
-              <div className="reply-username">
-                {reply.userInfo.username}
-              </div>
             </div>
             
             <div className="reply-content-section">
-              <div className="reply-main-text">
+              <div className="reply-title">
+                <span className="reply-username">{reply.userInfo.username}</span> 回复了我的评论
+                {reply.replyNotice.originalContent && (
+                  <span 
+                    className="reply-original-text"
+                    onClick={() => handleOriginalClick(reply.replyNotice.videoID)}
+                    title={reply.replyNotice.originalContent}
+                  >
+                    {reply.replyNotice.originalContent}
+                  </span>
+                )}
+              </div>
+              <div className="reply-text">
                 {reply.replyNotice.content}
               </div>
-              
-              {reply.replyNotice.originalContent && (
-                <div className="reply-original-wrapper">
-                  <div className="reply-original-text">
-                    {reply.replyNotice.originalContent}
-                  </div>
-                </div>
-              )}
               
               <div className="reply-footer">
                 <span className="reply-time">
@@ -103,13 +110,12 @@ const ReplyTab: React.FC = () => {
         ))}
       </div>
 
-
       {replyingComment && (
         <ReplyModal
           replyingComment={replyingComment}
           onClose={() => setReplyingComment(null)}
           onSuccess={() => {
-            // 可以添加刷新列表的逻辑
+            fetchRepliesWithUserInfo();
           }}
         />
       )}
