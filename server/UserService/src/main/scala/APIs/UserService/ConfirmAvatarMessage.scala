@@ -28,26 +28,26 @@ case class ConfirmAvatarMessage(
 
 case object ConfirmAvatarMessage{
 
-  private val circeEncoder: Encoder[ModifyAvatarMessage] = deriveEncoder
-  private val circeDecoder: Decoder[ModifyAvatarMessage] = deriveDecoder
+  private val circeEncoder: Encoder[ConfirmAvatarMessage] = deriveEncoder
+  private val circeDecoder: Decoder[ConfirmAvatarMessage] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[ModifyAvatarMessage] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[ConfirmAvatarMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[ModifyAvatarMessage] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[ModifyAvatarMessage]() {})) }
+  private val jacksonDecoder: Decoder[ConfirmAvatarMessage] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[ConfirmAvatarMessage]() {})) }
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given confirmAvatarMessageEncoder: Encoder[ModifyAvatarMessage] = Encoder.instance { config =>
+  given confirmAvatarMessageEncoder: Encoder[ConfirmAvatarMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given confirmAvatarMessageDecoder: Decoder[ModifyAvatarMessage] = Decoder.instance { cursor =>
+  given confirmAvatarMessageDecoder: Decoder[ConfirmAvatarMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
