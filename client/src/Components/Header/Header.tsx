@@ -2,13 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import iconSrc from "./icon.png";
 import LoginModal from "Components/LoginModal/LoginModal";
-import { useUserToken, setUserToken } from "Globals/GlobalStore";
+import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
 import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
-import { useUserInfo } from "Hooks/useUseInfo";
-import { useUserStat } from "Hooks/useUserStat";
-import { useUserID } from "Hooks/useUserID";
 import "./Header.css";
 
 import { mainPagePath } from "Pages/MainPage/MainPage";

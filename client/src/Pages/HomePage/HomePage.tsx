@@ -8,7 +8,7 @@ import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMess
 import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
 import { UserStat } from "Plugins/UserService/Objects/UserStat";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
-import { useUserID } from "Hooks/useUserID";
+import { useUserID } from "Globals/GlobalStore";
 import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
@@ -250,7 +250,7 @@ const HomePage: React.FC = () => {
                         {activeTab === "settings" && "个人设置"}
                     </div>
 
-                    <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser }} />
+                    <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser, refreshUserInfo: fetchUserInfo }} />
                 </div>
             </div>
         </div>

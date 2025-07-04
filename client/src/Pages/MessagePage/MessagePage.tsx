@@ -4,7 +4,7 @@ import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { mainPagePath } from "Pages/MainPage/MainPage";
-import "./MessagePage.css"; 
+import "./MessagePage.css";
 
 export const messagePagePath = "/message";
 
@@ -14,6 +14,7 @@ const MessagePage: React.FC = () => {
   const userToken = useUserToken();
 
   useEffect(() => {
+    console.log("MessagePage mounted or userToken changed:", userToken);
     if (!userToken) {
       materialAlertError("请先登录", "您需要登录才能查看消息", () => {
         navigate(mainPagePath);
