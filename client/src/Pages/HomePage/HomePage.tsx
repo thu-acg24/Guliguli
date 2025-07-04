@@ -7,6 +7,9 @@ import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import { GetUIDByTokenMessage } from "Plugins/UserService/APIs/GetUIDByTokenMessage";
+import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
+import { UserStat } from "Plugins/UserService/Objects/UserStat";
+import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
 import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
@@ -18,6 +21,8 @@ const HomePage: React.FC = () => {
     const location = useLocation();
     const [currentUserID, setCurrentUserID] = useState<number | null>(null);
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+    const [userStat, setUserStat] = useState<UserStat | null>(null);
+    const [videoCount, setVideoCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [isCurrentUser, setIsCurrentUser] = useState(false);
 
@@ -90,8 +95,62 @@ const HomePage: React.FC = () => {
         }
     };
 
+    // 获取用户统计信息
+    const fetchUserStat = async () => {
+        if (!user_id) return;
+
+        try {
+            setLoading(true);
+            const userIdNum = parseInt(user_id);
+            new QueryUserStatMessage(userIdNum).send(
+                (info: string) => {
+                    const data = JSON.parse(info);
+                    setUserStat(data);
+                    setLoading(false);
+                },
+                (error: string) => {
+                    console.error("获取用户统计信息失败", error);
+                    setUserStat(null);
+                    setLoading(false);
+                }
+            );
+        } catch (error) {
+            console.error("获取用户统计信息失败", error);
+            setUserStat(null);
+            setLoading(false);
+        }
+    };
+
+    // 获取用户视频数
+    const fetchUserVideoCount = async () => {
+        if (!user_id) return;
+
+        try {
+            setLoading(true);
+            const userIdNum = parseInt(user_id);
+            new QueryUserVideosMessage(null, userIdNum).send(
+                (info: string) => {
+                    const data = JSON.parse(info);
+                    setVideoCount(Array.isArray(data) ? data.length : 0);
+                    setLoading(false);
+                },
+                (error: string) => {
+                    console.error("获取用户视频数失败", error);
+                    setVideoCount(0);
+                    setLoading(false);
+                }
+            );
+        } catch (error) {
+            console.error("获取用户视频数失败", error);
+            setVideoCount(0);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchUserInfo();
+        fetchUserStat();
+        fetchUserVideoCount();
         // 检查是否是当前用户
         const checkIfCurrentUser = async () => {
             const currentID = await getUserIDByToken();
@@ -143,27 +202,12 @@ const HomePage: React.FC = () => {
             <Header />
             {/* 用户信息区域 */}
             <div className="home-user-info-section">
-                <div className="home-user-avatar">
-                    <img src={userInfo.avatarPath} alt="用户头像" />
-                </div>
-                <div className="home-user-details">
-                    <div className="home-user-name">{userInfo.username}</div>
-                    <div className="home-user-stats">
-                        <div className="home-stat-item">
-                            <span className="home-stat-number">0</span>
-                            <span className="home-stat-label">关注</span>
-                        </div>
-                        <div className="home-stat-item">
-                            <span className="home-stat-number">0</span>
-                            <span className="home-stat-label">粉丝</span>
-                        </div>
-                        <div className="home-stat-item">
-                            <span className="home-stat-number">0</span>
-                            <span className="home-stat-label">视频</span>
-                        </div>
+                <div className="home-user-left">
+                    <div className="home-user-avatar">
+                        <img src={userInfo.avatarPath} alt="用户头像" />
                     </div>
-                    <div className="home-user-description">
-                        {userInfo.username}的个人主页
+                    <div className="home-user-basic-info">
+                        <div className="home-user-name">{userInfo.username}</div>
                     </div>
                 </div>
             </div>
@@ -176,19 +220,22 @@ const HomePage: React.FC = () => {
                         className={`home-sidebar-item ${activeTab === "videos" ? "active" : ""}`}
                         onClick={() => handleTabClick("videos")}
                     >
-                        视频
+                        <span>视频</span>
+                        <span className="home-sidebar-count">{videoCount}</span>
                     </div>
                     <div
                         className={`home-sidebar-item ${activeTab === "following" ? "active" : ""}`}
                         onClick={() => handleTabClick("following")}
                     >
-                        关注
+                        <span>关注</span>
+                        <span className="home-sidebar-count">{userStat?.followingCount || 0}</span>
                     </div>
                     <div
                         className={`home-sidebar-item ${activeTab === "followers" ? "active" : ""}`}
                         onClick={() => handleTabClick("followers")}
                     >
-                        粉丝
+                        <span>粉丝</span>
+                        <span className="home-sidebar-count">{userStat?.followerCount || 0}</span>
                     </div>
                     {/* 仅当前用户可见的选项 */}
                     {isCurrentUser && (

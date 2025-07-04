@@ -96,8 +96,8 @@ libraryDependencies ++= Seq(
 
 // 引入 jackson 辅助 json 序列化
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.2",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.2"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.1",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.19.1"
 )
 
 libraryDependencies += "io.minio" % "minio" % "8.5.17"

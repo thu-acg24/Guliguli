@@ -92,7 +92,7 @@ object Init {
             likes INT NOT NULL DEFAULT 0,
             favorites INT NOT NULL DEFAULT 0,
             status TEXT NOT NULL DEFAULT 'Uploading',
-            upload_time TIMESTAMP NOT NULL,
+            upload_time TIMESTAMP NOT NULL
         );
          
         """,
