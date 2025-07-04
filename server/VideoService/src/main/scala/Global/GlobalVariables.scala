@@ -1,17 +1,20 @@
 package Global
 
-import Common.Object.UploadSession
-
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import Global.ServiceCenter.*
+import cats.effect.{IO, Resource}
 import io.minio.MinioClient
+import org.http4s.client.Client
+import org.http4s.ember.client.EmberClientBuilder
+import Common.API.loggerFactory
+import Objects.UploadSession
 
 import java.util.concurrent.TimeUnit
 
 object GlobalVariables {
   lazy val serviceCode : String = VideoServiceCode
   val projectIDLength:Int=20
-  private val minioConfig = MinioConfig.fromConfig()
+  val minioConfig: MinioConfig = MinioConfig.fromConfig()
   val minioClient: MinioClient = {
     val tmp = try {
       MinioClient.builder()
@@ -29,6 +32,7 @@ object GlobalVariables {
     .expireAfterWrite(30, TimeUnit.MINUTES) // 自动过期：创建或写入后30分钟
     .maximumSize(100000)                     // 限制最大缓存数，防止 OOM
     .build[String, UploadSession]()
+  val clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
   var isTest:Boolean=false
 
 }

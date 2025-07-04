@@ -23,7 +23,7 @@ import scala.util.Try
  * @param videoID: Int (视频的唯一标识)
  * @param title: String (视频的标题信息)
  * @param description: String (视频的描述信息)
- * @param duration: Option[Int] (视频的时长，单位为秒)
+ * @param duration: Option[Float] (视频的时长，单位为秒)
  * @param tag: List[String] (视频的标签列表)
  * @param m3u8Path: Option[String] (视频存储在服务器中的路径)
  * @param tsPrefix: Option[String] (视频封面图片的路径)
@@ -40,7 +40,7 @@ case class Video(
   videoID: Int,
   title: String,
   description: String,
-  duration: Option[Int],
+  duration: Option[Float],
   tag: List[String],
   m3u8Path: Option[String],
   tsPrefix: Option[String],

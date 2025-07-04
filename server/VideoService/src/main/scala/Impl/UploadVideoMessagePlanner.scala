@@ -7,7 +7,7 @@ import Common.API.PlanContext
 import Common.API.Planner
 import Common.APIException.InvalidInputException
 import Common.DBAPI._
-import Common.Object.{SqlParameter, UploadSession}
+import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName

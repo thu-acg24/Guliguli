@@ -4,11 +4,11 @@ import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
 import Common.DBAPI.*
-import Common.Object.{SqlParameter, UploadSession}
+import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{minioClient, sessions}
-import Objects.UserService.UserRole
+import Objects.UploadSession
 import Objects.VideoService.UploadPath
 import cats.effect.IO
 import cats.effect.std.Random
@@ -46,14 +46,14 @@ case class QueryUploadPathMessagePlanner(
       _ <- updateVideoStatus()
 
       // Step 3: Generate MinIO links
-      coverName <- generateObjectName(userID, "cover")
+      coverName <- generateObjectName(videoID, "cover")
       coverUploadUrl <- generateUploadUrl(coverName)
       coverToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, userID, coverUploadUrl)))
-      videoName <- generateObjectName(userID, "video")
+      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, videoID, coverUploadUrl)))
+      videoName <- generateObjectName(videoID, "video")
       videoUploadUrl <- generateUploadUrl(videoName)
       videoToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, userID, videoUploadUrl)))
+      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, videoID, videoUploadUrl)))
     } yield UploadPath(coverUploadUrl, coverToken, videoUploadUrl, videoToken)
   }
 

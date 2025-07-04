@@ -1,15 +1,16 @@
 package Impl
 
+import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
+import Common.APIException.InvalidInputException
 import Common.DBAPI.*
 import Common.Object.SqlParameter
-import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{clientResource, minioClient, minioConfig, sessions}
-import Objects.UploadSession
-import Objects.UserService.UserInfo
-import Utils.AuthProcess.validateToken
+import Objects.UserService.UserRole
+import Objects.{CoverPayload, VideoPayload}
+import Objects.VideoService.UploadPath
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.implicits.*
@@ -17,25 +18,24 @@ import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import io.minio.StatObjectArgs
-import io.minio.CopyObjectArgs
-import io.minio.CopySource
+import org.http4s.headers.`Content-Type`
+import org.http4s.{MediaType, Method, Request, Uri}
+import org.http4s.circe.jsonEncoder
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import org.http4s.*
-import org.http4s.headers.`Content-Type`
 
+import java.text.DecimalFormat
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import java.text.DecimalFormat
 
-case class ValidateAvatarMessagePlanner(
-                                         sessionToken: String,
-                                         override val planContext: PlanContext
-                                       ) extends Planner[Unit] {
+case class ValidateFileMessagePlanner(
+    sessionToken: String,
+    isVideo: Boolean,
+    override val planContext: PlanContext
+) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  // Main plan definition
   override def plan(using PlanContext): IO[Unit] = {
     for {
       newToken <- IO(UUID.randomUUID().toString)
@@ -52,11 +52,13 @@ case class ValidateAvatarMessagePlanner(
         case _ =>
           IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
       }
-      _ <- sendMessage(newToken, session.userID, session.objectName)
+      _ <- sendMessage(newToken, session.videoID, session.objectName)
     } yield()
   }
 
   private def processUploadedFile(objectName: String)(using PlanContext): IO[Unit] = {
+    val fileLim = if isVideo then 2 * 1024 * 1024 * 1024 else 5 * 1024 * 1024
+    val fileLimStr = if isVideo then "2GB" else "5MB"
     for {
       _ <- IO(logger.info(s"Processing uploaded file $objectName"))
       fileSize <- IO(minioClient.statObject(
@@ -72,8 +74,8 @@ case class ValidateAvatarMessagePlanner(
       _ <- IO(logger.info(s"Object size is ${getHumanReadableSize(fileSize)}"))
       _ <- if (fileSize < 10 * 1024) {
         IO.raiseError(InvalidInputException(s"上传的文件过小(${getHumanReadableSize(fileSize)}, 至少需要 10KB)"))
-      } else if (fileSize > 5 * 1024 * 1024) {
-        IO.raiseError(InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 5MB)"))
+      } else if (fileSize > fileLim) {
+        IO.raiseError(InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 $fileLimStr)"))
       } else IO.unit
     } yield()
   }
@@ -86,15 +88,20 @@ case class ValidateAvatarMessagePlanner(
       .format(fileSize / Math.pow(1024, digitGroups)) + " " + units(digitGroups)
   }
 
-  private case class Payload(token: String, id: Int, file_name: String, task: String = "avatar")
-
-  private def sendMessage(token: String, userID: Int, objName: String): IO[Unit] = clientResource.use { client =>
-    val request = Request[IO](
-      method = Method.POST,
-      uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/image")
-    ).withEntity(s"{\"token\": \"$token\", \"id\": \"$userID\", \"file_name\": \"$objName\", \"task\": \"avatar\"}")
-      .withContentType(`Content-Type`(MediaType.application.json))
-    logger.info(s"Sending Message to Media, entity: {\"token\": \"$token\", \"id\": \"$userID\", \"file_name\": \"$objName\", \"task\": \"avatar\"}")
-    client.run(request).use { response => response.body.compile.drain }
+  private def sendMessage(token: String, videoID: Int, objName: String): IO[Unit] = clientResource.use { client =>
+    if isVideo then
+      val request = Request[IO](
+        method = Method.POST,
+        uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/video")
+      ).withEntity(VideoPayload(id = videoID, token = token, file_name = objName).asJson)
+      logger.info(s"Sending Video Message to Media")
+      client.run(request).use { response => response.body.compile.drain }
+    else
+      val request = Request[IO](
+        method = Method.POST,
+        uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/image")
+      ).withEntity(CoverPayload(id = videoID, token = token, file_name = objName).asJson)
+      logger.info(s"Sending Cover Message to Media")
+      client.run(request).use { response => response.body.compile.drain }
   }
 }
