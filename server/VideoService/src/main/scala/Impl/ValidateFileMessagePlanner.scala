@@ -89,19 +89,27 @@ case class ValidateFileMessagePlanner(
   }
 
   private def sendMessage(token: String, videoID: Int, objName: String): IO[Unit] = clientResource.use { client =>
-    if isVideo then
-      val request = Request[IO](
+    val request = if (isVideo) {
+      Request[IO](
         method = Method.POST,
         uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/video")
       ).withEntity(VideoPayload(id = videoID, token = token, file_name = objName).asJson)
-      logger.info(s"Sending Video Message to Media")
-      client.run(request).use { response => response.body.compile.drain }
-    else
-      val request = Request[IO](
+    } else {
+      Request[IO](
         method = Method.POST,
         uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/image")
       ).withEntity(CoverPayload(id = videoID, token = token, file_name = objName).asJson)
-      logger.info(s"Sending Cover Message to Media")
-      client.run(request).use { response => response.body.compile.drain }
+    }
+    logger.info(s"Sending Message to Media")
+    client.run(request).use { response =>
+      if (response.status.isSuccess) {response.body.compile.drain }
+      else {
+        response.bodyText.compile.string.flatMap { errorBody =>
+          IO(sessions.invalidate(token)) >> IO.raiseError(new RuntimeException(
+            s"文件处理服务器发生错误 ${response.status.code}: $errorBody"
+          ))
+        }
+      }
+    }
   }
 }

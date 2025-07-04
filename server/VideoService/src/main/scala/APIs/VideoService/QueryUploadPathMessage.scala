@@ -45,12 +45,12 @@ case object QueryUploadPathMessage {
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given requireUploadPathMessageEncoder: Encoder[QueryUploadPathMessage] = Encoder.instance { config =>
+  given queryUploadPathMessageEncoder: Encoder[QueryUploadPathMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given requireUploadPathMessageDecoder: Decoder[QueryUploadPathMessage] = Decoder.instance { cursor =>
+  given queryUploadPathMessageDecoder: Decoder[QueryUploadPathMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

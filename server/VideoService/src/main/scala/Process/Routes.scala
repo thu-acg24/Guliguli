@@ -2,25 +2,14 @@
 package Process
 
 
+import APIs.VideoService.ConfirmCoverMessage
 import Common.API.PlanContext
 import Common.API.TraceID
 import Common.DBAPI.DidRollbackException
 import Common.Serialize.CustomColumnTypes.*
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
-import Impl.ChangeFavoriteMessagePlanner
-import Impl.ChangeLikeMessagePlanner
-import Impl.ChangeVideoStatusMessagePlanner
-import Impl.DeleteVideoMessagePlanner
-import Impl.ModifyVideoMessagePlanner
-import Impl.QueryPendingVideosMessagePlanner
-import Impl.QueryUserVideosMessagePlanner
-import Impl.QueryVideoInfoMessagePlanner
-import Impl.QueryLikeVideosMessagePlanner
-import Impl.QueryFavoriteVideosMessagePlanner
-import Impl.QueryLikeMessagePlanner
-import Impl.QueryFavoriteMessagePlanner
-import Impl.UploadVideoMessagePlanner
+import Impl.*
 import cats.effect.*
 import fs2.concurrent.Topic
 import io.circe.*
@@ -28,12 +17,14 @@ import io.circe.derivation.Configuration
 import io.circe.generic.auto.*
 import io.circe.parser.decode
 import io.circe.syntax.*
+
 import java.util.UUID
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.dsl.io.*
 import org.joda.time.DateTime
+
 import scala.collection.concurrent.TrieMap
 
 object Routes:
@@ -52,6 +43,20 @@ object Routes:
         IO(
           decode[ChangeVideoStatusMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ChangeVideoStatusMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ConfirmCoverMessage" =>
+        IO(
+          decode[ConfirmCoverMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ConfirmCoverMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ConfirmVideoMessage" =>
+        IO(
+          decode[ConfirmVideoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ConfirmVideoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
@@ -129,6 +134,13 @@ object Routes:
         IO(
           decode[QueryFavoriteMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ValidateFileMessage" =>
+        IO(
+          decode[ValidateFileMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateFileMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

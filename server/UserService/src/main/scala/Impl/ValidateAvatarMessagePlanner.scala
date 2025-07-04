@@ -5,13 +5,9 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{clientResource, minioClient, minioConfig, sessions}
-import Objects.UploadSession
-import Objects.UserService.UserInfo
-import Utils.AuthProcess.validateToken
+import Objects.{AvatarPayload, UploadSession}
 import cats.effect.IO
-import cats.effect.std.Random
 import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
@@ -23,9 +19,9 @@ import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.http4s.*
 import org.http4s.headers.`Content-Type`
+import org.http4s.circe.jsonEncoder
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import java.text.DecimalFormat
 
 case class ValidateAvatarMessagePlanner(
@@ -86,15 +82,22 @@ case class ValidateAvatarMessagePlanner(
       .format(fileSize / Math.pow(1024, digitGroups)) + " " + units(digitGroups)
   }
 
-  private case class Payload(token: String, id: Int, file_name: String, task: String = "avatar")
 
   private def sendMessage(token: String, userID: Int, objName: String): IO[Unit] = clientResource.use { client =>
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/image")
-    ).withEntity(s"{\"token\": \"$token\", \"id\": \"$userID\", \"file_name\": \"$objName\", \"task\": \"avatar\"}")
-      .withContentType(`Content-Type`(MediaType.application.json))
-    logger.info(s"Sending Message to Media, entity: {\"token\": \"$token\", \"id\": \"$userID\", \"file_name\": \"$objName\", \"task\": \"avatar\"}")
-    client.run(request).use { response => response.body.compile.drain }
+    ).withEntity(AvatarPayload(id = userID, token = token, file_name=objName).asJson)
+    logger.info(s"Sending Message to Media")
+    client.run(request).use { response =>
+      if (response.status.isSuccess) {response.body.compile.drain }
+      else {
+        response.bodyText.compile.string.flatMap { errorBody =>
+          IO(sessions.invalidate(token)) >> IO.raiseError(new RuntimeException(
+            s"文件处理服务器发生错误 ${response.status.code}: $errorBody"
+          ))
+        }
+      }
+    }
   }
 }
