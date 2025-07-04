@@ -23,6 +23,7 @@ import scala.util.Try
 
 case class ConfirmAvatarMessage(
   token: String,
+  status: String,
   objectName: String
 ) extends API[Unit](UserServiceCode)
 

@@ -31,7 +31,7 @@ case class SendNotificationMessagePlanner(
       _ <- IO(logger.info("开始校验用户权限"))
       userRole <- QueryUserRoleMessage(token).send
       _ <- userRole match {
-        case UserRole.Auditor => IO.unit // 审核员权限允许发送通知
+        case UserRole.Admin | UserRole.Auditor => IO.unit // 审核员权限允许发送通知
         case _ => IO.raiseError(InvalidInputException("Invalid Permission"))
       }
       _ <- IO(logger.info("权限正常"))

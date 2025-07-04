@@ -52,7 +52,7 @@ case class ModifyAvatarMessagePlanner(
     for {
       timestamp <- IO.realTimeInstant.map(_.toEpochMilli)
       random <- Random.scalaUtilRandom[IO].flatMap(_.betweenInt(0, 10000))
-    } yield s"$userID/$timestamp-$random.jpg"
+    } yield s"$timestamp-$random.jpg"
   }
 
   private def generateUploadUrl(objectName: String): IO[String] = {

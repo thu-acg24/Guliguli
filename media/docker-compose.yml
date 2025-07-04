@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   media-processor:
-    build: .
+    build:
+      context: .
+      dockerfile: ./video-docker/dockerfile
     container_name: media-processor
     env_file:
       - .env

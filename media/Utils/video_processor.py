@@ -3,10 +3,11 @@ import subprocess
 import hashlib
 import json
 import requests
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from minio.error import S3Error
 import os
 import shutil
+import sys
 
 from common import minio_client, CALLBACK_VIDEO_API, CALLBACK_VIDEO_API_NAME
     
@@ -35,6 +36,7 @@ def validate_video(file_path):
         
         # 解析视频信息
         video_info = json.loads(result.stdout)
+        print(f"video_info: {video_info}")
         streams = video_info.get("streams", [])
         
         if not streams:
@@ -44,6 +46,8 @@ def validate_video(file_path):
         width = int(stream.get("width", 0))
         height = int(stream.get("height", 0))
         duration = float(stream.get("duration", 0))
+
+        print(f"width: {width}, height: {height}, duration: {duration}")
         
         # 验证视频参数
         if width < 100 or height < 100:
@@ -74,6 +78,8 @@ def process_video_async(video_id, token, file_name, local_path):
         # 设置输出文件路径
         m3u8_file = f"{output_dir}/index.m3u8"
         ts_pattern = f"{output_dir}/segment_%05d.ts"
+
+        print(f"m3u8: {m3u8_file}, ts_pattern: {ts_pattern}")
         
         # 转码命令
         cmd = [
@@ -96,6 +102,8 @@ def process_video_async(video_id, token, file_name, local_path):
             "-f", "hls",
             m3u8_file
         ]
+
+        print(f"cmd: {cmd}")
         
         # 执行转码
         process = subprocess.Popen(
@@ -187,16 +195,18 @@ def questPost(data: dict):
             data=body_str,
             timeout=10
         )
-        print(f"Callback Status: {response.status_code}, Response: {response.text}")
+        print(f"Callback Status: {response.status_code}, Response: {response.text}", file=sys.stderr)
     except requests.exceptions.RequestException as e:
-        print(f"Callback failed: {str(e)}")
+        print(f"Callback failed: {str(e)}", file=sys.stderr)
 
-@app.route('/video', methods=['POST'])
+video_bp = Blueprint('video_bp', __name__)
+
+@video_bp.route('/video', methods=['POST'])
 def handle_video():
     # 获取请求参数
-    video_id = request.form.get('id')
-    token = request.form.get('token')
-    file_name = request.form.get('file_name')
+    video_id = request.json.get('id')
+    token = request.json.get('token')
+    file_name = request.json.get('file_name')
     
     if not all([video_id, token, file_name]):
         return jsonify({"status": "failure", "message": "Missing parameters: token, id, file_name are required"}), 400

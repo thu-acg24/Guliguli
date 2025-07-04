@@ -25,8 +25,11 @@ def create_buckets():
     buckets = ["avatar", "video-cover", "video-server", "temp"]
     for bucket in buckets:
         try:
+            print(f"Checking bucket: {bucket}")
             if not minio_client.bucket_exists(bucket):
                 minio_client.make_bucket(bucket)
                 print(f"Created bucket: {bucket}")
+            else:
+                print(f"bucket {bucket} exists")
         except Exception as e:
             print(f"Error creating bucket {bucket}: {str(e)}")

@@ -6,7 +6,7 @@ import Common.Object.SqlParameter
 import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Global.GlobalVariables.{clientResource, minioClient, sessions, minioConfig}
+import Global.GlobalVariables.{clientResource, minioClient, minioConfig, sessions}
 import Objects.UploadSession
 import Objects.UserService.UserInfo
 import Utils.AuthProcess.validateToken
@@ -21,7 +21,8 @@ import io.minio.CopyObjectArgs
 import io.minio.CopySource
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import org.http4s._
+import org.http4s.*
+import org.http4s.headers.`Content-Type`
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -46,7 +47,7 @@ case class ValidateAvatarMessagePlanner(
               sessions.invalidate(session.token)
               sessions.put(newToken, session.copy(token = newToken, completed = true))
             }
-            _ <- processUploadedFile (session.objectName)
+            // _ <- processUploadedFile (session.objectName)
           } yield session
         case _ =>
           IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
@@ -97,14 +98,15 @@ case class ValidateAvatarMessagePlanner(
       .format(fileSize / Math.pow(1024, digitGroups)) + " " + units(digitGroups)
   }
 
-  private case class Payload(token: String, id: Int, file_name: String, task: String = "avatar");
+  private case class Payload(token: String, id: Int, file_name: String, task: String = "avatar")
 
   private def sendMessage(token: String, userID: Int, objName: String): IO[Unit] = clientResource.use { client =>
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/image")
-    ).withEntity(Payload(token, userID, objName).asJson.asString.getOrElse(""))
-
+    ).withEntity(s"{\"token\": \"$token\", \"id\": \"$userID\", \"file_name\": \"$objName\", \"task\": \"avatar\"}")
+      .withContentType(`Content-Type`(MediaType.application.json))
+    logger.info(s"Sending Message to Media, entity: {\"token\": \"$token\", \"id\": \"$userID\", \"file_name\": \"$objName\", \"task\": \"avatar\"}")
     client.run(request).use { response => response.body.compile.drain }
   }
 }

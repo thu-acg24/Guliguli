@@ -31,7 +31,7 @@ object GlobalVariables {
     tmp
   }
   val sessions: Cache[String, UploadSession] = Caffeine.newBuilder()
-    .expireAfterWrite(30, TimeUnit.MINUTES) // 自动过期：创建或写入后30分钟
+    .expireAfterWrite(120, TimeUnit.MINUTES) // 自动过期：创建或写入后120分钟
     .maximumSize(100000)                     // 限制最大缓存数，防止 OOM
     .build[String, UploadSession]()
   val clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build

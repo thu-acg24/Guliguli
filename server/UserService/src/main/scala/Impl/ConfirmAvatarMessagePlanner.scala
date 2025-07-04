@@ -1,5 +1,6 @@
 package Impl
 
+import APIs.MessageService.SendNotificationMessage
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
 import Common.DBAPI.*
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit
 
 case class ConfirmAvatarMessagePlanner(
                                          sessionToken: String,
+                                         status: String,
                                          objectName: String,
                                          override val planContext: PlanContext
                                        ) extends Planner[Unit] {
@@ -45,7 +47,11 @@ case class ConfirmAvatarMessagePlanner(
         case _ =>
           IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
       }
-      _ <- updateAvatarLinkInDB(session.userID, objectName)
+      _ <- status match {
+        case "success" => updateAvatarLinkInDB(session.userID, objectName)
+        case "failure" => updateAvatarLinkInDB(session.userID, "image_fallback.jpg")
+        case _ => IO.raiseError(InvalidInputException(s"status必须是success或failure中的一个"))
+      }
     } yield()
   }
 

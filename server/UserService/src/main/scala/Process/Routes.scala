@@ -12,6 +12,7 @@ import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Impl.ChangeBanStatusMessagePlanner
 import Impl.ChangeFollowStatusMessagePlanner
 import Impl.ChangeUserRoleMessagePlanner
+import Impl.ConfirmAvatarMessagePlanner
 import Impl.GetUIDByTokenMessagePlanner
 import Impl.LoginMessagePlanner
 import Impl.LogoutMessagePlanner
@@ -172,6 +173,13 @@ object Routes:
         IO(
           decode[SearchUsersMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SearchUsersMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ConfirmAvatarMessage" =>
+        IO(
+          decode[ConfirmAvatarMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ConfirmAvatarMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
