@@ -64,6 +64,7 @@ object Init {
        * description: 视频简介
        * duration: 时长（秒）
        * tag: 视频标签列表
+       * cover: 视频封面名
        * m3u8_name: 视频m3u8文件名
        * ts_prefix: 视频ts文件名前缀
        * slice_count: 视频切片数
@@ -81,6 +82,7 @@ object Init {
             title TEXT NOT NULL,
             description TEXT,
             duration INT,
+            cover TEXT,
             tag TEXT NOT NULL,
             m3u8_name TEXT,
             ts_prefix TEXT,

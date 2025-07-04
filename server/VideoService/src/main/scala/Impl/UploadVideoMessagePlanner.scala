@@ -34,15 +34,15 @@ case class UploadVideoMessagePlanner(
     description: String,
     tag: List[String],
     override val planContext: PlanContext
-) extends Planner[UploadPath] {
+) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[UploadPath] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate token and retrieve uploaderID
       _ <- IO(logger.info("Step 1: 校验Token是否合法并获取用户ID"))
-      userID <- validateToken()
+      userID <- GetUIDByTokenMessage(token).send
 
       // Step 2: Validate video information integrity
       _ <- IO(logger.info("Step 2: 校验视频信息完整性"))
@@ -55,21 +55,7 @@ case class UploadVideoMessagePlanner(
       // Step 4: Store video information in the database
       _ <- IO(logger.info("Step 4: 添加视频到数据库"))
       _ <- storeVideoInfo(userID)
-
-      // Step 5: Generate MinIO links
-      coverName <- generateObjectName(userID, "cover")
-      coverUploadUrl <- generateUploadUrl(coverName)
-      coverToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, userID, coverUploadUrl)))
-      videoName <- generateObjectName(userID, "video")
-      videoUploadUrl <- generateUploadUrl(videoName)
-      videoToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, userID, videoUploadUrl)))
-    } yield UploadPath(coverUploadUrl, coverToken, videoUploadUrl, videoToken)
-  }
-
-  private def validateToken()(using PlanContext): IO[Int] = {
-    GetUIDByTokenMessage(token).send
+    } yield ()
   }
 
   private def validateVideoInfo(): IO[Unit] = {
@@ -105,25 +91,5 @@ case class UploadVideoMessagePlanner(
       )
       result <- writeDB(sql, parameters)
     } yield result
-  }
-
-  private def generateObjectName(userID: Int, info: String): IO[String] = {
-    for {
-      timestamp <- IO.realTimeInstant.map(_.toEpochMilli)
-      random <- Random.scalaUtilRandom[IO].flatMap(_.betweenInt(0, 10000))
-    } yield s"$userID/$timestamp-$info-$random.jpg"
-  }
-
-  private def generateUploadUrl(objectName: String): IO[String] = {
-    IO.blocking { // 包装阻塞IO操作
-      minioClient.getPresignedObjectUrl(
-        io.minio.GetPresignedObjectUrlArgs.builder()
-          .method(Method.PUT)
-          .bucket("temp")
-          .`object`(objectName)
-          .expiry(3, TimeUnit.MINUTES)
-          .build()
-      )
-    }
   }
 }
