@@ -2,14 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Outlet, useLocation } from "react-router-dom";
 import Header from "Components/Header/Header";
-import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
-import { GetUIDByTokenMessage } from "Plugins/UserService/APIs/GetUIDByTokenMessage";
 import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
 import { UserStat } from "Plugins/UserService/Objects/UserStat";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
+import { useUserID } from "Hooks/useUserID";
 import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
@@ -17,33 +16,13 @@ export const homePagePath = "/home/:user_id";
 const HomePage: React.FC = () => {
     const { user_id } = useParams<{ user_id: string }>();
     const navigate = useNavigate();
-    const userToken = useUserToken();
     const location = useLocation();
-    const [currentUserID, setCurrentUserID] = useState<number | null>(null);
+    const { userID: currentUserID } = useUserID();
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [userStat, setUserStat] = useState<UserStat | null>(null);
     const [videoCount, setVideoCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [isCurrentUser, setIsCurrentUser] = useState(false);
-
-    // 获取当前登录用户ID
-    const getUserIDByToken = async () => {
-        if (!userToken) return null;
-        try {
-            return new Promise<number>((resolve) => {
-                new GetUIDByTokenMessage(userToken).send(
-                    (info: string) => resolve(JSON.parse(info)),
-                    (error: string) => {
-                        console.error("获取当前用户ID失败", error);
-                        resolve(0);
-                    }
-                );
-            });
-        } catch (error) {
-            console.error("获取当前用户ID失败", error);
-            return null;
-        }
-    };
 
     // 获取用户信息
     const fetchUserInfo = async () => {
@@ -152,14 +131,12 @@ const HomePage: React.FC = () => {
         fetchUserStat();
         fetchUserVideoCount();
         // 检查是否是当前用户
-        const checkIfCurrentUser = async () => {
-            const currentID = await getUserIDByToken();
-            setCurrentUserID(currentID);
-            setIsCurrentUser(!!currentID && currentID === parseInt(user_id || ""));
+        const checkIfCurrentUser = () => {
+            setIsCurrentUser(!!currentUserID && currentUserID === parseInt(user_id || ""));
         };
 
         checkIfCurrentUser();
-    }, [user_id, userToken]);
+    }, [user_id, currentUserID]);
 
     if (loading) {
         return (

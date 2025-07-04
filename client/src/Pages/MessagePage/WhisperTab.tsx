@@ -21,7 +21,7 @@ const WhisperTab: React.FC = () => {
   const userToken = useUserToken();
   // 在组件顶部添加新状态保存刷新前选中的用户
   const [refreshFlag, setRefreshFlag] = useState(false);
-  const { userInfo, fetchUserInfo, getUserIDByToken } = useUserInfo();
+  const { userInfo, refreshUserInfo } = useUserInfo();
   // 添加useEffect处理刷新
   useEffect(() => {
     fetchConversations();
@@ -29,11 +29,7 @@ const WhisperTab: React.FC = () => {
   }, [refreshFlag]);
 
   useEffect(() => {
-    if (userToken) {
-      getUserIDByToken(userToken).then(userID => fetchUserInfo(userID)).then(() => {
-        fetchConversations();
-      });
-    }
+    fetchConversations();
   }, [userToken]);
 
   useEffect(() => {
@@ -60,12 +56,12 @@ const WhisperTab: React.FC = () => {
             try {
               const data = JSON.parse(info);
               setConversations(data);
-              resolve(); 
+              resolve();
             } catch (e) {
               reject(e);
             }
           },
-          (e: string) => reject(new Error(e)) 
+          (e: string) => reject(new Error(e))
         );
       });
     } catch (error) {
@@ -199,7 +195,7 @@ const WhisperTab: React.FC = () => {
                     <div className="message-content">
                       <div className="message-text">{msg.content}</div>
                       <div className="message-time">
-                {formatTime(msg.timestamp)}</div>
+                        {formatTime(msg.timestamp)}</div>
                     </div>
                     {isMe && (
                       <div className="message-avatar">
