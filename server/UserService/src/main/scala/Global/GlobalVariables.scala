@@ -1,9 +1,9 @@
 package Global
 
-import Common.Object.UploadSession
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import Global.MinioConfig
 import Global.ServiceCenter.*
+import Objects.UploadSession
 import io.minio.MinioClient
 
 import java.util.concurrent.TimeUnit

@@ -5,27 +5,28 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.UserServiceCode
 import com.fasterxml.jackson.core.`type`.TypeReference
-import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.parser.*
 import io.circe.syntax.*
+import io.circe.{Decoder, Encoder, Json}
 import org.joda.time.DateTime
 
 import java.util.UUID
 import scala.util.Try
 
 /**
- * ModifyAvatarMessage
- * desc: 根据用户Token校验身份后，给用户返回一个上传渠道，用于用户头像修改功能点
+ * ConfirmAvatarMessage
+ * desc: Worker 内部调用，确认上传路径
  * @param token: String (用户身份验证的Token，用于校验身份及权限。)
- * @return result: List[String] (固定两个元素，第一个是上传URL，第二个是sessionToken)
+ * @param objectName: String (文件名)
  */
 
-case class ModifyAvatarMessage(
-  token: String
-) extends API[List[String]](UserServiceCode)
+case class ConfirmAvatarMessage(
+  token: String,
+  objectName: String
+) extends API[Unit](UserServiceCode)
 
-case object ModifyAvatarMessage{
+case object ConfirmAvatarMessage{
 
   private val circeEncoder: Encoder[ModifyAvatarMessage] = deriveEncoder
   private val circeDecoder: Decoder[ModifyAvatarMessage] = deriveDecoder
@@ -41,12 +42,12 @@ case object ModifyAvatarMessage{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given modifyAvatarMessageEncoder: Encoder[ModifyAvatarMessage] = Encoder.instance { config =>
+  given confirmAvatarMessageEncoder: Encoder[ModifyAvatarMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given modifyAvatarMessageDecoder: Decoder[ModifyAvatarMessage] = Decoder.instance { cursor =>
+  given confirmAvatarMessageDecoder: Decoder[ModifyAvatarMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

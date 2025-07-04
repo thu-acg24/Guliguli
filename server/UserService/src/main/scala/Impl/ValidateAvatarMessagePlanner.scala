@@ -2,11 +2,12 @@ package Impl
 
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI.*
-import Common.Object.{SqlParameter, UploadSession}
+import Common.Object.SqlParameter
 import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{minioClient, sessions}
+import Objects.UploadSession
 import Objects.UserService.UserInfo
 import Utils.AuthProcess.validateToken
 import cats.effect.IO
@@ -38,16 +39,18 @@ case class ValidateAvatarMessagePlanner(
       _ <- IO(logger.info(s"Validating token $sessionToken"))
       session <- IO(Option(sessions.getIfPresent(sessionToken))).flatMap{
         case Some(session) if !session.completed =>
-          sessions.put(sessionToken, session.copy(completed = true))
-          processUploadedFile(session.objectName).as(session)
-
-        case Some(_) =>
-          IO.raiseError(InvalidInputException(s"确认上传(token:$sessionToken)已经执行过，不需要再确认"))
-
-        case None =>
+          for {
+            _ <- IO {
+              sessions.invalidate(session.token)
+              val newToken = UUID.randomUUID().toString
+              sessions.put(newToken, session.copy(token = newToken, completed = true))
+            }
+            _ <- processUploadedFile (session.objectName)
+          } yield session
+        case _ =>
           IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
       }
-      _ <- updateAvatarLinkInDB(session.userID, session.objectName)
+      _ <- updateAvatarLinkInDB(session.userID, session.objectName) // TODO: Notify media worker
     } yield()
   }
 
@@ -62,7 +65,7 @@ case class ValidateAvatarMessagePlanner(
       )).map(stat => stat.size())
         .handleErrorWith(ex =>
           IO(logger.info(s"Object size not found!!")) *>
-            IO.raiseError(new InvalidInputException(s"查找上传的文件时发生错误：${ex.getMessage}"))
+            IO.raiseError(InvalidInputException(s"查找上传的文件时发生错误：${ex.getMessage}"))
         )
       _ <- IO(logger.info(s"Object size is ${getHumanReadableSize(fileSize)}"))
       _ <- if (fileSize < 10 * 1024) {
@@ -91,24 +94,5 @@ case class ValidateAvatarMessagePlanner(
     val digitGroups = (Math.log10(fileSize.toDouble) / Math.log10(1024)).toInt
     new DecimalFormat("#,##0.#")
       .format(fileSize / Math.pow(1024, digitGroups)) + " " + units(digitGroups)
-  }
-
-  private def updateAvatarLinkInDB(userID: Int, objectName: String)(using PlanContext): IO[Unit] = {
-    val querySQL =
-      s"""
-           UPDATE ${schemaName}.user_table
-           SET avatar_path = ?
-           WHERE user_id = ?
-         """.stripMargin
-
-    val queryParams = List(
-      SqlParameter("String", objectName),
-      SqlParameter("Int", userID.toString)
-    )
-
-    for {
-      _ <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams"))
-      updateResponse <- writeDB(querySQL, queryParams)
-    } yield ()
   }
 }
