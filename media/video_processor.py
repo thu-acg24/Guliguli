@@ -8,7 +8,7 @@ from minio.error import S3Error
 import os
 import shutil
 
-from common import minio_client, CALLBACK_API, CALLBACK_API_NAME
+from common import minio_client, CALLBACK_VIDEO_API, CALLBACK_VIDEO_API_NAME
     
 def validate_video(file_path):
     """验证视频文件合法性"""
@@ -169,7 +169,7 @@ def questPost(data: dict):
     """发送回调请求到API"""
     # 添加服务标识
     data["serviceName"] = "Tong-Wen"
-    data["message_type"] = CALLBACK_API_NAME
+    data["message_type"] = CALLBACK_VIDEO_API_NAME
     
     # 计算哈希值
     body_str = json.dumps(data, separators=(',', ':'))
@@ -182,7 +182,7 @@ def questPost(data: dict):
     
     try:
         response = requests.post(
-            url=CALLBACK_API,
+            url=CALLBACK_VIDEO_API,
             headers=headers,
             data=body_str,
             timeout=10
@@ -199,7 +199,7 @@ def handle_video():
     file_name = request.form.get('file_name')
     
     if not all([video_id, token, file_name]):
-        return jsonify({"status": "failure", "message": "Missing parameters"}), 400
+        return jsonify({"status": "failure", "message": "Missing parameters: token, id, file_name are required"}), 400
     
     # 临时文件路径
     local_path = f"/tmp/{file_name}"
