@@ -10,7 +10,8 @@ import java.io.File
 case class MinioConfig(
                         endpoint: String,
                         accessKey: String,
-                        secretKey: String
+                        secretKey: String,
+                        mediaEndpoint: String
                       )
 
 object MinioConfig {
@@ -22,7 +23,8 @@ object MinioConfig {
     MinioConfig(
       endpoint = config.getString("MINIO_ENDPOINT"),
       accessKey = config.getString("MINIO_ACCESS_KEY"),
-      secretKey = config.getString("MINIO_SECRET_KEY")
+      secretKey = config.getString("MINIO_SECRET_KEY"),
+      mediaEndpoint = config.getString("MEDIA_ENDPOINT")
     )
   }
   private def getConfigPath(relativePath: String): String = {

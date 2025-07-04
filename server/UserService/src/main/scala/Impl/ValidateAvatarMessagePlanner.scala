@@ -6,7 +6,7 @@ import Common.Object.SqlParameter
 import Common.APIException.InvalidInputException
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Global.GlobalVariables.{minioClient, sessions}
+import Global.GlobalVariables.{clientResource, minioClient, sessions, minioConfig}
 import Objects.UploadSession
 import Objects.UserService.UserInfo
 import Utils.AuthProcess.validateToken
@@ -16,12 +16,13 @@ import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import io.minio.http.Method
 import io.minio.StatObjectArgs
 import io.minio.CopyObjectArgs
 import io.minio.CopySource
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+import org.http4s._
+
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.text.DecimalFormat
@@ -36,13 +37,13 @@ case class ValidateAvatarMessagePlanner(
   // Main plan definition
   override def plan(using PlanContext): IO[Unit] = {
     for {
+      newToken <- IO(UUID.randomUUID().toString)
       _ <- IO(logger.info(s"Validating token $sessionToken"))
       session <- IO(Option(sessions.getIfPresent(sessionToken))).flatMap{
         case Some(session) if !session.completed =>
           for {
             _ <- IO {
               sessions.invalidate(session.token)
-              val newToken = UUID.randomUUID().toString
               sessions.put(newToken, session.copy(token = newToken, completed = true))
             }
             _ <- processUploadedFile (session.objectName)
@@ -50,7 +51,7 @@ case class ValidateAvatarMessagePlanner(
         case _ =>
           IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
       }
-      _ <- updateAvatarLinkInDB(session.userID, session.objectName) // TODO: Notify media worker
+      _ <- sendMessage(newToken, session.userID, session.objectName)
     } yield()
   }
 
@@ -94,5 +95,16 @@ case class ValidateAvatarMessagePlanner(
     val digitGroups = (Math.log10(fileSize.toDouble) / Math.log10(1024)).toInt
     new DecimalFormat("#,##0.#")
       .format(fileSize / Math.pow(1024, digitGroups)) + " " + units(digitGroups)
+  }
+
+  private case class Payload(token: String, id: Int, file_name: String, task: String = "avatar");
+
+  private def sendMessage(token: String, userID: Int, objName: String): IO[Unit] = clientResource.use { client =>
+    val request = Request[IO](
+      method = Method.POST,
+      uri = Uri.unsafeFromString(minioConfig.mediaEndpoint + "/image")
+    ).withEntity(Payload(token, userID, objName).asJson.asString.getOrElse(""))
+
+    client.run(request).use { response => response.body.compile.drain }
   }
 }
