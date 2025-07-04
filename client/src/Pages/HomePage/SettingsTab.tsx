@@ -35,6 +35,7 @@ const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
     const [isSuccess, setIsSuccess] = useState(false);
     const [passwordMessage, setPasswordMessage] = useState("");
     const [isPasswordSuccess, setIsPasswordSuccess] = useState(false);
+    const [avatarSessionToken, setAvatarSessionToken] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -117,20 +118,8 @@ const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
                 throw new Error('上传失败');
             }
 
-            console.log("Type", typeof sessionToken); // 输出 sessionToken 的类型
-
-            // 第三步：验证上传的文件
-            await new Promise<void>((resolve, reject) => {
-                new ValidateAvatarMessage(sessionToken).send(
-                    (info: string) => {
-                        // 验证成功，无需解析返回值
-                        resolve();
-                    },
-                    (error: string) => {
-                        reject(new Error(error));
-                    }
-                );
-            });
+            // 保存 sessionToken，等待用户保存个人信息时再验证
+            setAvatarSessionToken(sessionToken);
 
             // 更新本地头像预览
             const avatarUrl = URL.createObjectURL(file);
@@ -139,7 +128,7 @@ const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
                 avatar: avatarUrl
             }));
             setIsSuccess(true);
-            setMessage("头像上传成功！");
+            setMessage("头像上传成功！请点击保存个人信息完成头像更换");
         } catch (error) {
             setIsSuccess(false);
             setMessage(error instanceof Error ? error.message : '头像上传失败');
@@ -172,6 +161,23 @@ const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
                 setIsSuccess(false);
                 setMessage("用户名长度需为3-20个字符");
                 return;
+            }
+
+            // 如果有新上传的头像，先验证头像
+            if (avatarSessionToken) {
+                await new Promise<void>((resolve, reject) => {
+                    new ValidateAvatarMessage(avatarSessionToken).send(
+                        (info: string) => {
+                            // 验证成功，无需解析返回值
+                            resolve();
+                        },
+                        (error: string) => {
+                            reject(new Error(error));
+                        }
+                    );
+                });
+                // 验证成功后清除 sessionToken
+                setAvatarSessionToken(null);
             }
 
             // 更新用户信息
