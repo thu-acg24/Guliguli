@@ -103,3 +103,5 @@ libraryDependencies ++= Seq(
 libraryDependencies += "io.minio" % "minio" % "8.5.17"
 
 libraryDependencies += "com.typesafe" % "config" % "1.4.3"
+
+libraryDependencies += "com.github.ben-manes.caffeine" % "caffeine" % "3.2.1"

@@ -16,41 +16,41 @@ import java.util.UUID
 import scala.util.Try
 
 /**
- * UploadVideoMessage
+ * QueryUploadPathMessage
  * desc: 根据用户Token校验身份后，通过给定的入参上传视频信息，并生成videoID存储到视频表。
  * @param token: String (用户身份校验的Token)
  * @param videoID: Int (视频ID)
  * @return uploadPath: UploadPath (上传路径)
  */
 
-case class RequireUploadPathMessage(
+case class QueryUploadPathMessage(
   token: String,
   videoID: Int,
 ) extends API[UploadPath](VideoServiceCode)
 
-case object RequireUploadPathMessage {
+case object QueryUploadPathMessage {
 
-  private val circeEncoder: Encoder[RequireUploadPathMessage] = deriveEncoder
-  private val circeDecoder: Decoder[RequireUploadPathMessage] = deriveDecoder
+  private val circeEncoder: Encoder[QueryUploadPathMessage] = deriveEncoder
+  private val circeDecoder: Decoder[QueryUploadPathMessage] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[RequireUploadPathMessage] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[QueryUploadPathMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[RequireUploadPathMessage] = Decoder.instance { cursor =>
+  private val jacksonDecoder: Decoder[QueryUploadPathMessage] = Decoder.instance { cursor =>
     try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces,
-          new TypeReference[RequireUploadPathMessage]() {})) }
+          new TypeReference[QueryUploadPathMessage]() {})) }
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given requireUploadPathMessageEncoder: Encoder[RequireUploadPathMessage] = Encoder.instance { config =>
+  given requireUploadPathMessageEncoder: Encoder[QueryUploadPathMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given requireUploadPathMessageDecoder: Decoder[RequireUploadPathMessage] = Decoder.instance { cursor =>
+  given requireUploadPathMessageDecoder: Decoder[QueryUploadPathMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

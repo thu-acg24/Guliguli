@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-case class RequireUploadPathMessagePlanner(
+case class QueryUploadPathMessagePlanner(
     token: String,
     videoID: Int,
     override val planContext: PlanContext

@@ -36,16 +36,16 @@ case class ValidateAvatarMessagePlanner(
   override def plan(using PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info(s"Validating token $sessionToken"))
-      session <- IO(sessions.get(sessionToken)).flatMap{
+      session <- IO(Option(sessions.getIfPresent(sessionToken))).flatMap{
         case Some(session) if !session.completed =>
-          sessions.update(sessionToken, session.copy(completed = true))
+          sessions.put(sessionToken, session.copy(completed = true))
           processUploadedFile(session.objectName).as(session)
 
         case Some(_) =>
-          IO.raiseError(new InvalidInputException(s"确认上传(token:$sessionToken)已经执行过，不需要再确认"))
+          IO.raiseError(InvalidInputException(s"确认上传(token:$sessionToken)已经执行过，不需要再确认"))
 
         case None =>
-          IO.raiseError(new InvalidInputException(s"不合法的sessionToken"))
+          IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
       }
       _ <- updateAvatarLinkInDB(session.userID, session.objectName)
     } yield()
@@ -66,9 +66,9 @@ case class ValidateAvatarMessagePlanner(
         )
       _ <- IO(logger.info(s"Object size is ${getHumanReadableSize(fileSize)}"))
       _ <- if (fileSize < 10 * 1024) {
-        IO.raiseError(new InvalidInputException(s"上传的文件过小(${getHumanReadableSize(fileSize)}, 至少需要 10KB)"))
+        IO.raiseError(InvalidInputException(s"上传的文件过小(${getHumanReadableSize(fileSize)}, 至少需要 10KB)"))
       } else if (fileSize > 5 * 1024 * 1024) {
-        IO.raiseError(new InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 5MB)"))
+        IO.raiseError(InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 5MB)"))
       } else IO.unit
       _ <- IO(logger.info(s"Input is valid, moving file"))
       _ <- IO(minioClient.copyObject(
