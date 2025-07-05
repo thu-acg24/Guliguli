@@ -26,12 +26,13 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
-            /** 评论表，包含所有视频评论的基本信息
+      /** 评论表，包含所有视频评论的基本信息
        * comment_id: 评论表的主键ID，唯一标识一个评论
        * content: 评论内容
        * video_id: 所属视频的ID
        * author_id: 评论发布者的用户ID
        * reply_to_id: 回复的目标评论ID，可以为空
+       * root_id: 评论所属楼的评论ID
        * likes: 评论的点赞数量
        * time_stamp: 评论的发布时间
        */
@@ -43,10 +44,10 @@ object Init {
             video_id INT NOT NULL,
             author_id INT NOT NULL,
             reply_to_id INT,
+            root_id INT,
             likes INT NOT NULL DEFAULT 0,
             time_stamp TIMESTAMP NOT NULL
         );
-         
         """,
         List()
       )

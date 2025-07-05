@@ -21,17 +21,19 @@ import scala.util.Try
 
 /**
  * QueryVideoCommentsMessage
- * desc: 用于分页获取一个视频下的所有评论。
- * @param videoId: Int (视频的唯一标识符)
- * @param rangeL: Int (评论分页的开始范围)
- * @param rangeR: Int (评论分页的结束范围)
- * @return comments: Comment:1140 (查询到的评论列表，每个评论包含评论内容及相关信息)
+ * desc: 用于滚动加载一个视频下的评论（一次返回20条），按照评论回复时间降序或升序排序。
+ * @param videoID: Int (视频的唯一标识符)
+ * @param lastTime: DateTime (上一次加载的评论发布时间)
+ * @param lastID: Int (上一次加载的评论ID)
+ * @param rootID: Option[Int] (所属楼的ID，为空代表降序查询所有楼，否则升序查询该楼所述所有评论)
+ * @return comments: List[Comment] (查询到的评论列表，每个评论包含评论内容及相关信息)
  */
 
 case class QueryVideoCommentsMessage(
-  videoId: Int,
-  rangeL: Int,
-  rangeR: Int
+  videoID: Int,
+  lastTime: DateTime,
+  lastID: Int,
+  rootID: Option[Int]
 ) extends API[List[Comment]](CommentServiceCode)
 
 case object QueryVideoCommentsMessage{

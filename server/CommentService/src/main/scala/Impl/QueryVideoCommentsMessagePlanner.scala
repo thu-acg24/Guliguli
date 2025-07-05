@@ -22,9 +22,10 @@ import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 case class QueryVideoCommentsMessagePlanner(
-                                              videoId: Int,
-                                              rangeL: Int,
-                                              rangeR: Int,
+                                              videoID: Int,
+                                              lastTime: DateTime,
+                                              lastID: Int,
+                                              rootID: Option[Int],
                                               override val planContext: PlanContext
                                             ) extends Planner[List[Comment]] {
 
@@ -33,12 +34,26 @@ case class QueryVideoCommentsMessagePlanner(
   override def plan(using PlanContext): IO[List[Comment]] = {
     for {
       // Step 1: Validate videoId
-      _ <- IO(logger.info(s"Validating videoId: ${videoId}"))
-      _ <- validateVideoExists(videoId)
+      _ <- IO(logger.info(s"Validating videoID: ${videoID}"))
+      _ <- validateVideoExists(videoID)
 
-      // Step 2: Query paginated comments directly from CommentTable using SQL with LIMIT and OFFSET
-      _ <- IO(logger.info(s"Querying paginated comments for videoId=${videoId}, rangeL=${rangeL}, rangeR=${rangeR}"))
-      comments <- queryPaginatedComments(videoId, rangeL, rangeR)
+      // Step 2: Query paginated comments directly from CommentTable using SQL
+      _ <- IO(logger.info(s"Querying paginated comments for videoID=${videoID}"))
+      rows <- rootID match {
+        case None => queryRootPaginatedComments()
+        case Some(actualRootID) => queryPaginatedComments(actualRootID)
+      }
+      comments <- IO(rows.map { json =>
+        Comment (
+          commentID = decodeField[Int] (json, "comment_id"),
+          content = decodeField[String] (json, "content"),
+          videoID = decodeField[Int] (json, "video_id"),
+          authorID = decodeField[Int] (json, "author_id"),
+          replyToID = decodeField[Option[Int]] (json, "reply_to_id"),
+          likes = decodeField[Int] (json, "likes"),
+          timestamp = decodeField[DateTime] (json, "time_stamp")
+        )
+      })
 
       _ <- IO(logger.info(s"Query completed. Returning ${comments.size} comments"))
     } yield comments
@@ -57,47 +72,57 @@ case class QueryVideoCommentsMessagePlanner(
   }
 
   /**
-   * Queries the database for paginated comments associated with the given videoId.
-   *
-   * @param videoId Video ID to query comments for.
-   * @param rangeL  Starting index (inclusive).
-   * @param rangeR  Ending index (exclusive).
+   * Queries the database for paginated comments associated with the given videoID.
    * @return List of Comment objects.
    */
-  private def queryPaginatedComments(videoId: Int, rangeL: Int, rangeR: Int)(using PlanContext): IO[List[Comment]] = {
+  private def queryRootPaginatedComments()(using PlanContext): IO[List[Json]] = {
     for {
       sql <- IO {
         s"""
            |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, time_stamp
            |FROM ${schemaName}.comment_table
-           |WHERE video_id = ?
-           |ORDER BY time_stamp DESC
-           |LIMIT ? OFFSET ?;
+           |WHERE video_id = ? AND root_id IS NULL AND (time_stamp < ? OR (time_stamp = ? AND id < ?))
+           |ORDER BY time_stamp DESC, comment_id DESC LIMIT 20
        """.stripMargin
       }
-      // Calculate LIMIT and OFFSET based on provided range values
-      limit <- IO.pure(rangeR - rangeL)
-      offset <- IO.pure(rangeL)
 
       rows <- readDBRows(
         sql,
         List(
-        SqlParameter("Int", videoId.toString),
-        SqlParameter("Int", limit.toString),
-        SqlParameter("Int", offset.toString)
+          SqlParameter("Int", videoID.toString),
+          SqlParameter("DateTime", lastTime.getMillis.toString),
+          SqlParameter("DateTime", lastTime.getMillis.toString),
+          SqlParameter("Int", lastID.toString)
         )
       )
-      result <- IO(rows.map { json =>
-      Comment (
-        commentID = decodeField[Int] (json, "comment_id"),
-        content = decodeField[String] (json, "content"),
-        videoID = decodeField[Int] (json, "video_id"),
-        authorID = decodeField[Int] (json, "author_id"),
-        replyToID = decodeField[Option[Int]] (json, "reply_to_id"),
-        likes = decodeField[Int] (json, "likes"),
-        timestamp = decodeField[DateTime] (json, "time_stamp")
+    } yield rows
+  }
+
+  /**
+   * Queries the database for paginated comments associated with the given videoID and given rootID.
+   * @return List of Comment objects.
+   */
+  private def queryPaginatedComments(rootID: Int)(using PlanContext): IO[List[Json]] = {
+    for {
+      sql <- IO {
+        s"""
+           |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, time_stamp
+           |FROM ${schemaName}.comment_table
+           |WHERE video_id = ? AND root_id = ? AND (time_stamp > ? OR (time_stamp = ? AND id > ?))
+           |ORDER BY time_stamp ASC, comment_id ASC LIMIT 20
+       """.stripMargin
+      }
+
+      rows <- readDBRows(
+        sql,
+        List(
+          SqlParameter("Int", videoID.toString),
+          SqlParameter("Int", rootID.toString),
+          SqlParameter("DateTime", lastTime.getMillis.toString),
+          SqlParameter("DateTime", lastTime.getMillis.toString),
+          SqlParameter("Int", lastID.toString)
+        )
       )
-    })
-    } yield result
+    } yield rows
   }
 }
