@@ -23,13 +23,13 @@ import scala.util.Try
  * QueryVideoInfoMessage
  * desc: 根据视频ID获取视频详情。
  * @param token: String (用户Token（可选）)
- * @param videoId: Int (视频ID，用于唯一标识一个视频。)
+ * @param videoID: Int (视频ID，用于唯一标识一个视频。)
  * @return videoInfo: VideoInfo:1120 (封装的视频详情对象，若视频不存在则返回None。)
  */
 
 case class QueryVideoInfoMessage(
   token: Option[String] = None,
-  videoId: Int
+  videoID: Int
 ) extends API[Video](VideoServiceCode)
 
 case object QueryVideoInfoMessage{

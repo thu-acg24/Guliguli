@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory
  * @param token 用户的访问令牌
  * @param videoID 视频唯一标识
  * @param isFavorite 是否标记为收藏
- * @param planContext 请求执行的上下文
  */
 
 case class UpdateFeedbackFavoriteMessagePlanner(
@@ -35,21 +34,15 @@ case class UpdateFeedbackFavoriteMessagePlanner(
   videoID: Int,
   isFavorite: Boolean,
   override val planContext: PlanContext
-) extends Planner[Option[String]] {
+) extends Planner[Unit] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Option[String]] = {
+  override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate Token and get User ID
       _ <- IO(logger.info(s"Validating token: '$token'"))
-      maybeUserID <- GetUIDByTokenMessage(token).send
-      userID <- maybeUserID match {
-        case Some(id) => IO.pure(id)
-        case None =>
-          IO(logger.error("Invalid Token")) >>
-            IO.pure(Some("Invalid Token"))
-      }
+      userID <- GetUIDByTokenMessage(token).send
 
       _ <- IO(logger.info(s"User ID: $userID"))
 
@@ -70,73 +63,16 @@ case class UpdateFeedbackFavoriteMessagePlanner(
     } yield result
   }
 
-  private def handleFavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
+  private def handleFavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
     if (isFavorite) performFavoriteAction(userID, videoID)
     else performUnfavoriteAction(userID, videoID)
   }
 
-  private def performFavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
-    for {
-      _ <- IO(logger.info(s"User $userID is adding favorite for Video ID: $videoID"))
-      favoriteExists <- readDBJsonOptional(
-        s"SELECT 1 FROM ${schemaName}.feedback_detail_table WHERE user_id = ? AND video_id = ? AND favorite = true;",
-        List(SqlParameter("Int", userID.toString), SqlParameter("Int", videoID.toString))
-      ).map(_.isDefined)
-
-      result <-
-        if (favoriteExists) {
-          IO(logger.info("Favorite already exists.")) >>
-            IO.pure(Some("Favorite already exists"))
-        } else {
-          for {
-            // Insert new favorite record
-            _ <- writeDB(
-              s"""INSERT INTO ${schemaName}.feedback_detail_table (user_id, video_id, like, favorite, timestamp)
-                  VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP);""".stripMargin,
-              List(
-                SqlParameter("Int", userID.toString),
-                SqlParameter("Int", videoID.toString),
-                SqlParameter("Boolean", false.toString),
-                SqlParameter("Boolean", true.toString)
-              )
-            )
-            // Increment the favorites count in VideoInfoTable
-            _ <- writeDB(
-              s"UPDATE ${schemaName}.video_info_table SET favorites = favorites + 1 WHERE video_id = ?;",
-              List(SqlParameter("Int", videoID.toString))
-            )
-          } yield None
-        }
-    } yield result
+  private def performFavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
+    return IO.unit
   }
 
-  private def performUnfavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Option[String]] = {
-    for {
-      _ <- IO(logger.info(s"User $userID is removing favorite for Video ID: $videoID"))
-      favoriteExists <- readDBJsonOptional(
-        s"SELECT 1 FROM ${schemaName}.feedback_detail_table WHERE user_id = ? AND video_id = ? AND favorite = true;",
-        List(SqlParameter("Int", userID.toString), SqlParameter("Int", videoID.toString))
-      ).map(_.isDefined)
-
-      result <-
-        if (!favoriteExists) {
-          IO(logger.info("Favorite record does not exist.")) >>
-            IO.pure(Some("Favorite record does not exist"))
-        } else {
-          for {
-            // Delete the favorite record
-            _ <- writeDB(
-              s"""DELETE FROM ${schemaName}.feedback_detail_table
-                  WHERE user_id = ? AND video_id = ? AND favorite = true;""",
-              List(SqlParameter("Int", userID.toString), SqlParameter("Int", videoID.toString))
-            )
-            // Decrement the favorites count in VideoInfoTable
-            _ <- writeDB(
-              s"UPDATE ${schemaName}.video_info_table SET favorites = favorites - 1 WHERE video_id = ?;",
-              List(SqlParameter("Int", videoID.toString))
-            )
-          } yield None
-        }
-    } yield result
+  private def performUnfavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
+    return IO.unit
   }
 }

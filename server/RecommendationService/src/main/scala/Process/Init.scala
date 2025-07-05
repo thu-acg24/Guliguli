@@ -26,6 +26,7 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
+      _ <- writeDB("CREATE EXTENSION VECTOR", List())
             /** 包含视频基础信息的表，支持RecommendationService的功能
        * video_id: 对应视频的唯一ID，主键
        * title: 视频标题
@@ -63,36 +64,10 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."watch_detail_table" (
-            watch_id SERIAL NOT NULL PRIMARY KEY,
-            user_id INT NOT NULL,
-            video_id INT NOT NULL,
-            watch_duration REAL NOT NULL,
-            created_at TIMESTAMP NOT NULL
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."video_vector_table" (
+            video_id SERIAL NOT NULL PRIMARY KEY,
+            embedding VECTOR(1536)
         );
-         
-        """,
-        List()
-      )
-      /** 反馈详情表，包含用户对视频的点赞和收藏等反馈信息
-       * feedback_id: 反馈的唯一ID
-       * user_id: 用户ID
-       * video_id: 视频ID
-       * like: 是否点赞
-       * favorite: 是否收藏
-       * created_at: 反馈时间
-       */
-      _ <- writeDB(
-        s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."feedback_detail_table" (
-            feedback_id SERIAL NOT NULL PRIMARY KEY,
-            user_id INT NOT NULL,
-            video_id INT NOT NULL,
-            like BOOLEAN NOT NULL,
-            favorite BOOLEAN NOT NULL,
-            created_at TIMESTAMP NOT NULL
-        );
-         
         """,
         List()
       )

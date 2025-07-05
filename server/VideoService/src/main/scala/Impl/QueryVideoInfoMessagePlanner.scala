@@ -15,6 +15,7 @@ import Objects.UserService.UserRole
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import Utils.DecodeVideo.decodeVideo
+import Utils.VideoAuth.{validateToken, validateVideoID}
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory
 
 case class QueryVideoInfoMessagePlanner(
                                          token: Option[String],
-                                         videoId: Int,
+                                         videoID: Int,
                                          override val planContext: PlanContext
                                        ) extends Planner[Video] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
@@ -33,65 +34,18 @@ case class QueryVideoInfoMessagePlanner(
   override def plan(using PlanContext): IO[Video] = {
     for {
       // Step 1: Validate token to ensure user access authorization
-      user <- validateToken()
+      user <- validateToken(token)
       // Step 2: Validate if the video ID is valid and accessible
-      _ <- validateVideoID(user)
+      _ <- validateVideoID(videoID, user)
       // Step 3: Query video information if validation passes
       video <- queryVideo()
       _ <- IO(logger.info(s"[Plan Completed] Video query result: $video"))
     } yield video
   }
 
-  private def validateToken()(using PlanContext): IO[(Option[Int], Option[UserRole])] = {
-    token match {
-      case Some(tkn) =>
-        for {
-          _ <- IO(logger.info(s"[Step 1.1] Validating token: $tkn"))
-          userID <- GetUIDByTokenMessage(tkn).send
-          _ <- IO(logger.info(s"[Step 1.2] Fetched userID: $userID"))
-
-          role <- QueryUserRoleMessage(tkn).send
-          _ <- IO(logger.info(s"[Step 1.3] Fetched userRole: $role"))
-        } yield (Some(userID), Some(role))
-      case None =>
-        IO(logger.info("[Step 1.1] No token provided, skipping authentication")) *> IO.pure((None, None))
-    }
-  }
-
-  private def validateVideoID(user: (Option[Int], Option[UserRole]))(using PlanContext): IO[Unit] = {
-    val (userID, role) = user
-    for {
-      _ <- IO(logger.info(s"[Step 2] Validating videoID: $videoId"))
-      videoQueryResult <- readDBJsonOptional(
-        s"""
-          SELECT uploader_id, status
-          FROM ${schemaName}.video_table
-          WHERE video_id = ?;
-        """.stripMargin,
-        List(SqlParameter("Int", videoId.toString))
-      )
-
-      _ <- videoQueryResult match {
-        case Some(json) =>
-          val uploaderID = decodeField[Int](json, "uploader_id")
-          val status = VideoStatus.fromString(decodeField[String](json, "status"))
-
-          if (status == VideoStatus.Approved || (userID.contains(uploaderID) || role.contains(UserRole.Auditor))) {
-            IO(logger.info("[Step 2.1] Video validation passed")) *> IO.unit
-          } else {
-            IO(logger.info("[Step 2.1] Video is not public or user has no access permission")) >>
-              IO.raiseError(InvalidInputException("Video does not exist"))
-          }
-        case None =>
-          IO(logger.info("[Step 2.1] Video does not exist")) >>
-            IO.raiseError(InvalidInputException("Video does not exist"))
-      }
-    } yield ()
-  }
-
   private def queryVideo()(using PlanContext): IO[Video] = {
     for {
-      _ <- IO(logger.info(s"[Step 3] Querying detailed information for videoID: $videoId"))
+      _ <- IO(logger.info(s"[Step 3] Querying detailed information for videoID: $videoID"))
       videoQueryResult <- readDBJsonOptional(
         s"""
           SELECT video_id, title, description, duration, tag, cover, m3u8_name, ts_prefix, slice_count,
@@ -99,7 +53,7 @@ case class QueryVideoInfoMessagePlanner(
           FROM ${schemaName}.video_table
           WHERE video_id = ?;
         """.stripMargin,
-        List(SqlParameter("Int", videoId.toString))
+        List(SqlParameter("Int", videoID.toString))
       )
 
       video <- videoQueryResult match {

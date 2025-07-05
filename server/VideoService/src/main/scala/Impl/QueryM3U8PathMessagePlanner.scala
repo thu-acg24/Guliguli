@@ -7,91 +7,143 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Global.GlobalVariables.{minioClient, sessions}
+import Global.GlobalVariables.{minioClient, sessions, readLines, m3u8Cache}
 import Objects.UploadSession
 import Objects.VideoService.UploadPath
+import Utils.VideoAuth.{validateToken, validateVideoID}
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
+import io.minio.{GetPresignedObjectUrlArgs, PutObjectArgs}
 import io.minio.http.Method
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
+import java.io.ByteArrayInputStream
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import scala.util.matching.Regex
 
 case class QueryM3U8PathMessagePlanner(
-    token: String,
+    token: Option[String],
     videoID: Int,
     override val planContext: PlanContext
-) extends Planner[UploadPath] {
+) extends Planner[String] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[UploadPath] = {
+  override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: Validate token and retrieve uploaderID
-      _ <- IO(logger.info("Step 1: 校验Token是否合法并获取用户ID"))
-      userID <- GetUIDByTokenMessage(token).send
-
-      // Step 2: Validate uploaderID
-      _ <- IO(logger.info("Step 2: 校验上传者身份"))
-      uploaderID <- validateVideo()
-      _ <- IO.raiseUnless(userID == uploaderID)(InvalidInputException("上传者不是视频发布者"))
-
-      // Step 3: set status to Uploading
-      _ <- updateVideoStatus()
-
-      // Step 3: Generate MinIO links
-      coverName <- generateObjectName(videoID, "cover")
-      coverUploadUrl <- generateUploadUrl(coverName)
-      coverToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, videoID, coverUploadUrl)))
-      videoName <- generateObjectName(videoID, "video")
-      videoUploadUrl <- generateUploadUrl(videoName)
-      videoToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, videoID, videoUploadUrl)))
-    } yield UploadPath(coverUploadUrl, coverToken, videoUploadUrl, videoToken)
+      // Step 1: Validate token to ensure user access authorization
+      user <- validateToken(token)
+      // Step 2: Validate if the video ID is valid and accessible
+      _ <- validateVideoID(videoID, user)
+      // Step 3: Query video information if validation passes
+      (m3u8Name, tsPrefix, sliceCount) <- queryVideoPath()
+      cached <- IO.blocking(Option(m3u8Cache.getIfPresent(m3u8Name)))
+      finalUrl <- cached match {
+        case Some(url) => IO.pure(url)
+        case None =>
+          for {
+            // Step 4: Read template m3u8
+            templateLines <- readLines(bucket, m3u8Name)
+            // Step 5: Generate ts filenames
+            tsKeys = generateTsKeys(tsPrefix, sliceCount)
+            // Step 6: Generate signed URLs
+            tsUrls <- generatePresignedUrls(tsKeys)
+            // Step 7: Replace placeholders
+            replacedLines = replaceSegments(templateLines, tsUrls)
+            newM3U8Content = replacedLines.mkString("\n")
+            // Step 8: Upload and get final share link
+            finalUrl <- uploadNewM3U8(newM3U8Content, videoID.toString + UUID.randomUUID().toString + ".m3u8")
+            _ <- IO.blocking(m3u8Cache.put(m3u8Name, finalUrl))
+          } yield finalUrl
+      }
+    } yield finalUrl
   }
 
-  private def validateVideo()(using PlanContext): IO[Int] = {
-    val sql = s"SELECT uploader_id FROM ${schemaName}.video_table WHERE video_id = ?;"
-    val param = List(SqlParameter("Int", videoID.toString))
-    readDBJsonOptional(sql, param).map {
-      case None => throw InvalidInputException("视频不存在")
-      case Some(json) => decodeField[Int](json, "uploader_id")
-    }
-  }
-
-  private def updateVideoStatus()(using PlanContext): IO[String] = {
-    IO(logger.info(s"[updateVideoStatus] Updating video status for videoID=${videoID} to status=Uploading")) >> {
-      val updateSql = s"UPDATE ${schemaName}.video_table SET status = 'Uploading' WHERE video_id = ?;"
-      writeDB(updateSql, List(
-        SqlParameter("Int", videoID.toString)
-      ))
-    }
-  }
-
-  private def generateObjectName(userID: Int, info: String): IO[String] = {
+  private def queryVideoPath()(using PlanContext): IO[(String, String, Int)] = {
     for {
-      timestamp <- IO.realTimeInstant.map(_.toEpochMilli)
-      random <- Random.scalaUtilRandom[IO].flatMap(_.betweenInt(0, 10000))
-    } yield s"$userID/$timestamp-$info-$random.jpg"
+      _ <- IO(logger.info(s"[Step 3] Querying detailed information for videoID: $videoID"))
+      videoQueryResult <- readDBJsonOptional(
+        s"""
+          SELECT m3u8_name, ts_prefix, slice_count
+          FROM ${schemaName}.video_table
+          WHERE video_id = ?;
+        """.stripMargin,
+        List(SqlParameter("Int", videoID.toString))
+      )
+
+      result <- videoQueryResult match {
+        case Some(json) =>
+          IO(logger.info(s"[Step 3.1] Video information found, json: $json")) >>
+            IO((decodeField[String](json, "m3u8_name"),
+              decodeField[String](json, "ts_prefix"), decodeField[Int](json, "slice_count")))
+        case None =>
+          IO(logger.info("[Step 3.1] No video details found in the database")) >>
+            IO.raiseError(InvalidInputException("Video does not exist"))
+      }
+    } yield result
   }
 
-  private def generateUploadUrl(objectName: String): IO[String] = {
-    IO.blocking { // 包装阻塞IO操作
+  // 生成形如 tsprefix_00001.ts 的 ts 文件名
+  def generateTsKeys(tsprefix: String, sliceCount: Int): List[String] = {
+    (1 to sliceCount).map(i => f"${tsprefix}_$i%05d.ts").toList
+  }
+
+  private val bucket = "video-server"
+
+  // 为每个 ts 文件生成签名 URL
+  def generatePresignedUrls(tsKeys: List[String]): IO[List[String]] = IO {
+    tsKeys.map { key =>
       minioClient.getPresignedObjectUrl(
-        io.minio.GetPresignedObjectUrlArgs.builder()
-          .method(Method.PUT)
-          .bucket("temp")
-          .`object`(objectName)
-          .expiry(3, TimeUnit.MINUTES)
+        GetPresignedObjectUrlArgs.builder()
+          .method(Method.GET)
+          .bucket(bucket)
+          .`object`(key)
+          .expiry(7 * 24 * 60 * 60) // 一周有效
           .build()
       )
     }
+  }
+
+  // 替换 m3u8 模板文件中的 segment_[number].ts 占位符
+  def replaceSegments(templateLines: List[String], tsUrls: List[String]): List[String] = {
+    val tsPlaceholderPattern: Regex = raw"""segment_\d+\.ts""".r
+
+    var tsIndex = 0
+    templateLines.map { line =>
+      tsPlaceholderPattern.findFirstIn(line) match {
+        case Some(_) if tsIndex < tsUrls.length =>
+          val replaced = tsPlaceholderPattern.replaceFirstIn(line, tsUrls(tsIndex))
+          tsIndex += 1
+          replaced
+        case _ => line
+      }
+    }
+    }
+
+    // 上传新的 m3u8 内容并生成分享链接
+  def uploadNewM3U8(content: String, targetKey: String): IO[String] = IO.blocking {
+    val inputStream = new ByteArrayInputStream(content.getBytes("UTF-8"))
+    minioClient.putObject(
+      PutObjectArgs.builder()
+        .bucket(bucket)
+        .`object`(targetKey)
+        .stream(inputStream, content.length, -1)
+        .contentType("application/vnd.apple.mpegurl")
+        .build()
+    )
+    minioClient.getPresignedObjectUrl(
+      GetPresignedObjectUrlArgs.builder()
+        .method(Method.GET)
+        .bucket(bucket)
+        .`object`(targetKey)
+        .expiry(7 * 24 * 60 * 60)
+        .build()
+    )
   }
 }

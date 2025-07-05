@@ -17,7 +17,7 @@ import scala.util.Try
 /**
  * ValidateAvatarMessage
  * desc: 用户上传完头像后，将上一步得到的Token传入，用于检验用户上传文件是否合法功能
- * @param token: String (sessionToken，用于校验身份及权限。)
+ * @param sessionToken: String (sessionToken，用于校验身份及权限。)
  */
 
 case class ValidateAvatarMessage(

@@ -1,5 +1,6 @@
 package Utils
 
+import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
 import Common.DBAPI.*
@@ -7,6 +8,7 @@ import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.minioClient
+import Objects.UserService.UserRole
 import Objects.VideoService.{Video, VideoInfo, VideoStatus}
 import cats.effect.IO
 import cats.implicits.*
@@ -27,64 +29,51 @@ case object VideoAuth {
   //process plan code 预留标志位，不要删除
 
   // implicit val dateTimeDecoder: Decoder[DateTime] = decodeDateTime
+  def validateToken(token: Option[String])(using PlanContext): IO[(Option[Int], Option[UserRole])] = {
+    token match {
+      case Some(tkn) =>
+        for {
+          _ <- IO(logger.info(s"[Step 1.1] Validating token: $tkn"))
+          userID <- GetUIDByTokenMessage(tkn).send
+          _ <- IO(logger.info(s"[Step 1.2] Fetched userID: $userID"))
 
-  def decodeVideo(json: Json)(using PlanContext): IO[Video] = {
-    for {
-      _ <- IO(logger.info(s"Given json: $json"))
-      video <- IO(decodeType[Video](json))
-      cover <- IO(video.cover.map(
-        file_name => minioClient.getPresignedObjectUrl(
-          GetPresignedObjectUrlArgs.builder()
-          .bucket("video-cover")  // 你的封面 bucket 名称
-          .`object`(file_name)  // 封面文件名
-          .expiry(6, TimeUnit.HOURS)  // 6小时有效期
-          .method(Method.GET)  // GET 请求
-          .build())))
-      result <- IO(video.copy(cover = cover))
-    } yield result
+          role <- QueryUserRoleMessage(tkn).send
+          _ <- IO(logger.info(s"[Step 1.3] Fetched userRole: $role"))
+        } yield (Some(userID), Some(role))
+      case None =>
+        IO(logger.info("[Step 1.1] No token provided, skipping authentication")) *> IO.pure((None, None))
+    }
   }
 
-  def decodeVideoInfo(json: Json)(using PlanContext): IO[VideoInfo] = {
+  def validateVideoID(videoID: Int, user: (Option[Int], Option[UserRole]))
+                             (using PlanContext): IO[Unit] = {
+    val (userID, role) = user
     for {
-      _ <- IO(logger.info(s"Given json: $json"))
-      video <- IO(decodeType[VideoInfo](json))
-      cover <- IO(video.cover.map(
-        file_name => minioClient.getPresignedObjectUrl(
-          GetPresignedObjectUrlArgs.builder()
-            .bucket("video-cover")
-            .`object`(file_name)
-            .expiry(6, TimeUnit.HOURS)
-            .method(Method.GET)
-            .build())))
-      m3u8 <- IO(video.m3u8Path.map(
-        file_name => minioClient.getPresignedObjectUrl(
-        GetPresignedObjectUrlArgs.builder()
-        .bucket("video-server")
-        .`object`(file_name)
-        .expiry(6, TimeUnit.HOURS)
-        .method(Method.GET)
-        .build())))
-      ts <- (video.tsPrefix, video.sliceCount) match {
-        case (Some(prefix), Some(count)) if count > 0 =>
-          val tsFiles = (0 until count).map
-            ( i => f"$count$i%05d.ts" )
-          tsFiles.toList.parTraverse { tsFile =>
-            IO.blocking {
-              minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                  .bucket("video-server")
-                  .`object`(tsFile)
-                  .expiry(6, TimeUnit.HOURS)
-                  .method(Method.GET)
-                  .build()
-              )
-            }
-          }.map { urls =>
-            Some(urls.filter(_.nonEmpty))  // 过滤掉无效的 URL
+      _ <- IO(logger.info(s"[Step 2] Validating videoID: $videoID"))
+      videoQueryResult <- readDBJsonOptional(
+        s"""
+          SELECT uploader_id, status
+          FROM ${schemaName}.video_table
+          WHERE video_id = ?;
+        """.stripMargin,
+        List(SqlParameter("Int", videoID.toString))
+      )
+
+      _ <- videoQueryResult match {
+        case Some(json) =>
+          val uploaderID = decodeField[Int](json, "uploader_id")
+          val status = VideoStatus.fromString(decodeField[String](json, "status"))
+
+          if (status == VideoStatus.Approved || (userID.contains(uploaderID) || role.contains(UserRole.Auditor))) {
+            IO(logger.info("[Step 2.1] Video validation passed")) *> IO.unit
+          } else {
+            IO(logger.info("[Step 2.1] Video is not public or user has no access permission")) >>
+              IO.raiseError(InvalidInputException("Video does not exist"))
           }
-        case _ => IO.pure(None)
+        case None =>
+          IO(logger.info("[Step 2.1] Video does not exist")) >>
+            IO.raiseError(InvalidInputException("Video does not exist"))
       }
-      result <- IO(video.copy(cover = cover, m3u8Path = m3u8, tsPath = ts))
-    } yield result
+    } yield ()
   }
 }
