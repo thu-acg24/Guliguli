@@ -60,7 +60,7 @@ object GlobalVariables {
     .build[String, UploadSession]()
 
   val m3u8Cache: Cache[String, String] = Caffeine.newBuilder()
-    .expireAfterWrite(30, TimeUnit.DAYS) // 自动过期：创建或写入后30分钟
+    .expireAfterWrite(160, TimeUnit.HOURS) // 自动过期：创建或写入后一周内
     .maximumSize(100000)
     .build[String, String]()
 

@@ -40,10 +40,10 @@ case class ValidateFileMessagePlanner(
     for {
       newToken <- IO(UUID.randomUUID().toString)
       _ <- IO(logger.info(s"Validating token $sessionToken"))
-      session <- IO(Option(sessions.getIfPresent(sessionToken))).flatMap{
+      session <- IO.blocking(Option(sessions.getIfPresent(sessionToken))).flatMap{
         case Some(session) if !session.completed =>
           for {
-            _ <- IO {
+            _ <- IO.blocking {
               sessions.invalidate(session.token)
               sessions.put(newToken, session.copy(token = newToken, completed = true))
             }
