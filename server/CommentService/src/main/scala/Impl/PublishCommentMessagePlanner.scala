@@ -2,12 +2,13 @@ package Impl
 
 
 import APIs.CommentService.QueryCommentByIDMessage
+import APIs.MessageService.SendReplyNoticeMessage
 import Common.APIException.InvalidInputException
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -16,9 +17,9 @@ import Objects.CommentService.Comment
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import cats.effect.IO
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -52,6 +53,8 @@ case class PublishCommentMessagePlanner(
       // Step 5: 组装评论数据并存储到数据库
       _ <- IO(logger.info("组装数据并插入到数据库"))
       _ <- insertComment(userID, videoID, commentContent, replyToCommentID)
+
+      _ <- replyToCommentID.map(sendReplyNotice).getOrElse(IO.unit)
     } yield ()
   }
 
@@ -100,5 +103,17 @@ case class PublishCommentMessagePlanner(
         SqlParameter("DateTime", time_stamp.getMillis.toString)
       )
     )
+  }
+  private def sendReplyNotice(commentID: Int)(using PlanContext): IO[Unit] = {
+    val sql =
+      s"""
+         |SELECT author_id
+         |FROM ${schemaName}.comment_table
+         |WHERE comment_id = ?;
+         """.stripMargin
+    for {
+      receiverID <- readDBInt(sql, List(SqlParameter("Int", commentID.toString)))
+      _ <- SendReplyNoticeMessage(token, commentID).send
+    } yield()
   }
 }
