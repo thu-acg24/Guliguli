@@ -47,8 +47,8 @@ case class ModifyPasswordMessagePlanner(
     } yield ()
   }
 
-  private def validateOldPassword(userID: Int)(using PlanContext): IO[Unit] = IO {
-      logger.info(s"开始验证用户ID为 ${userID} 的旧密码是否正确")
+  private def validateOldPassword(userID: Int)(using PlanContext): IO[Unit] = {
+      IO(logger.info(s"开始验证用户ID为 ${userID} 的旧密码是否正确")) >>
       validatePassword(userID, oldPassword)
   }
 
