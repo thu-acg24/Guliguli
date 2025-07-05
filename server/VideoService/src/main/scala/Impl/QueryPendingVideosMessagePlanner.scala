@@ -6,7 +6,7 @@ import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -14,13 +14,14 @@ import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.DecodeVideo.decodeVideo
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
+import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -61,7 +62,7 @@ case class QueryPendingVideosMessagePlanner(
     for {
       _ <- IO(logger.info("[fetchPendingVideos]: 开始执行查询待审核的视频指令"))
       rows <- readDBRows(sql, parameters)
-      result <- IO(rows.map(decodeType[Video]))
+      result <- IO(rows.map(decodeVideo))
     } yield result
   }
 }

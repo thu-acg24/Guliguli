@@ -2,17 +2,18 @@ package Impl
 
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.VideoService.Video
+import Utils.DecodeVideo.decodeVideo
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.slf4j.LoggerFactory
 
 case class QueryLikeVideosMessagePlanner(
@@ -41,7 +42,7 @@ case class QueryLikeVideosMessagePlanner(
     
     readDBRows(sql, List(SqlParameter("Int", userID.toString))).map { jsonList =>
       jsonList.map { json =>
-        decodeType[Video](json)
+        decodeVideo(json)
       }
     }
   }

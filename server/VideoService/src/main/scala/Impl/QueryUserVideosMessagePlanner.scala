@@ -6,7 +6,7 @@ import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -14,13 +14,14 @@ import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.DecodeVideo.decodeVideo
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
+import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -89,7 +90,7 @@ case class QueryUserVideosMessagePlanner(
     for {
       _ <- IO(logger.info(s"[queryUserVideos]: 开始查询用户 $userId 的视频列表"))
       rows <- readDBRows(sql, parameters)
-      result <- IO(rows.map(decodeType[Video]))
+      result <- IO(rows.map(decodeVideo))
       _ <- IO(logger.info(s"[queryUserVideos]: 查询完成，共找到 ${result.length} 个视频"))
     } yield result
   }
