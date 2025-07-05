@@ -4,6 +4,7 @@ import { QueryNotificationsMessage } from 'Plugins/MessageService/APIs/QueryNoti
 import { Notification } from 'Plugins/MessageService/Objects/Notification';
 import { formatTime } from 'Components/GetTime';
 import './MessagePage.css';
+import './SystemTab.css';
 
 const SystemTab: React.FC = () => {
   const [notices, setNotices] = useState<Notification[]>([]);
@@ -72,17 +73,17 @@ const SystemTab: React.FC = () => {
 
       {/* 弹窗 */}
       {isModalOpen && selectedNotice && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">{selectedNotice.title}</h3>
-              <button className="modal-close" onClick={closeModal}>×</button>
+        <div className="system-modal-overlay" onClick={closeModal}>
+          <div className="system-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="system-modal-header">
+              <h3 className="system-modal-title">{selectedNotice.title}</h3>
+              <button className="system-modal-close" onClick={closeModal}>×</button>
             </div>
-            <div className="modal-body">
+            <div className="system-modal-body">
               {selectedNotice.content}
             </div>
-            <div className="modal-footer">
-              <div className="modal-time">{formatTime(selectedNotice.timestamp)}</div>
+            <div className="system-modal-footer">
+              <div className="system-modal-time">{formatTime(selectedNotice.timestamp)}</div>
             </div>
           </div>
         </div>
