@@ -14,7 +14,7 @@ import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import Objects.VideoService.{VideoAbstract, VideoInfo, VideoStatus}
+import Objects.VideoService.{Video, VideoInfo, VideoStatus}
 import io.minio.GetPresignedObjectUrlArgs
 import io.minio.http.Method
 import java.util.concurrent.TimeUnit
@@ -27,10 +27,10 @@ case object DecodeVideo {
 
   // implicit val dateTimeDecoder: Decoder[DateTime] = decodeDateTime
 
-  def decodeVideoAbstract(json: Json)(using PlanContext): IO[VideoAbstract] = {
+  def decodeVideo(json: Json)(using PlanContext): IO[Video] = {
     for {
       _ <- IO(logger.info(s"Given json: $json"))
-      video <- IO(decodeType[VideoAbstract](json))
+      video <- IO(decodeType[Video](json))
       cover <- IO(video.cover.map(
         file_name => minioClient.getPresignedObjectUrl(
           GetPresignedObjectUrlArgs.builder()

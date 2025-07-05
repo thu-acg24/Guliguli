@@ -6,7 +6,7 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.VideoServiceCode
-import Objects.VideoService.VideoAbstract
+import Objects.VideoService.Video
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
 import io.circe.Encoder
@@ -24,13 +24,13 @@ import scala.util.Try
  * desc: 根据用户ID获取其发布的视频。
  * @param token: String (用户Token（可选）)
  * @param userId: Int
- * @return videoAbstract: VideoAbstract:1120 (用户发布的所有视频信息)
+ * @return video: Video:1120 (用户发布的所有视频信息)
  */
 
 case class QueryUserVideosMessage(
   token: Option[String] = None,
   userId: Int
-) extends API[List[VideoAbstract]](VideoServiceCode)
+) extends API[List[Video]](VideoServiceCode)
 
 case object QueryUserVideosMessage{
 

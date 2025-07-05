@@ -4,7 +4,7 @@ package APIs.VideoService
 import Common.API.API
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.VideoServiceCode
-import Objects.VideoService.VideoAbstract
+import Objects.VideoService.Video
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
 import io.circe.Encoder
@@ -19,12 +19,12 @@ import scala.util.Try
  * QueryFavoriteVideosMessage
  * desc: 查询用户收藏的所有视频。
  * @param userID: Int (用户唯一标识符)
- * @return videoAbstract: VideoAbstract:1120 (用户所有点赞视频的信息)
+ * @return video: Video:1120 (用户所有点赞视频的信息)
  */
 
 case class QueryFavoriteVideosMessage(
   userID: Int
-) extends API[List[VideoAbstract]](VideoServiceCode)
+) extends API[List[Video]](VideoServiceCode)
 
 case object QueryFavoriteVideosMessage{
 

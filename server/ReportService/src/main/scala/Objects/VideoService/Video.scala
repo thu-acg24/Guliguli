@@ -1,20 +1,16 @@
 package Objects.VideoService
 
-
-import Common.Serialize.CustomColumnTypes.decodeDateTime
-import Common.Serialize.CustomColumnTypes.encodeDateTime
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.Serialize.JacksonSerializeUtils
 import Objects.VideoService.VideoStatus
 import com.fasterxml.jackson.core.`type`.TypeReference
-import io.circe.Decoder
-import io.circe.Encoder
-import io.circe.Json
-import io.circe.generic.semiauto.deriveDecoder
-import io.circe.generic.semiauto.deriveEncoder
+import io.circe.{Decoder, Encoder, Json}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.parser.*
 import io.circe.syntax.*
-import java.util.UUID
 import org.joda.time.DateTime
+
+import java.util.UUID
 import scala.util.Try
 
 /**
@@ -24,11 +20,8 @@ import scala.util.Try
  * @param title: String (视频的标题信息)
  * @param description: String (视频的描述信息)
  * @param duration: Option[Float] (视频的时长，单位为秒)
+ * @param cover: Option[String] (视频封面的路径)
  * @param tag: List[String] (视频的标签列表)
- * @param coverPath: Option[String] (视频封面的路径)
- * @param m3u8Path: Option[String] (视频索引的路径)
- * @param tsPrefix: Option[String] (视频分片的路径)
- * @param sliceCount: Option[Int] (视频切片数)
  * @param uploaderID: Int (上传视频的用户ID)
  * @param views: Int (视频的播放量)
  * @param likes: Int (视频的点赞数)
@@ -42,11 +35,8 @@ case class Video(
   title: String,
   description: String,
   duration: Option[Float],
+  cover: Option[String],
   tag: List[String],
-  coverPath: Option[String],
-  m3u8Path: Option[String],
-  tsPrefix: Option[String],
-  sliceCount: Option[Int],
   uploaderID: Int,
   views: Int,
   likes: Int,
@@ -70,10 +60,10 @@ case object Video{
   }
 
   private val jacksonDecoder: Decoder[Video] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[Video]() {})) } 
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[Video]() {})) }
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
-  
+
   // Circe + Jackson 兜底的 Encoder
   given videoEncoder: Encoder[Video] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))

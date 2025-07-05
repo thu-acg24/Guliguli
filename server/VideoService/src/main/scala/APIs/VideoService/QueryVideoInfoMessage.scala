@@ -6,7 +6,7 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.VideoServiceCode
-import Objects.VideoService.VideoInfo
+import Objects.VideoService.Video
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
 import io.circe.Encoder
@@ -30,7 +30,7 @@ import scala.util.Try
 case class QueryVideoInfoMessage(
   token: Option[String] = None,
   videoId: Int
-) extends API[VideoInfo](VideoServiceCode)
+) extends API[Video](VideoServiceCode)
 
 case object QueryVideoInfoMessage{
 

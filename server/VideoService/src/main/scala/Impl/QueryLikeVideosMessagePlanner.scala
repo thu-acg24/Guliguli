@@ -6,8 +6,8 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.ServiceUtils.schemaName
-import Objects.VideoService.VideoAbstract
-import Utils.DecodeVideo.decodeVideoAbstract
+import Objects.VideoService.Video
+import Utils.DecodeVideo.decodeVideo
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
@@ -19,10 +19,10 @@ import org.slf4j.LoggerFactory
 case class QueryLikeVideosMessagePlanner(
                                          userID: Int,
                                          override val planContext: PlanContext
-                                       ) extends Planner[List[VideoAbstract]] {
+                                       ) extends Planner[List[Video]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[List[VideoAbstract]] = {
+  override def plan(using PlanContext): IO[List[Video]] = {
     for {
       _ <- IO(logger.info(s"[QueryLikeVideos] Querying liked videos for userID: $userID"))
       likedVideos <- queryLikedVideos()
@@ -30,7 +30,7 @@ case class QueryLikeVideosMessagePlanner(
     } yield likedVideos
   }
 
-  private def queryLikedVideos()(using PlanContext): IO[List[VideoAbstract]] = {
+  private def queryLikedVideos()(using PlanContext): IO[List[Video]] = {
     val sql = s"""
       SELECT v.video_id, v.title, v.description, v.duration, v.cover,
              v.uploader_id, v.views, v.likes, v.favorites, v.status, v.upload_time
@@ -41,6 +41,6 @@ case class QueryLikeVideosMessagePlanner(
     """
 
     readDBRows(sql, List(SqlParameter("Int", userID.toString)))
-      .flatMap(jsonList => jsonList.traverse(decodeVideoAbstract))
+      .flatMap(jsonList => jsonList.traverse(decodeVideo))
   }
 }

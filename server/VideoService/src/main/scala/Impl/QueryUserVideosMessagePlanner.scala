@@ -12,9 +12,9 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
-import Objects.VideoService.VideoAbstract
+import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
-import Utils.DecodeVideo.decodeVideoAbstract
+import Utils.DecodeVideo.decodeVideo
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -29,10 +29,10 @@ case class QueryUserVideosMessagePlanner(
                                          token: Option[String],
                                          userId: Int,
                                          override val planContext: PlanContext
-                                       ) extends Planner[List[VideoAbstract]] {
+                                       ) extends Planner[List[Video]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[List[VideoAbstract]] = {
+  override def plan(using PlanContext): IO[List[Video]] = {
     for {
       _ <- IO(logger.info("[Step 1]: 验证Token和用户权限"))
       userInfo <- validateToken()
@@ -58,7 +58,7 @@ case class QueryUserVideosMessagePlanner(
     }
   }
 
-  private def queryUserVideos(userInfo: (Option[Int], Option[UserRole]))(using PlanContext): IO[List[VideoAbstract]] = {
+  private def queryUserVideos(userInfo: (Option[Int], Option[UserRole]))(using PlanContext): IO[List[Video]] = {
     val (currentUserID, role) = userInfo
     
     // 确定查询条件：
@@ -88,6 +88,6 @@ case class QueryUserVideosMessagePlanner(
       """
 
     readDBRows(sql, parameters)
-      .flatMap(jsonList => jsonList.traverse(decodeVideoAbstract))
+      .flatMap(jsonList => jsonList.traverse(decodeVideo))
   }
 }

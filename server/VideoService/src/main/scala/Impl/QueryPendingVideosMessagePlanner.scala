@@ -12,9 +12,9 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
-import Objects.VideoService.VideoAbstract
+import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
-import Utils.DecodeVideo.decodeVideoAbstract
+import Utils.DecodeVideo.decodeVideo
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -28,10 +28,10 @@ import org.slf4j.LoggerFactory
 case class QueryPendingVideosMessagePlanner(
                                              token: String,
                                              override val planContext: PlanContext
-                                           ) extends Planner[List[VideoAbstract]] {
+                                           ) extends Planner[List[Video]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[List[VideoAbstract]] = {
+  override def plan(using planContext: PlanContext): IO[List[Video]] = {
     for {
       _ <- IO(logger.info("[Step 1]: 校验Token和用户权限"))
       userRole <- QueryUserRoleMessage(token).send
@@ -48,7 +48,7 @@ case class QueryPendingVideosMessagePlanner(
     } yield pendingVideos
   }
 
-  private def fetchPendingVideos()(using PlanContext): IO[List[VideoAbstract]] = {
+  private def fetchPendingVideos()(using PlanContext): IO[List[Video]] = {
     val sql =
       s"""
         SELECT video_id, title, description, duration, cover,
@@ -60,6 +60,6 @@ case class QueryPendingVideosMessagePlanner(
     val parameters = List(SqlParameter("String", VideoStatus.Pending.toString))
 
     readDBRows(sql, parameters)
-      .flatMap(jsonList => jsonList.traverse(decodeVideoAbstract))
+      .flatMap(jsonList => jsonList.traverse(decodeVideo))
   }
 }
