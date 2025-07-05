@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import iconSrc from "./icon.png";
 import LoginModal from "Components/LoginModal/LoginModal";
-import { useUserToken, setUserToken } from "Globals/GlobalStore";
-import { GetUIDByTokenMessage } from "Plugins/UserService/APIs/GetUIDByTokenMessage";
-import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
-import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
+import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
-import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
-import { UserStat } from "Plugins/UserService/Objects/UserStat";
-import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
-import "./Header.css"; 
+import "./Header.css";
 
 import { mainPagePath } from "Pages/MainPage/MainPage";
 import { messagePagePath } from "Pages/MessagePage/MessagePage";
@@ -22,85 +16,36 @@ const Header: React.FC = () => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [showUserPanel, setShowUserPanel] = useState(false);
-    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-    const [userStat, setUserStat] = useState<UserStat | null>(null);
     const userToken = useUserToken();
+    const { userInfo } = useUserInfo();
+    const { userStat } = useUserStat();
+    const { userID } = useUserID();
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            const userID = await getUIDByToken();
-            if (userID !== null) {
-                await fetchUserInfo(userID);
-                await fetchUserStat(userID);
-            } else {
-                setUserInfo(null);
-                setUserStat(null);
-            }
-        };
-        fetchUserData();
-    }, [userToken]);
+    // 跳转函数
+    const handleAvatarClick = async () => {
+        navigate(`/home/${userID}`);
+    }
 
-    // 校验token有效性
-    const getUIDByToken = async (): Promise<number | null> => {
-        // return 1
-        if (!userToken) return null;
-        return new Promise((resolve) => {
-            try {
-                new GetUIDByTokenMessage(userToken).send(
-                    (info: string) => {
-                        const user_id = JSON.parse(info);
-                        resolve(user_id)
-                    },
-                    (e: string) => {
-                        console.error("Token校验失败:", e);
-                        materialAlertError(`Token校验失败`, "", () => {
-                            setUserToken("");
-                            resolve(null);
-                        });
-                    }
-                );
-            } catch (e) {
-                console.error("Token校验异常:", e.message);
-                materialAlertError(`Token校验失败`, "", () => {
-                    setUserToken("");
-                    resolve(null);
-                });
-            }
-        });
+    // 处理头像鼠标悬浮
+    const handleAvatarMouseEnter = async () => {
+        setShowUserPanel(true);
     };
 
-    // 获取用户信息
-    const fetchUserInfo = async (userID: number) => {
-        try {
-            new QueryUserInfoMessage(userID).send(
-                (info: string) => {
-                    const userInfo = JSON.parse(info);
-                    setUserInfo(userInfo);
-                },
-                (e: string) => {
-                    console.error("获取用户信息失败:", e);
-                }
-            );
-        } catch (e) {
-            console.error("获取用户信息异常:", e.message);
-        }
+    const handleAvatarMouseLeave = () => {
+        setShowUserPanel(false);
     };
 
-    // 获取用户统计信息
-    const fetchUserStat = async (userID: number) => {
-        try {
-            new QueryUserStatMessage(userID).send(
-                (info: string) => {
-                    const userStat = JSON.parse(info);
-                    setUserStat(userStat);
-                },
-                (e: string) => {
-                    console.error("获取用户统计信息失败:", e);
-                }
-            );
-        } catch (e) {
-            console.error("获取用户统计信息异常:", e.message);
-        }
+    const handleMsgClick = async () => {
+        navigate(messagePagePath);
+    };
+    const handleFavClick = async () => {
+        navigate(`/home/${userID}/favorites`);
+    };
+    const handleHistoryClick = async () => {
+        navigate(`/home/${userID}/history`);
+    };
+    const handleUploadClick = async () => {
+        // TODO: 跳转到投稿页面
     };
 
     // 处理登出
@@ -125,63 +70,6 @@ const Header: React.FC = () => {
         }
     };
 
-    // 跳转函数
-    const handleAvatarClick = async () => {
-        const userID = await getUIDByToken();
-        if (userID !== null) {
-            navigate(`/home/${userID}`);
-        } else {
-            setShowLoginModal(true);
-        }
-    }
-
-    // 处理头像鼠标悬浮
-    const handleAvatarMouseEnter = async () => {
-        setShowUserPanel(true);
-        // await fetchUserInfo();
-    };
-
-    const handleAvatarMouseLeave = () => {
-        setShowUserPanel(false);
-    };
-
-    const handleMsgClick = async () => {
-        const userID = await getUIDByToken();
-        if (userID !== null) {
-            navigate(messagePagePath);
-        } else {
-            setShowLoginModal(true);
-        }
-    };
-    const handleDynamicClick = async () => {
-        if (await getUIDByToken() !== null) {
-            // TODO: 跳转到动态页面
-        } else {
-            setShowLoginModal(true);
-        }
-    };
-    const handleFavClick = async () => {
-        if (await getUIDByToken() !== null) {
-            // TODO: 跳转到收藏页面
-        } else {
-            setShowLoginModal(true);
-        }
-    };
-    const handleHistoryClick = async () => {
-        if (await getUIDByToken() !== null) {
-            // TODO: 跳转到历史页面
-        } else {
-            setShowLoginModal(true);
-        }
-    };
-    const handleUploadClick = async () => {
-        if (await getUIDByToken() !== null) {
-            // TODO: 跳转到投稿页面
-        } else {
-            setShowLoginModal(true);
-        }
-    };
-
     return (
         <header className="header-header">
             <div className="header-logo" onClick={() => {
@@ -203,7 +91,7 @@ const Header: React.FC = () => {
                     <button className="header-search-btn" onClick={performSearch}>搜索</button>
                 </div>
             </div>
-            {userToken ? (
+            {userInfo ? (
                 <div className="header-header-actions">
                     <div
                         className="header-user-avatar-container"
@@ -266,7 +154,6 @@ const Header: React.FC = () => {
                         )}
                     </div>
                     <div className="header-header-action-btn" onClick={handleMsgClick}>消息</div>
-                    <div className="header-header-action-btn" onClick={handleDynamicClick}>动态</div>
                     <div className="header-header-action-btn" onClick={handleFavClick}>收藏</div>
                     <div className="header-header-action-btn" onClick={handleHistoryClick}>历史</div>
                     <div className="header-header-upload-btn" onClick={handleUploadClick}>投稿</div>

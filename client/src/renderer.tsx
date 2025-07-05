@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { AlertGadget } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
+import { useGlobalUserEffects } from 'Globals/UserHooks';
 import './Styles/index.css';
 import MainPage, { mainPagePath } from "Pages/MainPage/MainPage";
 import VideoPage, { videoPagePath } from 'Pages/VideoPage/VideoPage';
@@ -18,6 +19,9 @@ import HistoryTab from 'Pages/HomePage/HistoryTab';
 import SettingsTab from 'Pages/HomePage/SettingsTab';
 
 const Layout = () => {
+    // 初始化全局用户状态的副作用
+    useGlobalUserEffects();
+
     return (
         <>
             <HashRouter>

@@ -7,10 +7,9 @@ import { SendMessageMessage } from 'Plugins/MessageService/APIs/SendMessageMessa
 import { QueryUserInContactMessage } from 'Plugins/MessageService/APIs/QueryUserInContactMessage';
 import { Message } from 'Plugins/MessageService/Objects/Message';
 import { UserInfoWithMessage } from 'Plugins/MessageService/Objects/UserInfoWithMessage';
-import { useUserInfo } from 'Hooks/useUseInfo';
+import { useUserInfo } from 'Globals/GlobalStore';
 import { formatTime } from 'Components/GetTime';
 import "./MessagePage.css";
-import { User } from 'Plugins/UserService/Objects/User';
 
 
 const WhisperTab: React.FC = () => {
@@ -22,7 +21,7 @@ const WhisperTab: React.FC = () => {
   const userToken = useUserToken();
   // 在组件顶部添加新状态保存刷新前选中的用户
   const [refreshFlag, setRefreshFlag] = useState(false);
-  const { userInfo, fetchUserInfo, getUserIDByToken } = useUserInfo();
+  const { userInfo } = useUserInfo();
   // 添加useEffect处理刷新
   useEffect(() => {
     fetchConversations();
@@ -30,12 +29,18 @@ const WhisperTab: React.FC = () => {
   }, [refreshFlag]);
 
   useEffect(() => {
-    console.log("WhisperTab mounted");
-    console.log(userInfo)
+    console.log("WhisperTab mounted or userToken changed:", userToken);
     if (userToken) {
-      getUserIDByToken(userToken).then(userID => fetchUserInfo(userID)).then(() => {
-        fetchConversations();
-      });
+      fetchConversations();
+    } else {
+      // 用户登出时清空所有消息相关状态
+
+    }
+    return () => {
+      setConversations([]);
+      setMessages([]);
+      setSelectedUser(null);
+      setMessageInput('');
     }
   }, [userToken]);
 
@@ -63,12 +68,12 @@ const WhisperTab: React.FC = () => {
             try {
               const data = JSON.parse(info);
               setConversations(data);
-              resolve(); 
+              resolve();
             } catch (e) {
               reject(e);
             }
           },
-          (e: string) => reject(new Error(e)) 
+          (e: string) => reject(new Error(e))
         );
       });
     } catch (error) {
@@ -191,7 +196,7 @@ const WhisperTab: React.FC = () => {
 
             <div className="message-list">
               {messages.map(msg => {
-                const isMe = msg.senderID === userInfo.userID;
+                const isMe = userInfo ? msg.senderID === userInfo.userID : false;
                 return (
                   <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}>
                     {!isMe && (
@@ -202,11 +207,11 @@ const WhisperTab: React.FC = () => {
                     <div className="message-content">
                       <div className="message-text">{msg.content}</div>
                       <div className="message-time">
-                {formatTime(msg.timestamp)}</div>
+                        {formatTime(msg.timestamp)}</div>
                     </div>
                     {isMe && (
                       <div className="message-avatar">
-                        <img src={userInfo.avatarPath} alt="头像" />
+                        <img src={userInfo?.avatarPath || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+'} alt="头像" />
                       </div>
                     )}
                   </div>

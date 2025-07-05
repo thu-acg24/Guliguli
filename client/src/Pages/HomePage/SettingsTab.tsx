@@ -3,20 +3,20 @@ import React, { useState, useRef } from "react";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { useOutletContext } from "react-router-dom";
 import { useUserToken } from "Globals/GlobalStore";
+import { useRefreshUserInfo } from "Globals/UserHooks";
 import { ModifyAvatarMessage } from "Plugins/UserService/APIs/ModifyAvatarMessage";
 import { ValidateAvatarMessage } from "Plugins/UserService/APIs/ValidateAvatarMessage";
 import { ModifyUserInfoMessage } from "Plugins/UserService/APIs/ModifyUserInfoMessage";
 import { ModifyPasswordMessage } from "Plugins/UserService/APIs/ModifyPasswordMessage";
 import "./HomePage.css";
 
-interface SettingsTabProps {
-    userInfo: UserInfo;
-}
-
 const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
-    const outlet = useOutletContext<{ userInfo: any }>();
+    const outlet = useOutletContext<{ userInfo: any, refreshUserInfo?: () => void }>();
     const userInfo = props.userInfo ?? outlet?.userInfo;
+    const refreshHomePageUserInfo = outlet?.refreshUserInfo;
     const userToken = useUserToken();
+    const refreshUserInfo = useRefreshUserInfo();
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
@@ -176,6 +176,8 @@ const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
                         }
                     );
                 });
+                // 验证成功后等待3秒钟
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 // 验证成功后清除 sessionToken
                 setAvatarSessionToken(null);
             }
@@ -203,6 +205,14 @@ const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
 
             setIsSuccess(true);
             setMessage("个人信息保存成功！");
+
+            // 刷新全局用户信息
+            await refreshUserInfo();
+
+            // 刷新 HomePage 中的用户信息
+            if (refreshHomePageUserInfo) {
+                await refreshHomePageUserInfo();
+            }
 
         } catch (error) {
             setIsSuccess(false);

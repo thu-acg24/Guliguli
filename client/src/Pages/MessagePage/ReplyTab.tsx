@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
 import { QueryReplyNoticesMessage } from 'Plugins/MessageService/APIs/QueryReplyNoticesMessage';
 import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
-import { useUserInfo } from 'Hooks/useUseInfo';
+import { useUserInfo } from 'Globals/GlobalStore';
+import { fetchOtherUserInfo } from 'Globals/UserService';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { formatTime } from 'Components/GetTime';
 import ReplyModal from 'Components/ReplyModal/ReplyModal';
-import "./MessagePage.css"; 
+import "./MessagePage.css";
 import "./ReplyTab.css";
 
 const ReplyTab: React.FC = () => {
@@ -14,11 +15,10 @@ const ReplyTab: React.FC = () => {
     replyNotice: ReplyNotice;
     userInfo: UserInfo;
   }
-  
+
   const [replies, setReplies] = useState<ReplyWithUserInfo[]>([]);
   const [replyingComment, setReplyingComment] = useState<ReplyNotice | null>(null);
   const userToken = useUserToken();
-  const { fetchOtherUserInfo } = useUserInfo();
 
   useEffect(() => {
     if (userToken) fetchRepliesWithUserInfo();
@@ -56,7 +56,7 @@ const ReplyTab: React.FC = () => {
   };
 
   const handleOriginalClick = (videoUrl: number) => {
-    
+
   };
 
   return (
@@ -64,24 +64,24 @@ const ReplyTab: React.FC = () => {
       <div className="system-header">
         <h3>回复我的</h3>
       </div>
-      
+
       <div className="reply-list">
         {replies.map(reply => (
           <div key={reply.replyNotice.noticeID} className="reply-item">
             <div className="reply-user-section">
               <div className="user-avatar">
-                <img 
-                  src={reply.userInfo.avatarPath || '/default-avatar.png'} 
+                <img
+                  src={reply.userInfo.avatarPath || '/default-avatar.png'}
                   alt={reply.userInfo.username}
                 />
               </div>
             </div>
-            
+
             <div className="reply-content-section">
               <div className="reply-title">
                 <span className="reply-username">{reply.userInfo.username}</span> 回复了我的评论
                 {reply.replyNotice.originalContent && (
-                  <span 
+                  <span
                     className="reply-original-text"
                     onClick={() => handleOriginalClick(reply.replyNotice.videoID)}
                     title={reply.replyNotice.originalContent}
@@ -93,12 +93,12 @@ const ReplyTab: React.FC = () => {
               <div className="reply-text">
                 {reply.replyNotice.content}
               </div>
-              
+
               <div className="reply-footer">
                 <span className="reply-time">
                   {formatTime(reply.replyNotice.timestamp)}
                 </span>
-                <button 
+                <button
                   className="reply-action-btn"
                   onClick={() => setReplyingComment(reply.replyNotice)}
                 >
