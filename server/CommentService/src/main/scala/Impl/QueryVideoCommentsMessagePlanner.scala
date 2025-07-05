@@ -82,7 +82,7 @@ case class QueryVideoCommentsMessagePlanner(
         s"""
            |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, reply_count, time_stamp
            |FROM ${schemaName}.comment_table
-           |WHERE video_id = ? AND root_id IS NULL AND (time_stamp < ? OR (time_stamp = ? AND id < ?))
+           |WHERE video_id = ? AND root_id IS NULL AND (time_stamp < ? OR (time_stamp = ? AND comment_id < ?))
            |ORDER BY time_stamp DESC, comment_id DESC LIMIT 20
        """.stripMargin
       }
@@ -109,7 +109,7 @@ case class QueryVideoCommentsMessagePlanner(
         s"""
            |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, reply_count, time_stamp
            |FROM ${schemaName}.comment_table
-           |WHERE video_id = ? AND root_id = ? AND (time_stamp > ? OR (time_stamp = ? AND id > ?))
+           |WHERE video_id = ? AND root_id = ? AND (time_stamp > ? OR (time_stamp = ? AND comment_id > ?))
            |ORDER BY time_stamp ASC, comment_id ASC LIMIT 20
        """.stripMargin
       }
