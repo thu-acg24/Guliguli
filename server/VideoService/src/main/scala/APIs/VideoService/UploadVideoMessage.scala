@@ -25,7 +25,6 @@ import scala.util.Try
  * @param title: String (视频标题)
  * @param description: String (视频简介)
  * @param tag: String (视频标签列表)
- * @param duration: Int (视频时长（秒）)
  * @return videoID: Int (生成的视频ID)
  */
 
@@ -33,8 +32,7 @@ case class UploadVideoMessage(
   token: String,
   title: String,
   description: String,
-  tag: List[String],
-  duration: Int
+  tag: List[String]
 ) extends API[Int](VideoServiceCode)
 
 case object UploadVideoMessage{
