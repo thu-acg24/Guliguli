@@ -38,14 +38,11 @@ const Header: React.FC = () => {
     const handleMsgClick = async () => {
         navigate(messagePagePath);
     };
-    const handleDynamicClick = async () => {
-        // TODO: 跳转到动态页面
-    };
     const handleFavClick = async () => {
-        // TODO: 跳转到收藏页面
+        navigate(`/home/${userID}/favorites`);
     };
     const handleHistoryClick = async () => {
-        // TODO: 跳转到历史页面
+        navigate(`/home/${userID}/history`);
     };
     const handleUploadClick = async () => {
         // TODO: 跳转到投稿页面
@@ -157,7 +154,6 @@ const Header: React.FC = () => {
                         )}
                     </div>
                     <div className="header-header-action-btn" onClick={handleMsgClick}>消息</div>
-                    <div className="header-header-action-btn" onClick={handleDynamicClick}>动态</div>
                     <div className="header-header-action-btn" onClick={handleFavClick}>收藏</div>
                     <div className="header-header-action-btn" onClick={handleHistoryClick}>历史</div>
                     <div className="header-header-upload-btn" onClick={handleUploadClick}>投稿</div>
