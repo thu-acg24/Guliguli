@@ -29,41 +29,12 @@ case class QueryCommentByIDMessagePlanner(
   override def plan(using PlanContext): IO[Comment] = {
     for {
       // Step 1: Check if the commentID exists
-      _ <- IO(logger.info(s"[QueryCommentByID] 校验 commentID=${commentID} 是否存在"))
-      exists <- checkCommentExists(commentID)
-      result <- if (!exists) {
-        // Step 1.2: If commentID does not exist, return None
-        IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 不存在")) >>
-          IO.raiseError(InvalidInputException("commentID=${commentID} 不存在"))
-      } else {
-        for {
-          // Step 2: Retrieve comment details
-          _ <- IO(logger.info(s"[QueryCommentByID] commentID=${commentID} 存在，开始获取评论详细信息"))
-          maybeComment <- fetchCommentDetails(commentID)
-          comment <- maybeComment.liftTo[IO](InvalidInputException("commentID=${commentID} 不存在"))
-          // Step 3: Wrap result and return
-          _ <- IO(logger.info(s"[QueryCommentByID] 封装返回结果完成"))
-        } yield comment
-      }
-    } yield result
-  }
-
-  /**
-   * 检查commentID是否存在
-   * @param commentID 评论ID
-   * @return Boolean，存在返回true，不存在返回false
-   */
-  private def checkCommentExists(commentID: Int)(using PlanContext): IO[Boolean] = {
-    val sql =
-      s"""
-         |SELECT EXISTS(
-         |  SELECT 1 
-         |  FROM ${schemaName}.comment_table 
-         |  WHERE comment_id = ?
-         |);
-       """.stripMargin
-    IO(logger.info(s"[QueryCommentByID] 检查 commentID=${commentID} 是否存在的SQL: ${sql}"))
-    readDBBoolean(sql, List(SqlParameter("Int", commentID.toString)))
+      _ <- IO(logger.info(s"[QueryCommentByID] 校验 commentID=${commentID} 是否存在，并获取评论详细信息"))
+      maybeComment <- fetchCommentDetails(commentID)
+      comment <- maybeComment.liftTo[IO](InvalidInputException("commentID=${commentID} 不存在"))
+      // Step 3: Wrap result and return
+      _ <- IO(logger.info(s"[QueryCommentByID] 封装返回结果完成"))
+    } yield comment
   }
 
   /**

@@ -133,4 +133,16 @@ case class PublishCommentMessagePlanner(
       )
     )
   }
+  private def sendReplyNotice(commentID: Int)(using PlanContext): IO[Unit] = {
+    val sql =
+      s"""
+         |SELECT author_id
+         |FROM ${schemaName}.comment_table
+         |WHERE comment_id = ?;
+         """.stripMargin
+    for {
+      receiverID <- readDBInt(sql, List(SqlParameter("Int", commentID.toString)))
+      _ <- SendReplyNoticeMessage(token, commentID).send
+    } yield()
+  }
 }
