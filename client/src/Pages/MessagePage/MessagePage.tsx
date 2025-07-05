@@ -14,6 +14,7 @@ const MessagePage: React.FC = () => {
   const userToken = useUserToken();
 
   useEffect(() => {
+    console.log("MessagePage mounted");
     if (!userToken) {
       materialAlertError("请先登录", "您需要登录才能查看消息", () => {
         navigate(mainPagePath);

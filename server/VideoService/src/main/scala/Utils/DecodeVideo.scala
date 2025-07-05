@@ -21,17 +21,17 @@ case object DecodeVideo {
   private val logger = LoggerFactory.getLogger(getClass)
   //process plan code 预留标志位，不要删除
 
-  implicit val dateTimeDecoder: Decoder[DateTime] = Decoder.decodeString.emap { str =>
-    try {
-      val millis = str.toLong
-      Right(new DateTime(millis))
-    } catch {
-      case _: NumberFormatException =>
-        Left(s"Invalid timestamp format: '$str'")
-      case e: Throwable =>
-        Left(s"Failed to parse DateTime: ${e.getMessage}")
-    }
-  }
+  //implicit val dateTimeDecoder: Decoder[DateTime] = Decoder.decodeString.emap { str =>
+  //  try {
+  //    val millis = str.toLong
+  //    Right(new DateTime(millis))
+  //  } catch {
+  //    case _: NumberFormatException =>
+  //      Left(s"Invalid timestamp format: '$str'")
+  //    case e: Throwable =>
+  //      Left(s"Failed to parse DateTime: ${e.getMessage}")
+  //  }
+  //}
 
   def decodeVideo(json: Json)(using PlanContext): Video = {
     val updatedJson = json.mapObject { obj =>

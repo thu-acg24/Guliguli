@@ -10,6 +10,7 @@ import { UserInfoWithMessage } from 'Plugins/MessageService/Objects/UserInfoWith
 import { useUserInfo } from 'Hooks/useUseInfo';
 import { formatTime } from 'Components/GetTime';
 import "./MessagePage.css";
+import { User } from 'Plugins/UserService/Objects/User';
 
 
 const WhisperTab: React.FC = () => {
@@ -29,6 +30,8 @@ const WhisperTab: React.FC = () => {
   }, [refreshFlag]);
 
   useEffect(() => {
+    console.log("WhisperTab mounted");
+    console.log(userInfo)
     if (userToken) {
       getUserIDByToken(userToken).then(userID => fetchUserInfo(userID)).then(() => {
         fetchConversations();
