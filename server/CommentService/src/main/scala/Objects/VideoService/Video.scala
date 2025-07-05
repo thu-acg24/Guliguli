@@ -6,7 +6,6 @@ import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
 import Objects.VideoService.VideoStatus
 import com.fasterxml.jackson.core.`type`.TypeReference
-import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.Json
@@ -38,21 +37,21 @@ import scala.util.Try
  */
 
 case class Video(
-                  videoID: Int,
-                  title: String,
-                  description: String,
-                  duration: Option[Float],
-                  tag: List[String],
-                  m3u8Path: Option[String],
-                  tsPrefix: Option[String],
-                  sliceCount: Option[Int],
-                  uploaderID: Int,
-                  views: Int,
-                  likes: Int,
-                  favorites: Int,
-                  status: VideoStatus,
-                  uploadTime: DateTime
-                ){
+  videoID: Int,
+  title: String,
+  description: String,
+  duration: Option[Float],
+  tag: List[String],
+  m3u8Path: Option[String],
+  tsPrefix: Option[String],
+  sliceCount: Option[Int],
+  uploaderID: Int,
+  views: Int,
+  likes: Int,
+  favorites: Int,
+  status: VideoStatus,
+  uploadTime: DateTime
+){
 
   //process class code 预留标志位，不要删除
 
@@ -69,10 +68,10 @@ case object Video{
   }
 
   private val jacksonDecoder: Decoder[Video] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[Video]() {})) }
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[Video]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
-
+  
   // Circe + Jackson 兜底的 Encoder
   given videoEncoder: Encoder[Video] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))

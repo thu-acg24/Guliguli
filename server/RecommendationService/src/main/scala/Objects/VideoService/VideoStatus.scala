@@ -18,9 +18,11 @@ enum VideoStatus(val desc: String):
 
   override def toString: String = this.desc
 
-  case Pending extends VideoStatus("待审核") // 待审核
-  case Approved extends VideoStatus("审核通过") // 审核通过
-  case Rejected extends VideoStatus("审核未通过") // 审核未通过
+  case Pending extends VideoStatus("Pending") // 待审核
+  case Approved extends VideoStatus("Approved") // 审核通过
+  case Rejected extends VideoStatus("Rejected") // 审核未通过
+  case Uploading extends VideoStatus("Uploading") // 上传中
+  case Private extends VideoStatus("Private") // 公众不可见
 
 object VideoStatus:
   given encode: Encoder[VideoStatus] = Encoder.encodeString.contramap[VideoStatus](toString)
@@ -28,21 +30,27 @@ object VideoStatus:
   given decode: Decoder[VideoStatus] = Decoder.decodeString.emap(fromStringEither)
 
   def fromString(s: String):VideoStatus  = s match
-    case "待审核" => Pending
-    case "审核通过" => Approved
-    case "审核未通过" => Rejected
+    case "Pending" => Pending
+    case "Approved" => Approved
+    case "Rejected" => Rejected
+    case "Uploading" => Uploading
+    case "Private" => Private
     case _ => throw Exception(s"Unknown VideoStatus: $s")
 
   def fromStringEither(s: String):Either[String, VideoStatus]  = s match
-    case "待审核" => Right(Pending)
-    case "审核通过" => Right(Approved)
-    case "审核未通过" => Right(Rejected)
+    case "Pending" => Right(Pending)
+    case "Approved" => Right(Approved)
+    case "Rejected" => Right(Rejected)
+    case "Uploading" => Right(Uploading)
+    case "Private" => Right(Private)
     case _ => Left(s"Unknown VideoStatus: $s")
 
   def toString(t: VideoStatus): String = t match
-    case Pending => "待审核"
-    case Approved => "审核通过"
-    case Rejected => "审核未通过"
+    case Pending => "Pending"
+    case Approved => "Approved"
+    case Rejected => "Rejected"
+    case Uploading => "Uploading"
+    case Private => "Private"
 
 // Jackson 序列化器
 class VideoStatusSerializer extends JsonSerializer[VideoStatus] {

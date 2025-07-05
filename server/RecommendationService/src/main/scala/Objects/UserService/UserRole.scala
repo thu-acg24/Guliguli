@@ -18,9 +18,9 @@ enum UserRole(val desc: String):
 
   override def toString: String = this.desc
 
-  case Admin extends UserRole("管理员") // 管理员
-  case Auditor extends UserRole("审核员") // 审核员
-  case Normal extends UserRole("普通用户") // 普通用户
+  case Admin extends UserRole("Admin") // 管理员
+  case Auditor extends UserRole("Auditor") // 审核员
+  case Normal extends UserRole("Normal") // 普通用户
 
 object UserRole:
   given encode: Encoder[UserRole] = Encoder.encodeString.contramap[UserRole](toString)
@@ -28,21 +28,21 @@ object UserRole:
   given decode: Decoder[UserRole] = Decoder.decodeString.emap(fromStringEither)
 
   def fromString(s: String):UserRole  = s match
-    case "管理员" => Admin
-    case "审核员" => Auditor
-    case "普通用户" => Normal
+    case "Admin" => Admin
+    case "Auditor" => Auditor
+    case "Normal" => Normal
     case _ => throw Exception(s"Unknown UserRole: $s")
 
   def fromStringEither(s: String):Either[String, UserRole]  = s match
-    case "管理员" => Right(Admin)
-    case "审核员" => Right(Auditor)
-    case "普通用户" => Right(Normal)
+    case "Admin" => Right(Admin)
+    case "Auditor" => Right(Auditor)
+    case "Normal" => Right(Normal)
     case _ => Left(s"Unknown UserRole: $s")
 
   def toString(t: UserRole): String = t match
-    case Admin => "管理员"
-    case Auditor => "审核员"
-    case Normal => "普通用户"
+    case Admin => "Admin"
+    case Auditor => "Auditor"
+    case Normal => "Normal"
 
 // Jackson 序列化器
 class UserRoleSerializer extends JsonSerializer[UserRole] {

@@ -30,27 +30,27 @@ object VideoStatus:
   given decode: Decoder[VideoStatus] = Decoder.decodeString.emap(fromStringEither)
 
   def fromString(s: String):VideoStatus  = s match
-  case "Pending" => Pending
-  case "Approved" => Approved
-  case "Rejected" => Rejected
-  case "Uploading" => Uploading
-  case "Private" => Private
-  case _ => throw Exception(s"Unknown VideoStatus: $s")
+    case "Pending" => Pending
+    case "Approved" => Approved
+    case "Rejected" => Rejected
+    case "Uploading" => Uploading
+    case "Private" => Private
+    case _ => throw Exception(s"Unknown VideoStatus: $s")
 
   def fromStringEither(s: String):Either[String, VideoStatus]  = s match
-  case "Pending" => Right(Pending)
-  case "Approved" => Right(Approved)
-  case "Rejected" => Right(Rejected)
-  case "Uploading" => Right(Uploading)
-  case "Private" => Right(Private)
-  case _ => Left(s"Unknown VideoStatus: $s")
+    case "Pending" => Right(Pending)
+    case "Approved" => Right(Approved)
+    case "Rejected" => Right(Rejected)
+    case "Uploading" => Right(Uploading)
+    case "Private" => Right(Private)
+    case _ => Left(s"Unknown VideoStatus: $s")
 
   def toString(t: VideoStatus): String = t match
-  case Pending => "Pending"
-  case Approved => "Approved"
-  case Rejected => "Rejected"
-  case Uploading => "Uploading"
-  case Private => "Private"
+    case Pending => "Pending"
+    case Approved => "Approved"
+    case Rejected => "Rejected"
+    case Uploading => "Uploading"
+    case Private => "Private"
 
 // Jackson 序列化器
 class VideoStatusSerializer extends JsonSerializer[VideoStatus] {
