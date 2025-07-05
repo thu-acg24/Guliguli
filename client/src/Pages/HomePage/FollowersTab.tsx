@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { useOutletContext } from "react-router-dom";
+import { QueryFollowerListMessage } from "Plugins/UserService/APIs/QueryFollowerListMessage";
+import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import "./HomePage.css";
 
-interface FollowersTabProps {
-    userID: number;
-}
+const perpage = 10; // 每次新显示的粉丝数量
 
 const FollowersTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number }>();
@@ -21,23 +21,58 @@ const FollowersTab: React.FC<{ userID?: number }> = (props) => {
     const fetchFollowers = async (page: number) => {
         setLoading(true);
         try {
-            // API调用留空
-            // const result = await getUserFollowers(userID, page, 10);
-            // setFollowers(prev => [...prev, ...result.followers]);
-            // setHasMore(result.hasMore);
-
-            // 模拟数据
-            const mockFollowers = Array.from({ length: 10 }, (_, i) =>
-                new UserInfo(
-                    i + (page - 1) * 10,
-                    `粉丝${i + (page - 1) * 10}`,
-                    "https://picsum.photos/50/50",
-                    false
+            const newFollowersID = await new Promise<number[]>((resolve, reject) => {
+                new QueryFollowerListMessage(userID, (page - 1) * perpage + 1, page * perpage).send(
+                    (info: string) => {
+                        const followerList = JSON.parse(info);
+                        resolve(followerList.map((follower: any) => follower.followerID));
+                    },
+                    (error: any) => {
+                        console.error("获取粉丝列表失败", error);
+                        reject(error);
+                    }
                 )
+            });
+
+            const newFollowers = await Promise.all(
+                newFollowersID.map(async (id) => {
+                    return await new Promise<UserInfo>((resolve, reject) => {
+                        new QueryUserInfoMessage(id).send(
+                            (info: string) => {
+                                const userInfo = JSON.parse(info);
+                                resolve(
+                                    new UserInfo(
+                                        userInfo.userID,
+                                        userInfo.username,
+                                        userInfo.avatarPath,
+                                        userInfo.isFollowing
+                                    )
+                                );
+                            },
+                            (error: any) => {
+                                console.error("获取用户信息失败", error);
+                                reject(error);
+                            }
+                        );
+                    });
+                })
             );
 
-            setFollowers(prev => [...prev, ...mockFollowers]);
-            setHasMore(true);
+            const HasMore = newFollowers.length === perpage;
+
+            // 模拟数据
+            // const newFollowers = Array.from({ length: perpage }, (_, i) =>
+            //     new UserInfo(
+            //         i + (page - 1) * perpage,
+            //         `粉丝${i + (page - 1) * perpage}`,
+            //         "https://picsum.photos/50/50",
+            //         false
+            //     )
+            // );
+            // const HasMore = true
+
+            setFollowers(prev => [...prev, ...newFollowers]);
+            setHasMore(HasMore);
         } catch (error) {
             console.error("获取粉丝列表失败", error);
         } finally {

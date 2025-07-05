@@ -45,7 +45,7 @@ case class QueryCommentByIDMessagePlanner(
   private def fetchCommentDetails(commentID: Int)(using PlanContext): IO[Option[Comment]] = {
     val sql =
       s"""
-         |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, time_stamp
+         |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, reply_count, time_stamp
          |FROM ${schemaName}.comment_table
          |WHERE comment_id = ?;
        """.stripMargin
@@ -59,6 +59,7 @@ case class QueryCommentByIDMessagePlanner(
           authorID = decodeField[Int](json, "author_id"),
           replyToID = decodeField[Option[Int]](json, "reply_to_id"),
           likes = decodeField[Int](json, "likes"),
+          replyCount = decodeField[Int](json, "reply_count"),
           timestamp = new DateTime(decodeField[Long](json, "time_stamp"))
         )
       }

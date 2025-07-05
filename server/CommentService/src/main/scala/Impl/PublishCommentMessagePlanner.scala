@@ -59,10 +59,12 @@ case class PublishCommentMessagePlanner(
       _ <- IO(logger.info("组装数据并插入到数据库"))
       curID <- insertComment(userID, videoID, commentContent, replyToCommentID, rootID)
 
-      // Step 6: 如果是回复，发送通知
+      // Step 6: 如果是回复，发送通知并增加所属楼层回复数
       _ <- replyToCommentID match {
         case None => IO.unit
-        case Some(_) => SendReplyNoticeMessage(token, curID).send
+        case Some(_) =>
+          writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
+            List(SqlParameter("Int", rootID.toString))) >> SendReplyNoticeMessage(token, curID).send
       }
     } yield ()
   }

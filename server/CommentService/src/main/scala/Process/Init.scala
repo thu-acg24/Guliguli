@@ -45,6 +45,7 @@ object Init {
             author_id INT NOT NULL,
             reply_to_id INT,
             root_id INT,
+            reply_count INT NOT NULL DEFAULT 0,
             likes INT NOT NULL DEFAULT 0,
             time_stamp TIMESTAMP NOT NULL
         );
