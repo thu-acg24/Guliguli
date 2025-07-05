@@ -67,7 +67,7 @@ WHERE comment_id = ?;
     logger.info(s"检查用户[userID: ${userID}]的删除权限")
     if (userID == authorID) {
       // 用户是评论的作者
-      IO(logger.info("用户是评论的作者，允许删除")) *> IO(true)
+      IO(logger.info("用户是评论的作者，允许删除")).void
     } else {
       // 检查用户是否是视频的发布者
       val videoPermissionCheck =
