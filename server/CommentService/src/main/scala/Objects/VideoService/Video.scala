@@ -40,7 +40,7 @@ case class Video(
   title: String,
   description: String,
   duration: Int,
-  tag: List[Option[String]] = List.empty,
+  tag: List[String],
   serverPath: String,
   coverPath: String,
   uploaderID: Int,
