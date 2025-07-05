@@ -12,9 +12,9 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
-import Objects.VideoService.Video
+import Objects.VideoService.VideoInfo
 import Objects.VideoService.VideoStatus
-import Utils.DecodeVideo.decodeVideo
+import Utils.DecodeVideo.decodeVideoInfo
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
@@ -27,10 +27,10 @@ case class QueryVideoInfoMessagePlanner(
                                          token: Option[String],
                                          videoId: Int,
                                          override val planContext: PlanContext
-                                       ) extends Planner[Video] {
+                                       ) extends Planner[VideoInfo] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Video] = {
+  override def plan(using PlanContext): IO[VideoInfo] = {
     for {
       // Step 1: Validate token to ensure user access authorization
       userInfo <- validateToken()
@@ -38,7 +38,7 @@ case class QueryVideoInfoMessagePlanner(
       _ <- validateVideoID(userInfo)
       // Step 3: Query video information if validation passes
       videoInfo <- queryVideoInfo()
-      _ <- IO(logger.info(s"[Plan Completed] Video query result: $videoInfo"))
+      _ <- IO(logger.info(s"[Plan Completed] VideoInfo query result: $videoInfo"))
     } yield videoInfo
   }
 
@@ -77,24 +77,24 @@ case class QueryVideoInfoMessagePlanner(
           val status = VideoStatus.fromString(decodeField[String](json, "status"))
 
           if (status == VideoStatus.Approved || (userID.contains(uploaderID) || role.contains(UserRole.Auditor))) {
-            IO(logger.info("[Step 2.1] Video validation passed")) *> IO.unit
+            IO(logger.info("[Step 2.1] VideoInfo validation passed")) *> IO.unit
           } else {
-            IO(logger.info("[Step 2.1] Video is not public or user has no access permission")) >>
-              IO.raiseError(InvalidInputException("Video does not exist"))
+            IO(logger.info("[Step 2.1] VideoInfo is not public or user has no access permission")) >>
+              IO.raiseError(InvalidInputException("VideoInfo does not exist"))
           }
         case None =>
-          IO(logger.info("[Step 2.1] Video does not exist")) >>
-            IO.raiseError(InvalidInputException("Video does not exist"))
+          IO(logger.info("[Step 2.1] VideoInfo does not exist")) >>
+            IO.raiseError(InvalidInputException("VideoInfo does not exist"))
       }
     } yield ()
   }
 
-  private def queryVideoInfo()(using PlanContext): IO[Video] = {
+  private def queryVideoInfo()(using PlanContext): IO[VideoInfo] = {
     for {
       _ <- IO(logger.info(s"[Step 3] Querying detailed information for videoID: $videoId"))
       videoQueryResult <- readDBJsonOptional(
         s"""
-          SELECT video_id, title, description, duration, tag, m3u8_name, ts_prefix, slice_count,
+          SELECT video_id, title, description, duration, tag, cover, m3u8_name, ts_prefix, slice_count,
                  uploader_id, views, likes, favorites, status, upload_time
           FROM ${schemaName}.video_table
           WHERE video_id = ?;
@@ -104,11 +104,11 @@ case class QueryVideoInfoMessagePlanner(
 
       video <- videoQueryResult match {
         case Some(json) =>
-          IO(logger.info(s"[Step 3.1] Video information found, json: $json")) *>
-            IO(decodeVideo(json))
+          IO(logger.info(s"[Step 3.1] VideoInfo information found, json: $json")) *>
+            decodeVideoInfo(json)
         case None =>
           IO(logger.info("[Step 3.1] No video details found in the database")) >>
-          IO.raiseError(InvalidInputException("Video does not exist"))
+          IO.raiseError(InvalidInputException("VideoInfo does not exist"))
       }
     } yield video
   }

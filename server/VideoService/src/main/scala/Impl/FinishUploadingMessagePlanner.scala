@@ -11,7 +11,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Objects.RecommendationService.VideoInfo
 import Objects.UserService.UserRole
-import Objects.VideoService.{Video, VideoStatus}
+import Objects.VideoService.VideoStatus
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.*
@@ -24,7 +24,7 @@ case class FinishUploadingMessagePlanner(
     token: String,
     videoID: Int
 ) extends Planner[Unit] {
-  val logger =
+  private val logger =
     LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {

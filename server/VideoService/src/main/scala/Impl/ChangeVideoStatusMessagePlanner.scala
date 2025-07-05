@@ -14,7 +14,6 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
-import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import Objects.RecommendationService.VideoInfo
 import cats.effect.IO
@@ -33,7 +32,7 @@ case class ChangeVideoStatusMessagePlanner(
     status: VideoStatus,
     override val planContext: PlanContext
 ) extends Planner[Unit] {
-  val logger =
+  private val logger =
     LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {

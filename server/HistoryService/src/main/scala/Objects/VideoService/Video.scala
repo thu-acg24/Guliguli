@@ -25,8 +25,9 @@ import scala.util.Try
  * @param description: String (视频的描述信息)
  * @param duration: Option[Float] (视频的时长，单位为秒)
  * @param tag: List[String] (视频的标签列表)
- * @param m3u8Path: Option[String] (视频存储在服务器中的路径)
- * @param tsPrefix: Option[String] (视频封面图片的路径)
+ * @param coverPath: Option[String] (视频封面的路径)
+ * @param m3u8Path: Option[String] (视频索引的路径)
+ * @param tsPrefix: Option[String] (视频分片的路径)
  * @param sliceCount: Option[Int] (视频切片数)
  * @param uploaderID: Int (上传视频的用户ID)
  * @param views: Int (视频的播放量)
@@ -42,6 +43,7 @@ case class Video(
   description: String,
   duration: Option[Float],
   tag: List[String],
+  coverPath: Option[String],
   m3u8Path: Option[String],
   tsPrefix: Option[String],
   sliceCount: Option[Int],

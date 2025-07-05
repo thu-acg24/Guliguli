@@ -12,9 +12,9 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
-import Objects.VideoService.Video
+import Objects.VideoService.VideoAbstract
 import Objects.VideoService.VideoStatus
-import Utils.DecodeVideo.decodeVideo
+import Utils.DecodeVideo.decodeVideoAbstract
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -28,10 +28,10 @@ import org.slf4j.LoggerFactory
 case class QueryPendingVideosMessagePlanner(
                                              token: String,
                                              override val planContext: PlanContext
-                                           ) extends Planner[List[Video]] {
+                                           ) extends Planner[List[VideoAbstract]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[List[Video]] = {
+  override def plan(using planContext: PlanContext): IO[List[VideoAbstract]] = {
     for {
       _ <- IO(logger.info("[Step 1]: 校验Token和用户权限"))
       userRole <- QueryUserRoleMessage(token).send
@@ -48,21 +48,18 @@ case class QueryPendingVideosMessagePlanner(
     } yield pendingVideos
   }
 
-  private def fetchPendingVideos()(using PlanContext): IO[List[Video]] = {
+  private def fetchPendingVideos()(using PlanContext): IO[List[VideoAbstract]] = {
     val sql =
       s"""
-        SELECT video_id, title, description, duration, tag,  m3u8_name, ts_prefix, slice_count,
-        uploader_id, views, likes, favorites, status, upload_time
+        SELECT video_id, title, description, duration, cover,
+             uploader_id, views, likes, favorites, status, upload_time
         FROM ${schemaName}.video_table
         WHERE status = ?
         ORDER BY upload_time DESC;
       """
     val parameters = List(SqlParameter("String", VideoStatus.Pending.toString))
 
-    for {
-      _ <- IO(logger.info("[fetchPendingVideos]: 开始执行查询待审核的视频指令"))
-      rows <- readDBRows(sql, parameters)
-      result <- IO(rows.map(decodeVideo))
-    } yield result
+    readDBRows(sql, parameters)
+      .flatMap(jsonList => jsonList.traverse(decodeVideoAbstract))
   }
 }

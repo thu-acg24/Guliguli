@@ -83,7 +83,7 @@ object Init {
             description TEXT,
             duration FLOAT,
             cover TEXT,
-            tag TEXT NOT NULL,
+            tag TEXT[] NOT NULL,
             m3u8_name TEXT,
             ts_prefix TEXT,
             slice_count INT,

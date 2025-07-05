@@ -6,8 +6,8 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.ServiceUtils.schemaName
-import Objects.VideoService.Video
-import Utils.DecodeVideo.decodeVideo
+import Objects.VideoService.VideoAbstract
+import Utils.DecodeVideo.decodeVideoAbstract
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
@@ -19,10 +19,10 @@ import org.slf4j.LoggerFactory
 case class QueryFavoriteVideosMessagePlanner(
                                              userID: Int,
                                              override val planContext: PlanContext
-                                           ) extends Planner[List[Video]] {
+                                           ) extends Planner[List[VideoAbstract]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[List[Video]] = {
+  override def plan(using PlanContext): IO[List[VideoAbstract]] = {
     for {
       _ <- IO(logger.info(s"[QueryFavoriteVideos] Querying favorite videos for userID: $userID"))
       favoriteVideos <- queryFavoriteVideos()
@@ -30,20 +30,17 @@ case class QueryFavoriteVideosMessagePlanner(
     } yield favoriteVideos
   }
 
-  private def queryFavoriteVideos()(using PlanContext): IO[List[Video]] = {
+  private def queryFavoriteVideos()(using PlanContext): IO[List[VideoAbstract]] = {
     val sql = s"""
-      SELECT v.video_id, v.title, v.description, v.duration, v.tag, v.m3u8_name, v.ts_prefix, v.slice_count,
+      SELECT v.video_id, v.title, v.description, v.duration, v.cover,
              v.uploader_id, v.views, v.likes, v.favorites, v.status, v.upload_time
       FROM ${schemaName}.video_table v
       INNER JOIN ${schemaName}.favorite_record_table f ON v.video_id = f.video_id
       WHERE f.user_id = ? AND v.status = 'Approved'
       ORDER BY f.timestamp DESC;
     """
-    
-    readDBRows(sql, List(SqlParameter("Int", userID.toString))).map { jsonList =>
-      jsonList.map { json =>
-        decodeVideo(json)
-      }
-    }
+
+    readDBRows(sql, List(SqlParameter("Int", userID.toString)))
+      .flatMap(jsonList => jsonList.traverse(decodeVideoAbstract))
   }
 }

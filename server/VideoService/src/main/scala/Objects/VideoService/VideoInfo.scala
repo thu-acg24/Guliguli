@@ -18,16 +18,18 @@ import org.joda.time.DateTime
 import scala.util.Try
 
 /**
- * Video
+ * VideoInfo
  * desc: 视频信息的数据结构
  * @param videoID: Int (视频的唯一标识)
  * @param title: String (视频的标题信息)
  * @param description: String (视频的描述信息)
  * @param duration: Option[Float] (视频的时长，单位为秒)
  * @param tag: List[String] (视频的标签列表)
- * @param m3u8Path: Option[String] (视频存储在服务器中的路径)
- * @param tsPrefix: Option[String] (视频封面图片的路径)
+ * @param cover: Option[String] (视频封面的路径)
+ * @param m3u8Path: Option[String] (视频索引的路径)
+ * @param tsPrefix: Option[String] (视频分片的路径前缀)
  * @param sliceCount: Option[Int] (视频切片数)
+ * @param tsPath: Option[List[String] ] (视频分片的路径前缀)
  * @param uploaderID: Int (上传视频的用户ID)
  * @param views: Int (视频的播放量)
  * @param likes: Int (视频的点赞数)
@@ -36,15 +38,17 @@ import scala.util.Try
  * @param uploadTime: DateTime (视频的上传时间)
  */
 
-case class Video(
+case class VideoInfo(
   videoID: Int,
   title: String,
   description: String,
   duration: Option[Float],
   tag: List[String],
+  cover: Option[String],
   m3u8Path: Option[String],
   tsPrefix: Option[String],
   sliceCount: Option[Int],
+  tsPath: Option[List[String]],
   uploaderID: Int,
   views: Int,
   likes: Int,
@@ -57,28 +61,28 @@ case class Video(
 
 }
 
-case object Video{
+case object VideoInfo{
 
-  private val circeEncoder: Encoder[Video] = deriveEncoder
-  private val circeDecoder: Decoder[Video] = deriveDecoder
+  private val circeEncoder: Encoder[VideoInfo] = deriveEncoder
+  private val circeDecoder: Decoder[VideoInfo] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[Video] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[VideoInfo] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[Video] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[Video]() {})) } 
+  private val jacksonDecoder: Decoder[VideoInfo] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[VideoInfo]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given videoEncoder: Encoder[Video] = Encoder.instance { config =>
+  given videoEncoder: Encoder[VideoInfo] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given videoDecoder: Decoder[Video] = Decoder.instance { cursor =>
+  given videoDecoder: Decoder[VideoInfo] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
