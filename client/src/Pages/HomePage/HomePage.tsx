@@ -13,6 +13,14 @@ import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
 
+// 定义页面标签常量
+const TAB_VIDEOS = "videos";
+const TAB_FOLLOWING = "following";
+const TAB_FOLLOWERS = "followers";
+const TAB_FAVORITES = "favorites";
+const TAB_HISTORY = "history";
+const TAB_SETTINGS = "settings";
+
 const HomePage: React.FC = () => {
     const { user_id } = useParams<{ user_id: string }>();
     const navigate = useNavigate();
@@ -27,26 +35,6 @@ const HomePage: React.FC = () => {
     // 获取用户信息
     const fetchUserInfo = async () => {
         if (!user_id) return;
-
-        // mock 开关，true=使用mock，false=调用真实API
-        const useMock = false;
-        if (useMock) {
-            setLoading(true);
-            setTimeout(() => {
-                if (user_id === '404') {
-                    setUserInfo(null);
-                } else {
-                    setUserInfo(new UserInfo(
-                        Number(user_id),
-                        `测试用户${user_id}`,
-                        '',
-                        false
-                    ));
-                }
-                setLoading(false);
-            }, 500);
-            return;
-        }
 
         try {
             setLoading(true);
@@ -127,6 +115,7 @@ const HomePage: React.FC = () => {
     };
 
     useEffect(() => {
+        console.log('检查是否是当前用户')
         fetchUserInfo();
         fetchUserStat();
         fetchUserVideoCount();
@@ -136,6 +125,7 @@ const HomePage: React.FC = () => {
         };
 
         checkIfCurrentUser();
+        console.log('isCurrentUser:', isCurrentUser);
     }, [user_id, currentUserID]);
 
     if (loading) {
@@ -160,14 +150,14 @@ const HomePage: React.FC = () => {
     const getActiveTab = () => {
         const pathParts = location.pathname.split("/");
         // /home/:user_id 或 /home/:user_id/xxx
-        if (pathParts.length < 4) return "videos";
-        return pathParts[3] || "videos";
+        if (pathParts.length < 4) return TAB_VIDEOS;
+        return pathParts[3] || TAB_VIDEOS;
     };
     const activeTab = getActiveTab();
 
     // 侧边栏点击跳转
     const handleTabClick = (tab: string) => {
-        if (tab === "videos") {
+        if (tab === TAB_VIDEOS) {
             navigate(`/home/${user_id}`);
         } else {
             navigate(`/home/${user_id}/${tab}`);
@@ -194,22 +184,22 @@ const HomePage: React.FC = () => {
                 {/* 侧边栏导航 */}
                 <div className="home-sidebar">
                     <div
-                        className={`home-sidebar-item ${activeTab === "videos" ? "active" : ""}`}
-                        onClick={() => handleTabClick("videos")}
+                        className={`home-sidebar-item ${activeTab === TAB_VIDEOS ? "active" : ""}`}
+                        onClick={() => handleTabClick(TAB_VIDEOS)}
                     >
                         <span>视频</span>
                         <span className="home-sidebar-count">{videoCount}</span>
                     </div>
                     <div
-                        className={`home-sidebar-item ${activeTab === "following" ? "active" : ""}`}
-                        onClick={() => handleTabClick("following")}
+                        className={`home-sidebar-item ${activeTab === TAB_FOLLOWING ? "active" : ""}`}
+                        onClick={() => handleTabClick(TAB_FOLLOWING)}
                     >
                         <span>关注</span>
                         <span className="home-sidebar-count">{userStat?.followingCount || 0}</span>
                     </div>
                     <div
-                        className={`home-sidebar-item ${activeTab === "followers" ? "active" : ""}`}
-                        onClick={() => handleTabClick("followers")}
+                        className={`home-sidebar-item ${activeTab === TAB_FOLLOWERS ? "active" : ""}`}
+                        onClick={() => handleTabClick(TAB_FOLLOWERS)}
                     >
                         <span>粉丝</span>
                         <span className="home-sidebar-count">{userStat?.followerCount || 0}</span>
@@ -218,20 +208,20 @@ const HomePage: React.FC = () => {
                     {isCurrentUser && (
                         <>
                             <div
-                                className={`home-sidebar-item ${activeTab === "favorites" ? "active" : ""}`}
-                                onClick={() => handleTabClick("favorites")}
+                                className={`home-sidebar-item ${activeTab === TAB_FAVORITES ? "active" : ""}`}
+                                onClick={() => handleTabClick(TAB_FAVORITES)}
                             >
                                 收藏
                             </div>
                             <div
-                                className={`home-sidebar-item ${activeTab === "history" ? "active" : ""}`}
-                                onClick={() => handleTabClick("history")}
+                                className={`home-sidebar-item ${activeTab === TAB_HISTORY ? "active" : ""}`}
+                                onClick={() => handleTabClick(TAB_HISTORY)}
                             >
                                 历史记录
                             </div>
                             <div
-                                className={`home-sidebar-item ${activeTab === "settings" ? "active" : ""}`}
-                                onClick={() => handleTabClick("settings")}
+                                className={`home-sidebar-item ${activeTab === TAB_SETTINGS ? "active" : ""}`}
+                                onClick={() => handleTabClick(TAB_SETTINGS)}
                             >
                                 设置
                             </div>
@@ -242,15 +232,20 @@ const HomePage: React.FC = () => {
                 {/* 主内容区域 */}
                 <div className="home-main-content">
                     <div className="home-tab-title">
-                        {activeTab === "videos" && "发布的视频"}
-                        {activeTab === "following" && "关注列表"}
-                        {activeTab === "followers" && "粉丝列表"}
-                        {activeTab === "favorites" && "收藏的视频"}
-                        {activeTab === "history" && "观看历史"}
-                        {activeTab === "settings" && "个人设置"}
+                        {activeTab === TAB_VIDEOS && "发布的视频"}
+                        {activeTab === TAB_FOLLOWING && "关注列表"}
+                        {activeTab === TAB_FOLLOWERS && "粉丝列表"}
+                        {activeTab === TAB_FAVORITES && "收藏的视频"}
+                        {activeTab === TAB_HISTORY && "观看历史"}
+                        {activeTab === TAB_SETTINGS && "个人设置"}
                     </div>
 
-                    <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser, refreshUserInfo: fetchUserInfo }} />
+                    {/* 检查是否有权限访问私人内容 */}
+                    {!isCurrentUser && (activeTab === TAB_FAVORITES || activeTab === TAB_HISTORY || activeTab === TAB_SETTINGS) ? (
+                        <div className="home-error-message">您没有权限访问此内容</div>
+                    ) : (
+                        <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser, refreshUserInfo: fetchUserInfo }} />
+                    )}
                 </div>
             </div>
         </div>
