@@ -37,19 +37,26 @@ case class DeleteCommentMessagePlanner(
       _ <- IO(logger.info(s"Step 1: 验证token[$token]是否合法"))
       userID <- GetUIDByTokenMessage(token).send
       // Step 2: 校验commentID是否存在
-      (authorID, videoID) <- validateCommentExistsAndFetchAuthor(commentID)
+      (authorID, videoID, rootID) <- validateCommentExistsAndFetchAuthor(commentID)
       // Step 3: 检查用户身份是否符合删除权限
       _ <- checkUserPermission(userID, authorID, videoID)
       // Step 4: 从CommentTable中删除记录
       _ <- deleteComment(commentID)
+      // Step 5: 减少回复数
+      _ <- rootID match {
+        case None => IO.unit
+        case Some(commentID) =>
+          writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count - 1 WHERE comment_id = ?",
+            List(SqlParameter("Int", commentID.toString)))
+      }
     } yield ()
   }
 
-  private def validateCommentExistsAndFetchAuthor(commentID: Int)(using PlanContext): IO[(Int, Int)] = {
+  private def validateCommentExistsAndFetchAuthor(commentID: Int)(using PlanContext): IO[(Int, Int, Option[Int])] = {
     logger.info(s"验证评论是否存在并获取作者ID和对应视频ID, commentID: ${commentID}")
     val sql =
       s"""
-SELECT author_id, video_id
+SELECT author_id, video_id, root_id
 FROM ${schemaName}.comment_table
 WHERE comment_id = ?;
 """.stripMargin
@@ -59,7 +66,8 @@ WHERE comment_id = ?;
       case Some(json) =>
         val authorID = decodeField[Int](json, "author_id")
         val videoID = decodeField[Int](json, "video_id")
-        (authorID, videoID)
+        val rootID = decodeField[Option[Int]](json, "root_id")
+        (authorID, videoID, rootID)
     }
   }
 

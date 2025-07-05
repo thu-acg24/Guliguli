@@ -25,6 +25,7 @@ import scala.util.Try
  * @param authorID: Int (评论作者的唯一标识符)
  * @param replyToID: Int (被回复的评论ID, 如果为空则表示不是回复)
  * @param likes: Int (点赞数)
+ * @param replyCount: Int (一级评论的回复数)
  * @param timestamp: DateTime (评论创建的时间戳)
  */
 
@@ -35,6 +36,7 @@ case class Comment(
   authorID: Int,
   replyToID: Option[Int] = None,
   likes: Int,
+  replyCount: Int,
   timestamp: DateTime
 ){
 
