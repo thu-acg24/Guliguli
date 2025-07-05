@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from "react-router-dom";
 import { useUserToken } from 'Globals/GlobalStore';
 import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
 
@@ -19,6 +20,7 @@ const WhisperTab: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userToken = useUserToken();
+  const navigate = useNavigate();
   // 在组件顶部添加新状态保存刷新前选中的用户
   const [refreshFlag, setRefreshFlag] = useState(false);
   const { userInfo } = useUserInfo();
@@ -82,6 +84,10 @@ const WhisperTab: React.FC = () => {
     }
   };
 
+    // 跳转函数
+  const handleAvatarClick = async (userID:number) => {
+        navigate(`/home/${userID}`);
+  }
   const fetchMessages = async (userID: number): Promise<void> => {
     try {
       // 将回调式API转换为Promise
@@ -135,7 +141,6 @@ const WhisperTab: React.FC = () => {
       <div className="user-list">
         <div className="user-list-header">
           <h3>我的消息</h3>
-          <button className="new-chat-btn">新建聊天</button>
         </div>
 
         {conversations.map(conversation => {
@@ -178,7 +183,7 @@ const WhisperTab: React.FC = () => {
           <>
             <div className="message-header">
               <div className="message-user-info">
-                <div className="user-avatar">
+                <div className="user-avatar" >
                   {conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath ? (
                     <img src={conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath} alt="头像" />
                   ) : (
@@ -198,7 +203,7 @@ const WhisperTab: React.FC = () => {
               {messages.map(msg => {
                 const isMe = userInfo ? msg.senderID === userInfo.userID : false;
                 return (
-                  <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}>
+                  <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}  onClick={() => handleAvatarClick(msg.senderID)}>
                     {!isMe && (
                       <div className="message-avatar">
                         <img src={conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath} alt="头像" />
@@ -210,7 +215,7 @@ const WhisperTab: React.FC = () => {
                         {formatTime(msg.timestamp)}</div>
                     </div>
                     {isMe && (
-                      <div className="message-avatar">
+                      <div className="message-avatar" onClick={() => handleAvatarClick(userInfo.userID)}>
                         <img src={userInfo?.avatarPath || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+'} alt="头像" />
                       </div>
                     )}

@@ -85,7 +85,7 @@ case class UploadVideoMessagePlanner(
       parameters = List(
         SqlParameter("String", title),
         SqlParameter("String", description),
-        SqlParameter("Array[String]", tag.asJson.noSpaces),
+        SqlParameter("Array[String]", s"[${tag.mkString(",")}]"),
         SqlParameter("Int", userID.toString),
         SqlParameter("DateTime", timestamp)
       )

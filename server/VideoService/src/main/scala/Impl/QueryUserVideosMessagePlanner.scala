@@ -12,9 +12,9 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
-import Objects.VideoService.Video
+import Objects.VideoService.VideoAbstract
 import Objects.VideoService.VideoStatus
-import Utils.DecodeVideo.decodeVideo
+import Utils.DecodeVideo.decodeVideoAbstract
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -29,10 +29,10 @@ case class QueryUserVideosMessagePlanner(
                                          token: Option[String],
                                          userId: Int,
                                          override val planContext: PlanContext
-                                       ) extends Planner[List[Video]] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+                                       ) extends Planner[List[VideoAbstract]] {
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[List[Video]] = {
+  override def plan(using PlanContext): IO[List[VideoAbstract]] = {
     for {
       _ <- IO(logger.info("[Step 1]: 验证Token和用户权限"))
       userInfo <- validateToken()
@@ -58,7 +58,7 @@ case class QueryUserVideosMessagePlanner(
     }
   }
 
-  private def queryUserVideos(userInfo: (Option[Int], Option[UserRole]))(using PlanContext): IO[List[Video]] = {
+  private def queryUserVideos(userInfo: (Option[Int], Option[UserRole]))(using PlanContext): IO[List[VideoAbstract]] = {
     val (currentUserID, role) = userInfo
     
     // 确定查询条件：
@@ -80,18 +80,14 @@ case class QueryUserVideosMessagePlanner(
     
     val sql =
       s"""
-        SELECT video_id, title, description, duration, tag, m3u8_name, ts_prefix, slice_count,
-               uploader_id, views, likes, favorites, status, upload_time
+        SELECT video_id, title, description, duration, cover,
+             uploader_id, views, likes, favorites, status, upload_time
         FROM ${schemaName}.video_table
         $whereClause
         ORDER BY upload_time DESC;
       """
 
-    for {
-      _ <- IO(logger.info(s"[queryUserVideos]: 开始查询用户 $userId 的视频列表"))
-      rows <- readDBRows(sql, parameters)
-      result <- IO(rows.map(decodeVideo))
-      _ <- IO(logger.info(s"[queryUserVideos]: 查询完成，共找到 ${result.length} 个视频"))
-    } yield result
+    readDBRows(sql, parameters)
+      .flatMap(jsonList => jsonList.traverse(decodeVideoAbstract))
   }
 }

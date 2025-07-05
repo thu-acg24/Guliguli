@@ -8,12 +8,16 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
 import cats.effect.IO
 import cats.implicits.*
+import Global.GlobalVariables.minioClient
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import Objects.VideoService.{Video, VideoStatus}
+import Objects.VideoService.{VideoAbstract, VideoInfo, VideoStatus}
+import io.minio.GetPresignedObjectUrlArgs
+import io.minio.http.Method
+import java.util.concurrent.TimeUnit
 
 //process plan import 预留标志位，不要删除
 
@@ -23,29 +27,63 @@ case object DecodeVideo {
 
   // implicit val dateTimeDecoder: Decoder[DateTime] = decodeDateTime
 
-  def decodeVideo(json: Json)(using PlanContext): Video = {
-    val updatedJson = json.mapObject { obj =>
-      obj("tag").flatMap(_.asString) match {
-        case Some(tagStr) =>
-          // 预处理字符串格式
-          val jsonStr = tagStr.replace('{', '[').replace('}', ']')
+  def decodeVideoAbstract(json: Json)(using PlanContext): IO[VideoAbstract] = {
+    for {
+      _ <- IO(logger.info(s"Given json: $json"))
+      video <- IO(decodeType[VideoAbstract](json))
+      cover <- IO(video.cover.map(
+        file_name => minioClient.getPresignedObjectUrl(
+          GetPresignedObjectUrlArgs.builder()
+          .bucket("video-cover")  // 你的封面 bucket 名称
+          .`object`(file_name)  // 封面文件名
+          .expiry(6, TimeUnit.HOURS)  // 6小时有效期
+          .method(Method.GET)  // GET 请求
+          .build())))
+      result <- IO(video.copy(cover = cover))
+    } yield result
+  }
 
-          // 解析为JSON值
-          val parsedJson = parser.parse(jsonStr).getOrElse(Json.Null)
-          obj.add("tag", parsedJson)
-
-        case None => obj
+  def decodeVideoInfo(json: Json)(using PlanContext): IO[VideoInfo] = {
+    for {
+      _ <- IO(logger.info(s"Given json: $json"))
+      video <- IO(decodeType[VideoInfo](json))
+      cover <- IO(video.cover.map(
+        file_name => minioClient.getPresignedObjectUrl(
+          GetPresignedObjectUrlArgs.builder()
+            .bucket("video-cover")
+            .`object`(file_name)
+            .expiry(6, TimeUnit.HOURS)
+            .method(Method.GET)
+            .build())))
+      m3u8 <- IO(video.m3u8Path.map(
+        file_name => minioClient.getPresignedObjectUrl(
+        GetPresignedObjectUrlArgs.builder()
+        .bucket("video-server")
+        .`object`(file_name)
+        .expiry(6, TimeUnit.HOURS)
+        .method(Method.GET)
+        .build())))
+      ts <- (video.tsPrefix, video.sliceCount) match {
+        case (Some(prefix), Some(count)) if count > 0 =>
+          val tsFiles = (0 until count).map
+            ( i => f"$count$i%05d.ts" )
+          tsFiles.toList.parTraverse { tsFile =>
+            IO.blocking {
+              minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                  .bucket("video-server")
+                  .`object`(tsFile)
+                  .expiry(6, TimeUnit.HOURS)
+                  .method(Method.GET)
+                  .build()
+              )
+            }
+          }.map { urls =>
+            Some(urls.filter(_.nonEmpty))  // 过滤掉无效的 URL
+          }
+        case _ => IO.pure(None)
       }
-    }
-    //.mapObject { obj =>
-    //  obj("upload_time").flatMap(_.asString) match {
-    //    case Some(timeStr) =>
-    //      obj.add("tag", encodeDateTime(DateTime(timeStr.toLong)))
-    //
-    //    case None => obj
-    //  }
-    //}
-    logger.info(s"Updated json: $updatedJson")
-    decodeType[Video](updatedJson)
+      result <- IO(video.copy(cover = cover, m3u8Path = m3u8, tsPath = ts))
+    } yield result
   }
 }

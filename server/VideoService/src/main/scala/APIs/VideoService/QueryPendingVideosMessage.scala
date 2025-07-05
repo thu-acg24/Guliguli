@@ -6,7 +6,7 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.VideoServiceCode
-import Objects.VideoService.Video
+import Objects.VideoService.VideoAbstract
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
 import io.circe.Encoder
@@ -23,12 +23,12 @@ import scala.util.Try
  * QueryPendingVideosMessage
  * desc: 获取所有待审核的视频信息
  * @param token: String (用于验证身份的令牌)
- * @return pendingVideos: Video:1120 (封装所有待审核视频的列表)
+ * @return videoAbstract: VideoAbstract:1120 (封装所有待审核视频的列表)
  */
 
 case class QueryPendingVideosMessage(
   token: String
-) extends API[List[Video]](VideoServiceCode)
+) extends API[List[VideoAbstract]](VideoServiceCode)
 
 case object QueryPendingVideosMessage{
 

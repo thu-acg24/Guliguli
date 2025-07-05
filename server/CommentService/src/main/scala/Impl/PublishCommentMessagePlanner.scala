@@ -81,7 +81,7 @@ case class PublishCommentMessagePlanner(
          |WHERE comment_id = ?;
        """.stripMargin
     readDBBoolean(sql, List(SqlParameter("Int", commentID.toString)))
-      .ensure(InvalidInputException("回复不存在"))(identity).void
+      .ensure(InvalidInputException("回复不存在"))(x => !x).void
   }
 
   private def validateTargetComment(replyToCommentID: Option[Int])(using PlanContext): IO[Option[Int]] = {
