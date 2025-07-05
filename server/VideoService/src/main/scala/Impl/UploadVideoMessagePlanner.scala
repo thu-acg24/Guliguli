@@ -34,11 +34,11 @@ case class UploadVideoMessagePlanner(
     description: String,
     tag: List[String],
     override val planContext: PlanContext
-) extends Planner[Unit] {
+) extends Planner[Int] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Unit] = {
+  override def plan(using PlanContext): IO[Int] = {
     for {
       // Step 1: Validate token and retrieve uploaderID
       _ <- IO(logger.info("Step 1: 校验Token是否合法并获取用户ID"))
@@ -54,8 +54,8 @@ case class UploadVideoMessagePlanner(
 
       // Step 4: Store video information in the database
       _ <- IO(logger.info("Step 4: 添加视频到数据库"))
-      _ <- storeVideoInfo(userID)
-    } yield ()
+      videoID <- storeVideoInfo(userID)
+    } yield videoID
   }
 
   private def validateVideoInfo(): IO[Unit] = {
@@ -77,9 +77,9 @@ case class UploadVideoMessagePlanner(
     } yield result
   }
 
-  private def storeVideoInfo(userID: Int)(using PlanContext): IO[String] = {
+  private def storeVideoInfo(userID: Int)(using PlanContext): IO[Int] = {
     val sql =
-      s"INSERT INTO ${schemaName}.video_table (title, description, tag, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?);"
+      s"INSERT INTO ${schemaName}.video_table (title, description, tag, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?) RETURNING id;"
     for {
       timestamp <- IO(DateTime.now().getMillis.toString)
       parameters = List(
@@ -89,7 +89,7 @@ case class UploadVideoMessagePlanner(
         SqlParameter("Int", userID.toString),
         SqlParameter("DateTime", timestamp)
       )
-      result <- writeDB(sql, parameters)
+      result <- readDBInt(sql, parameters)
     } yield result
   }
 }
