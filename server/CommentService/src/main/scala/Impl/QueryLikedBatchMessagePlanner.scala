@@ -56,7 +56,7 @@ case class QueryLikedBatchMessagePlanner(
         commentIds.map(id => SqlParameter("Int", id.toString))
 
     readDBRows(sqlQuery, parameters).map { jsonList =>
-      val likedCommentIds = jsonList.flatMap(_.hcursor.downField("comment_id").as[Int].toOption).toSet
+      val likedCommentIds = jsonList.map(json => decodeField[Int](json, "comment_id")).toSet
       commentIds.map(likedCommentIds.contains)
     }
   }
