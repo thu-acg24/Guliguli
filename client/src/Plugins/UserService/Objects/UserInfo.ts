@@ -16,7 +16,8 @@ export class UserInfo extends Serializable {
         public  userID: number,
         public  username: string,
         public  avatarPath: string,
-        public  isBanned: boolean
+        public  isBanned: boolean,
+        public  bio:string
     ) {
         super()
     }
