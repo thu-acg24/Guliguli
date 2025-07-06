@@ -59,6 +59,7 @@ case class PublishCommentMessagePlanner(
       _ <- IO(logger.info("组装数据并插入到数据库"))
       (timeStamp, curID) <- insertComment(userID, videoID, commentContent, replyToCommentID, replyToUserID, rootID)
 
+      _ <- IO(logger.info(s"新插入的commentID=${curID}"))
       // Step 6: 如果是回复，发送通知并增加所属楼层回复数
       _ <- rootID match {
         case None => IO.unit

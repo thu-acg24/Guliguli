@@ -110,7 +110,7 @@ case class QueryVideoCommentsMessagePlanner(
     for {
       sql <- IO {
         s"""
-           |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, reply_count, time_stamp
+           |SELECT comment_id, content, video_id, author_id, reply_to_id, reply_to_user_id, likes, reply_count, time_stamp
            |FROM ${schemaName}.comment_table
            |WHERE video_id = ? AND root_id = ? AND (time_stamp > ? OR (time_stamp = ? AND comment_id > ?))
            |ORDER BY time_stamp ASC, comment_id ASC LIMIT 20

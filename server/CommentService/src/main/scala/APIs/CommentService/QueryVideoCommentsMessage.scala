@@ -26,6 +26,7 @@ import scala.util.Try
  * @param lastTime: DateTime (上一次加载的评论发布时间)
  * @param lastID: Int (上一次加载的评论ID)
  * @param rootID: Option[Int] (所属楼的ID，为空代表降序查询所有楼，否则升序查询该楼所述所有评论)
+ * @param fetchLimit Int=10(每次设定获取的评论数量)
  * @return comments: List[Comment] (查询到的评论列表，每个评论包含评论内容及相关信息)
  */
 

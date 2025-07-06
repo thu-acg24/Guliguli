@@ -24,6 +24,7 @@ import {UserStat} from 'Plugins/UserService/Objects/UserStat'
 import {QueryUserStatMessage} from 'Plugins/UserService/APIs/QueryUserStatMessage'
 import {QueryFollowMessage} from 'Plugins/UserService/APIs/QueryFollowMessage'
 import {ChangeFollowStatusMessage} from 'Plugins/UserService/APIs/ChangeFollowStatusMessage'
+import VideoPlayer from "./HlsVideoPlayer";
 import "./VideoPage.css";
 import { set } from "lodash";
 
@@ -65,7 +66,9 @@ const VideoPage: React.FC = () => {
   const [videoinfo, setVideoinfo] =  useState<Video>(null);
   const [upstat, setUpstat] = useState<UserStat>();
   
-
+  const getVideoUrl = () => {
+      return `/testid/video/index.m3u8`;
+    };
   // Mock data
   const [videoData, setVideoData] = useState({
     id: "123",
@@ -711,11 +714,9 @@ const VideoPage: React.FC = () => {
             </div>
 
             <div className="video-video-player-container">
-              <img
-                src="https://picsum.photos/800/450?random=100"
-                alt="视频播放器"
-                className="video-video-player"
-                onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTY5IiB2aWV3Qm94PSIwIDAgMzAwIDE2OSIgZmlsbD0iI2ZmY2NkNSI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjkiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZmY3Mjk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj7lm77niYflnLDor50v5paH5a2XPC90ZXh0Pjwvc3ZnPg=='; }}
+              <VideoPlayer
+                videoUrl={getVideoUrl()}
+                posterUrl="https://picsum.photos/800/450?random=100"
               />
             </div>
 
