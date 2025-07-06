@@ -60,9 +60,9 @@ case class PublishCommentMessagePlanner(
       (timeStamp, curID) <- insertComment(userID, videoID, commentContent, replyToCommentID, rootID)
 
       // Step 6: 如果是回复，发送通知并增加所属楼层回复数
-      _ <- replyToCommentID match {
+      _ <- rootID match {
         case None => IO.unit
-        case Some(_) =>
+        case Some(rootID) =>
           writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
             List(SqlParameter("Int", rootID.toString))) >> SendReplyNoticeMessage(token, curID).send
       }
@@ -91,7 +91,7 @@ case class PublishCommentMessagePlanner(
          |""".stripMargin
     replyToCommentID match {
       case Some(commentID) => readDBJson(sql, List(SqlParameter("Int", commentID.toString))).map {
-        json => decodeField[Option[Int]](json, "root_id")
+        json => Some(decodeField[Option[Int]](json, "root_id").getOrElse(commentID))
       }
       case None => IO.pure(None)
     }
@@ -129,8 +129,8 @@ case class PublishCommentMessagePlanner(
               SqlParameter("String", commentContent),
               SqlParameter("Int", videoID.toString),
               SqlParameter("Int", userID.toString),
-              SqlParameter("int", replyToCommentID.toString),
-              SqlParameter("int", rootID.toString),
+              SqlParameter("Int", replyToCommentID.toString),
+              SqlParameter("Int", rootID.toString),
               SqlParameter("DateTime", timeStamp.getMillis.toString)
             ))
         case (None, None) =>

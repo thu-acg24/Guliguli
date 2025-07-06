@@ -250,7 +250,6 @@ const VideoPage: React.FC = () => {
               replyToUser = await fetchOtherUserInfo(replyToComment.authorID);
             }
           }
-          
           return { 
             ...reply, 
             userInfo, 
@@ -741,12 +740,15 @@ const VideoPage: React.FC = () => {
                                     </div>
                                     <div className="video-reply-text">
                                       {reply.replyToUser && (
-                                        <span 
-                                          className="video-reply-highlight"
-                                          onClick={() => navigateToUser(reply.replyToUser?.userID || 0)}
-                                        >
-                                          回复 @{reply.replyToUser.username}：
-                                        </span>
+                                        <>
+                                          回复&nbsp;
+                                          <span 
+                                            className="video-reply-highlight"
+                                            onClick={() => navigateToUser(reply.replyToUser?.userID || 0)}
+                                          >
+                                            @{reply.replyToUser.username}：
+                                          </span>
+                                        </>
                                       )}
                                       {reply.content}
                                     </div>
@@ -807,12 +809,15 @@ const VideoPage: React.FC = () => {
                                     </div>
                                     <div className="video-reply-text">
                                       {reply.replyToUser && (
-                                        <span 
-                                          className="video-reply-highlight"
-                                          onClick={() => navigateToUser(reply.replyToUser?.userID || 0)}
-                                        >
-                                          回复 @{reply.replyToUser.username}：
-                                        </span>
+                                        <>
+                                          回复&nbsp;
+                                          <span 
+                                            className="video-reply-highlight"
+                                            onClick={() => navigateToUser(reply.replyToUser?.userID || 0)}
+                                          >
+                                            @{reply.replyToUser.username}：
+                                          </span>
+                                        </>
                                       )}
                                       {reply.content}
                                     </div>
@@ -984,8 +989,8 @@ const VideoPage: React.FC = () => {
             commentID={replyingTo.id}
             replyingToContent={replyingTo.content}
             content={commentInput}
-            onClose={() => {setCommentInput(null), setShowReplyModal(false), setReplyingTo(null)}}
-            onSuccess={() => {setCommentInput(null), setShowReplyModal(false), setReplyingTo(null)}}
+            onClose={() => {setCommentInput(""), setShowReplyModal(false), setReplyingTo(null)}}
+            onSuccess={() => {setCommentInput(""), setShowReplyModal(false), setReplyingTo(null)}}
         />
       )}
     </div>
