@@ -87,7 +87,7 @@ case class ChangeFollowStatusMessagePlanner(
 
     val checkSQL =
       s"""
-         SELECT 1
+         SELECT *
          FROM $schemaName.follow_relation_table
          WHERE follower_id = ? AND followee_id = ?;
        """
@@ -100,7 +100,7 @@ case class ChangeFollowStatusMessagePlanner(
 
     for {
       _ <- IO(logger.info(s"Handling unfollow action for followerID=$followerID and followeeID=$followeeID."))
-      exists <- readDBBoolean(checkSQL, params)
+      exists <- readDBJsonOptional(checkSQL, params).map(_.isDefined)
       _ <- if (!exists) {
           IO(logger.info(s"No follow relation exists between followerID=$followerID and followeeID=$followeeID."))
         } else {
