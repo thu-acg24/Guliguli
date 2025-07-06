@@ -1,13 +1,11 @@
 // src/Pages/HomePage/SettingsTab/PasswordForm.tsx
 import React, { useState } from "react";
+import { useUserToken } from "Globals/GlobalStore";
 import { ModifyPasswordMessage } from "Plugins/UserService/APIs/ModifyPasswordMessage";
 import "../HomePage.css";
 
-interface PasswordFormProps {
-    userToken: string | null;
-}
-
-const PasswordForm: React.FC<PasswordFormProps> = ({ userToken }) => {
+const PasswordForm: React.FC = ({ }) => {
+    const userToken = useUserToken();
     const [passwordData, setPasswordData] = useState({
         oldPassword: "",
         password: "",

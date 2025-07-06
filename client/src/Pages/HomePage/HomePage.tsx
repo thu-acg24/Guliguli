@@ -4,11 +4,12 @@ import { useParams, useNavigate, Outlet, useLocation } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
+import { ModifyUserInfoMessage } from "Plugins/UserService/APIs/ModifyUserInfoMessage";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
 import { UserStat } from "Plugins/UserService/Objects/UserStat";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
-import { useUserID } from "Globals/GlobalStore";
+import { useUserToken, useUserID } from "Globals/GlobalStore";
 import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
@@ -25,12 +26,15 @@ const HomePage: React.FC = () => {
     const { user_id } = useParams<{ user_id: string }>();
     const navigate = useNavigate();
     const location = useLocation();
+    const userToken = useUserToken();
     const { userID: currentUserID } = useUserID();
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [userStat, setUserStat] = useState<UserStat | null>(null);
     const [videoCount, setVideoCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [isCurrentUser, setIsCurrentUser] = useState(false);
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [tempBio, setTempBio] = useState("");
 
     // 获取用户信息
     const fetchUserInfo = async () => {
@@ -42,7 +46,7 @@ const HomePage: React.FC = () => {
             new QueryUserInfoMessage(userIdNum).send(
                 (info: string) => {
                     const data = JSON.parse(info);
-                    if (!data || data.isBanned) {
+                    if (data.isBanned) {
                         setUserInfo(null);
                     } else {
                         setUserInfo(data);
@@ -114,6 +118,57 @@ const HomePage: React.FC = () => {
         }
     };
 
+    // 开始编辑个性签名
+    const startEditingBio = () => {
+        setTempBio(userInfo?.bio || "");
+        setIsEditingBio(true);
+    };
+
+    // 保存个性签名
+    const saveBio = async () => {
+        try {
+            // 第一步：创建新的用户信息对象
+            const newUserInfo = new UserInfo(
+                userInfo.userID,
+                userInfo.username,
+                userInfo.avatarPath,
+                userInfo.isBanned,
+                tempBio
+            );
+
+            // 第二步：发送更新请求
+            new ModifyUserInfoMessage(userToken, newUserInfo).send(
+                (info: string) => {
+                    // 请求成功后更新本地状态
+                    setUserInfo(newUserInfo);
+                },
+                (error: string) => {
+                    throw new Error(error);
+                }
+            );
+        } catch (error) {
+            console.error("保存个性签名失败", error);
+            materialAlertError("保存失败", "无法保存个性签名，请稍后再试。");
+            return;
+        }
+        setIsEditingBio(false);
+    };
+
+    // 取消编辑个性签名
+    const cancelEditingBio = () => {
+        setIsEditingBio(false);
+        setTempBio("");
+    };
+
+    // 处理键盘事件
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            saveBio();
+        } else if (e.key === 'Escape') {
+            cancelEditingBio();
+        }
+    };
+
     useEffect(() => {
         console.log('检查是否是当前用户')
         fetchUserInfo();
@@ -171,11 +226,32 @@ const HomePage: React.FC = () => {
             {/* 用户信息区域 */}
             <div className="home-user-info-section">
                 <div className="home-user-left">
-                    <div className="home-user-avatar">
+                    <div className="home-info-user-avatar">
                         <img src={userInfo.avatarPath} alt="用户头像" />
                     </div>
                     <div className="home-user-basic-info">
-                        <div className="home-user-name">{userInfo.username}</div>
+                        <div className="home-profile-user-name">{userInfo.username}</div>
+                        <div className="home-user-signature">
+                            {isEditingBio ? (
+                                <input
+                                    type="text"
+                                    value={tempBio}
+                                    onChange={(e) => setTempBio(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    onBlur={saveBio}
+                                    className="home-bio-input"
+                                    placeholder="编辑个性签名"
+                                    autoFocus
+                                />
+                            ) : (
+                                <div
+                                    className={`home-bio-text ${isCurrentUser ? 'editable' : ''}`}
+                                    onClick={isCurrentUser ? startEditingBio : undefined}
+                                >
+                                    {userInfo.bio}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,7 @@
 // src/Pages/HomePage/SettingsTab/UserInfoForm.tsx
 import React, { useState, useRef } from "react";
+import { useUserToken } from "Globals/GlobalStore";
+import { useRefreshUserInfo } from "Globals/UserHooks";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { ModifyAvatarMessage } from "Plugins/UserService/APIs/ModifyAvatarMessage";
 import { ValidateAvatarMessage } from "Plugins/UserService/APIs/ValidateAvatarMessage";
@@ -8,19 +10,17 @@ import "../HomePage.css";
 
 interface UserInfoFormProps {
     userInfo?: any;
-    userToken: string | null;
-    refreshUserInfo: () => Promise<void>;
     refreshHomePageUserInfo?: () => void;
 }
 
 const UserInfoForm: React.FC<UserInfoFormProps> = ({
     userInfo,
-    userToken,
-    refreshUserInfo,
     refreshHomePageUserInfo
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const userToken = useUserToken();
+    const refreshUserInfo = useRefreshUserInfo();
     const [formData, setFormData] = useState({
         username: userInfo?.username || '',
         avatar: userInfo?.avatarPath || ''
@@ -174,7 +174,8 @@ const UserInfoForm: React.FC<UserInfoFormProps> = ({
                     userInfo?.userID || 0,
                     trimmedUsername,
                     userInfo?.avatarPath || '',
-                    userInfo?.isBanned || false
+                    userInfo?.isBanned || false,
+                    userInfo?.bio || ''
                 );
 
                 await new Promise<void>((resolve, reject) => {
@@ -188,9 +189,6 @@ const UserInfoForm: React.FC<UserInfoFormProps> = ({
                     );
                 });
             }
-
-            setIsSuccess(true);
-            setMessage("个人信息保存成功！");
 
             // 刷新全局用户信息
             await refreshUserInfo();

@@ -21,7 +21,10 @@ import { QueryFavoriteMessage } from 'Plugins/VideoService/APIs/QueryFavoriteMes
 import { QueryLikeMessage } from 'Plugins/VideoService/APIs/QueryLikeMessage';
 import { ChangeLikeMessage } from 'Plugins/VideoService/APIs/ChangeLikeMessage';
 import { ChangeFavoriteMessage } from 'Plugins/VideoService/APIs/ChangeFavoriteMessage'
-
+import {UserStat} from 'Plugins/UserService/Objects/UserStat'
+import {QueryUserStatMessage} from 'Plugins/UserService/APIs/QueryUserStatMessage'
+import {QueryFollowMessage} from 'Plugins/UserService/APIs/QueryFollowMessage'
+import {ChangeFollowStatusMessage} from 'Plugins/UserService/APIs/ChangeFollowStatusMessage'
 import "./VideoPage.css";
 import { set } from "lodash";
 
@@ -57,8 +60,10 @@ const VideoPage: React.FC = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [likeisprocessing, setLikeisprocessing] = useState(false);
+  const [followisprocessing, setFollowisprocessing] = useState(false);
   const [favoriteisprocessing, setFavoriteisprocessing] = useState(false);
   const [videoinfo, setVideoinfo] =  useState<Video>(null);
+  const [upstat, setUpstat] = useState<UserStat>();
   
 
   // Mock data
@@ -116,7 +121,7 @@ const VideoPage: React.FC = () => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
     window.scrollTo(0, 0);
-    fetchVideoInfo();
+    fetchVideoInfo()
   }, [video_id]);
   useEffect(() => {
     setIsLoggedIn(!!userToken);
@@ -140,7 +145,10 @@ const VideoPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   useEffect(() => {
-    if(!userToken || !video_id) return;
+    
+    console.log("开始获取用户点赞收藏关注");
+    if(!userToken || !videoinfo) return;
+    console.log("当前视频信息",videoinfo);
     new QueryLikeMessage(userToken, Number(video_id)).send(
       (info: string) => {
         const isLiked = JSON.parse(info);
@@ -160,9 +168,17 @@ const VideoPage: React.FC = () => {
         console.error("获取用户收藏状态失败:", error);
       }
     );
-
-    
-  }, [userToken,video_id]);
+    if(userInfo.userID===videoinfo.uploaderID)return;
+    new QueryFollowMessage(userInfo.userID, videoinfo.uploaderID).send(
+      (info: string) => {
+        const isFollowing = JSON.parse(info);
+        setIsFollowing(isFollowing);
+      },
+      (error: string) => {
+        console.error("获取用户关注状态失败:", error);
+      }
+    );
+  }, [userInfo,videoinfo]);
   const fetchVideoInfo = async () => {
     if (!video_id) return;
     try { 
@@ -179,7 +195,22 @@ const VideoPage: React.FC = () => {
           (error: string) => reject(new Error(`请求失败: ${error}`))
         );
       });
+      
+      const upStat=await new Promise<UserStat>((resolve, reject) => {
+        new QueryUserStatMessage(videoInfo.uploaderID).send(
+          (info: string) => {
+            try {
+              const data: UserStat = JSON.parse(info);
+              resolve(data);
+            } catch (e) {
+              reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
+            }
+          },
+          (error: string) => reject(new Error(`请求失败: ${error}`))
+        );
+      });
       setVideoinfo(videoInfo);
+      setUpstat(upStat);
       const uploaderInfo = await fetchOtherUserInfo(videoInfo.uploaderID);
       setUploaderInfo(uploaderInfo);
     } catch (error) {
@@ -623,7 +654,20 @@ const VideoPage: React.FC = () => {
       setShowLoginModal(true);
       return;
     }
-    setIsFollowing(!isFollowing);
+    if(followisprocessing)return;
+    setFollowisprocessing(true);
+    upstat.followerCount = isFollowing ? upstat.followerCount - 1 : upstat.followerCount + 1;
+    console.log("当前关注状态",isFollowing);
+    new ChangeFollowStatusMessage(userToken,videoinfo.uploaderID, !isFollowing).send(
+      () => {
+        console.log("视频关注状态更新成功");
+        setIsFollowing(!isFollowing);
+        setFollowisprocessing(false);
+      },
+      (error: string) => {
+        console.error("用户关注状态更新失败:", error);
+      }
+    );
   };
 
   const likeVideo = () => {
@@ -634,10 +678,10 @@ const VideoPage: React.FC = () => {
     if(likeisprocessing) return; // 防止重复点击
     setLikeisprocessing(true);
     videoinfo.likes = isLiked ? videoinfo.likes - 1 : videoinfo.likes + 1;
-    setIsLiked(!isLiked);
     new ChangeLikeMessage(userToken, Number(video_id), !isLiked).send(
       () => {
         console.log("视频点赞状态更新成功");
+        setIsLiked(!isLiked);
         setLikeisprocessing(false);
       },
       (error: string) => {
@@ -656,10 +700,10 @@ const VideoPage: React.FC = () => {
     if(favoriteisprocessing) return; // 防止重复点击
     setFavoriteisprocessing(true);
     videoinfo.favorites = isFavorited ? videoinfo.favorites - 1 : videoinfo.favorites + 1;
-    setIsFavorited(!isFavorited);
     new ChangeFavoriteMessage(userToken, Number(video_id), !isFavorited).send(
       () => {
         console.log("视频收藏状态更新成功");
+        setIsFavorited(!isFavorited);
         setFavoriteisprocessing(false);
       },
       (error: string) => {
@@ -999,24 +1043,31 @@ const VideoPage: React.FC = () => {
         {/* Sidebar */}
         <div className="video-video-sidebar">
           {/* UP info */}
-          <div className="video-up-info">
-            <div className="video-up-avatar">
-              <img src={uploaderInfo.avatarPath} alt="UP主头像" />
+           <div className="video-up-info">
+            {/* 头像和名字/签名在同一行 */}
+            <div className="video-up-top-row">
+              <div className="video-up-avatar">
+                <img src={uploaderInfo.avatarPath} alt="UP主头像" />
+              </div>
+              <div className="video-up-details">
+                <div className="video-up-name">{uploaderInfo.username}</div>
+                <div className="video-up-description" title={uploaderInfo.bio}>
+                  {uploaderInfo.bio.length > 17
+                    ? `${uploaderInfo.bio.substring(0, 17)}...`
+                    : uploaderInfo.bio}
+                </div>
+              </div>
             </div>
-            <div className="video-up-details">
-              <div className="video-up-name">{uploaderInfo.username}</div>
-              {/* <div className="video-up-description" title={""}>
-                {uploaderInfo.description.length > 20
-                  ? `${videoData.author.description.substring(0, 20)}...`
-                  : videoData.author.description}
-              </div> */}
+            {/* 关注按钮单独一行 */}
+            {((!userToken)||(videoinfo.uploaderID!==userInfo?.userID ))&&(
               <button
-                className={`video-follow-btn ${isFollowing ? 'following' : ''}`}
-                onClick={() => followUp(uploaderInfo.userID)}
-              >
-                {isFollowing ? '已关注' : '关注'}
-              </button>
-            </div>
+              className={`video-follow-btn ${isFollowing ? 'following' : ''}`}
+              onClick={() => followUp(uploaderInfo.userID)}
+            >
+              {isFollowing ? '已关注' : '关注'}&nbsp;{upstat.followerCount}
+            </button>
+            )}
+            
           </div>
 
           {/* Recommended videos */}

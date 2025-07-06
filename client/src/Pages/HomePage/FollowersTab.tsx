@@ -52,13 +52,14 @@ const FollowersTab: React.FC<{ userID?: number }> = (props) => {
 
             const hasMore = newFollowers.length === perpage;
 
-            // 模拟数据
+            // // 模拟数据
             // const newFollowers = Array.from({ length: perpage }, (_, i) =>
             //     new UserInfo(
             //         i + (page - 1) * perpage,
             //         `粉丝${i + (page - 1) * perpage}`,
             //         "https://picsum.photos/50/50",
-            //         false
+            //         false,
+            //         "这是我的个性签名"
             //     )
             // );
             // const hasMore = true
@@ -90,6 +91,7 @@ const FollowersTab: React.FC<{ userID?: number }> = (props) => {
                         </div>
                         <div className="home-user-info">
                             <div className="home-user-name">{user.username}</div>
+                            <div className="home-user-bio">{user.bio}</div>
                         </div>
                         <button className="home-follow-btn">关注</button>
                     </div>

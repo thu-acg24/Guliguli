@@ -90,6 +90,7 @@ const FollowingTab: React.FC<{ userID?: number }> = (props) => {
                         </div>
                         <div className="home-user-info">
                             <div className="home-user-name">{user.username}</div>
+                            <div className="home-user-bio">{user.bio}</div>
                         </div>
                         <button className="home-follow-btn">关注</button>
                     </div>
