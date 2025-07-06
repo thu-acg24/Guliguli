@@ -17,6 +17,12 @@ import FollowersTab from 'Pages/HomePage/FollowersTab';
 import FavoritesTab from 'Pages/HomePage/FavoritesTab';
 import HistoryTab from 'Pages/HomePage/HistoryTab';
 import SettingsTab from 'Pages/HomePage/SettingsTab';
+import MemberPage, { memberPagePath } from 'Pages/MemberPage/MemberPage';
+import MemberOverview from 'Pages/MemberPage/MemberOverview';
+import MemberUpload from 'Pages/MemberPage/MemberUpload';
+import MemberVideoEdit from 'Pages/MemberPage/MemberVideoEdit';
+import MemberDanmakuManagement from 'Pages/MemberPage/MemberDanmakuManagement';
+import MemberCommentManagement from 'Pages/MemberPage/MemberCommentManagement';
 
 const Layout = () => {
     // 初始化全局用户状态的副作用
@@ -44,9 +50,15 @@ const Layout = () => {
                         <Route path="history" element={<HistoryTab />} />
                         <Route path="settings" element={<SettingsTab />} />
                     </Route>
+                    <Route path={memberPagePath} element={<MemberPage />}>
+                        <Route index element={<MemberOverview />} />
+                        <Route path="upload" element={<MemberUpload />} />
+                        <Route path="edit/:videoID" element={<MemberVideoEdit />} />
+                        <Route path="danmaku/:videoID" element={<MemberDanmakuManagement />} />
+                        <Route path="comments/:videoID" element={<MemberCommentManagement />} />
+                    </Route>
                     {/*<Route path={managementPagePath} element={<ManagementPage />} />
-                    <Route path={searchPagePath} element={<SearchPage />} />
-                    <Route path={memberPagePath} element={<MemberPage />} /> */}
+                    <Route path={searchPagePath} element={<SearchPage />} /> */}
                 </Routes>
             </HashRouter>
             <AlertGadget />
