@@ -89,7 +89,7 @@ case class QueryUploadPathMessagePlanner(
           .method(Method.PUT)
           .bucket("temp")
           .`object`(objectName)
-          .expiry(3, TimeUnit.MINUTES)
+          .expiry(15, TimeUnit.MINUTES)
           .build()
       )
     }

@@ -5,6 +5,7 @@ import Common.API.API
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
+import Objects.CommentService.Comment
 import Global.ServiceCenter.CommentServiceCode
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
@@ -25,6 +26,7 @@ import scala.util.Try
  * @param videoID: Int (需要评论的视频的ID。)
  * @param commentContent: String (评论的具体内容。)
  * @param replyToCommentID: Int (回复的目标评论ID，可空。)
+ * @return comment: Comment (发布的新评论的信息)
  */
 
 case class PublishCommentMessage(
@@ -32,7 +34,7 @@ case class PublishCommentMessage(
   videoID: Int,
   commentContent: String,
   replyToCommentID: Option[Int] = None
-) extends API[Unit](CommentServiceCode)
+) extends API[Comment](CommentServiceCode)
 
 case object PublishCommentMessage{
 
