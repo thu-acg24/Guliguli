@@ -39,7 +39,7 @@ case class ModifyVideoMessagePlanner(
       _ <- IO(logger.info(s"Start ModifyVideoMessagePlanner with token: ${token}, videoID: ${videoID}"))
 
       // Step 1: Validate token
-      userID <- validateToken()
+      userID <- GetUIDByTokenMessage(token).send
 
       // Step 2: Validate video existence and fetch uploader ID
       _ <- IO(logger.info(s"开始校验视频ID是否合法, videoID=${videoID}"))
@@ -56,13 +56,9 @@ case class ModifyVideoMessagePlanner(
       _ <- updateVideo(videoID, title, description, tag, status)
 
       // Step 5: Notify RecommendationService about video update
-      _ <- notifyRecommendationService(videoID)
+      _ <- IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video update: videoID=${videoID}"))
+      _ <- UpdateVideoInfoMessage(token, videoID).send
     } yield ()
-  }
-
-  private def validateToken()(using PlanContext): IO[Int] = {
-    IO(logger.info(s"Validating token: ${token}")) >>
-    GetUIDByTokenMessage(token).send
   }
 
   /**
@@ -102,8 +98,7 @@ case class ModifyVideoMessagePlanner(
       }
       
       result <- if (updates.isEmpty) {
-        IO(logger.info(s"No fields to update for videoID: ${videoID}")) >>
-        IO("")
+        IO(logger.info(s"No fields to update for videoID: ${videoID}")).as("")
       } else {
         val (setClause, sqlParams) = updates.unzip
         val sql =
@@ -116,44 +111,5 @@ case class ModifyVideoMessagePlanner(
         writeDB(sql, parameters)
       }
     } yield result
-  }
-
-  /**
-   * 通知 RecommendationService 视频信息更新
-   */
-  private def notifyRecommendationService(videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video update: videoID=${videoID}")) >> {
-      // 获取更新后的视频详细信息
-      getUpdatedVideoInfo(videoID).flatMap { videoInfo =>
-        UpdateVideoInfoMessage(token, videoInfo).send.handleErrorWith { error =>
-          IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
-        }
-      }
-    }
-  }
-
-  /**
-   * 获取更新后的视频信息
-   */
-  private def getUpdatedVideoInfo(videoID: Int)(using PlanContext): IO[VideoInfo] = {
-    IO(logger.info(s"[getUpdatedVideoInfo] Fetching updated video info for videoID=${videoID}")) >> {
-      val sql = s"SELECT video_id, title, description, tag, uploader_id, views, likes, favorites, status FROM ${schemaName}.video_table WHERE video_id = ?;"
-      readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
-        case Some(json) =>
-          val status = decodeField[String](json, "status")
-          VideoInfo(
-            videoID = decodeField[Int](json, "video_id"),
-            title = decodeField[String](json, "title"),
-            description = decodeField[String](json, "description"),
-            tag = decodeField[String](json, "tag").split(",").toList.map(_.trim).filter(_.nonEmpty),
-            uploaderID = decodeField[Int](json, "uploader_id"),
-            views = decodeField[Int](json, "views"),
-            likes = decodeField[Int](json, "likes"),
-            favorites = decodeField[Int](json, "favorites"),
-            visible = status == "Approved" // 根据状态设置可见性
-          )
-        case None => throw InvalidInputException("找不到视频")
-      }
-    }
   }
 }
