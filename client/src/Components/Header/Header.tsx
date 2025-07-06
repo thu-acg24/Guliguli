@@ -10,6 +10,7 @@ import "./Header.css";
 
 import { mainPagePath } from "Pages/MainPage/MainPage";
 import { messagePagePath } from "Pages/MessagePage/MessagePage";
+import { memberPagePath } from "Pages/MemberPage/MemberPage";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Header: React.FC = () => {
         navigate(`/home/${userID}/history`);
     };
     const handleUploadClick = async () => {
-        // TODO: 跳转到投稿页面
+        navigate(`${memberPagePath}/upload`);
     };
 
     // 处理登出
