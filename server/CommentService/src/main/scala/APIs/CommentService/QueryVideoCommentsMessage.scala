@@ -33,7 +33,8 @@ case class QueryVideoCommentsMessage(
   videoID: Int,
   lastTime: DateTime,
   lastID: Int,
-  rootID: Option[Int]
+  rootID: Option[Int],
+  fetchLimit: Int
 ) extends API[List[Comment]](CommentServiceCode)
 
 case object QueryVideoCommentsMessage{

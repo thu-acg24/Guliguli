@@ -226,11 +226,11 @@ const HomePage: React.FC = () => {
             {/* 用户信息区域 */}
             <div className="home-user-info-section">
                 <div className="home-user-left">
-                    <div className="home-user-avatar">
+                    <div className="home-info-user-avatar">
                         <img src={userInfo.avatarPath} alt="用户头像" />
                     </div>
                     <div className="home-user-basic-info">
-                        <div className="home-user-name">{userInfo.username}</div>
+                        <div className="home-profile-user-name">{userInfo.username}</div>
                         <div className="home-user-signature">
                             {isEditingBio ? (
                                 <input

@@ -114,31 +114,8 @@ export const setLoading = (key: keyof GlobalState['loading'], loading: boolean) 
 export const setError = (key: keyof GlobalState['error'], error: string | null) => globalStore.getState().setError(key, error)
 export const clearUserData = () => globalStore.getState().clearUserData()
 
-// 开发环境下暴露到全局作用域用于调试
+// 开发环境下的调试功能已经集成到 DevTools 中
+// 请使用 devTools.store 来访问全局状态调试功能
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
-    (window as any).debugGlobalStore = {
-        // 获取状态
-        getUserInfo: () => globalStore.getState().userInfo,
-        getUserID: () => globalStore.getState().userID,
-        getUserToken: () => globalStore.getState().userToken,
-        getUserStat: () => globalStore.getState().userStat,
-        getLoading: () => globalStore.getState().loading,
-        getError: () => globalStore.getState().error,
-        
-        // 获取完整状态
-        getState: () => globalStore.getState(),
-        
-        // 设置状态（用于测试）
-        setUserInfo: (info: any) => globalStore.getState().setUserInfo(info),
-        setUserID: (id: number | null) => globalStore.getState().setUserID(id),
-        setUserToken: (token: string) => globalStore.getState().setUserToken(token),
-        
-        // 清理数据
-        clearUserData: () => globalStore.getState().clearUserData(),
-        
-        // 订阅状态变化
-        subscribe: (callback: (state: any) => void) => globalStore.subscribe(callback)
-    }
-    
-    console.log('🔧 Global Store Debug Interface Available: window.debugGlobalStore')
+    console.log('🔧 Global Store debugging available via devTools.store');
 }

@@ -8,12 +8,7 @@ import Common.DBAPI.DidRollbackException
 import Common.Serialize.CustomColumnTypes.*
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
-import Impl.DeleteCommentMessagePlanner
-import Impl.PublishCommentMessagePlanner
-import Impl.QueryCommentByIDMessagePlanner
-import Impl.QueryVideoCommentsMessagePlanner
-import Impl.UpdateLikeCommentMessagePlanner
-import Impl.QueryLikedBatchMessagePlanner
+import Impl.*
 import cats.effect.*
 import fs2.concurrent.Topic
 import io.circe.*
@@ -66,6 +61,13 @@ object Routes:
         IO(
           decode[QueryCommentByIDMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryCommentByIDMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryCommentCountMessage" =>
+        IO(
+          decode[QueryCommentCountMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryCommentCountMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
