@@ -1,4 +1,4 @@
-package Impl
+package Utils
 
 import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
@@ -28,59 +28,43 @@ import java.text.DecimalFormat
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-case class ValidateFileMessagePlanner(
-    sessionToken: String,
-    isVideo: Boolean,
-    override val planContext: PlanContext
-) extends Planner[Unit] {
+//process plan import 预留标志位，不要删除
 
-  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+case object VerifyProcess {
+  private val logger = LoggerFactory.getLogger(getClass)
+  //process plan code 预留标志位，不要删除
 
-  override def plan(using PlanContext): IO[Unit] = {
-    for {
-      newToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(logger.info(s"Validating token $sessionToken"))
-      session <- IO.blocking(Option(sessions.getIfPresent(sessionToken))).flatMap{
-        case Some(session) if !session.completed =>
-          for {
-            _ <- IO.blocking {
-              sessions.invalidate(session.token)
-              sessions.put(newToken, session.copy(token = newToken, completed = true))
-            }
-             _ <- processUploadedFile (session.objectName)
-          } yield session
-        case _ =>
-          IO.raiseError(InvalidInputException(s"不合法的sessionToken"))
-      }
-      _ <- sendMessage(newToken, session.videoID, session.objectName)
-    } yield()
-  }
+  // implicit val dateTimeDecoder: Decoder[DateTime] = decodeDateTime
 
-  private def processUploadedFile(objectName: String)(using PlanContext): IO[Unit] = {
-    val fileLim = if isVideo then 2 * 1024 * 1024 * 1024 else 5 * 1024 * 1024
-    val fileLimStr = if isVideo then "2GB" else "5MB"
+
+  def processUploadedFile(isVideo: Boolean, objectName: String)(using PlanContext): IO[Unit] = {
+    val fileLim = if isVideo then 2L * 1024 * 1024 * 1024 else 5L * 1024 * 1024
     for {
       _ <- IO(logger.info(s"Processing uploaded file $objectName"))
-      fileSize <- IO(minioClient.statObject(
-        StatObjectArgs.builder()
-          .bucket("temp")
-          .`object`(objectName)
-          .build()
-      )).map(stat => stat.size())
+      fileSize <- IO.fromCompletableFuture(
+          IO.delay {
+            minioClient.statObject(
+              StatObjectArgs.builder()
+                .bucket("temp")
+                .`object`(objectName)
+                .build()
+            )
+          }
+        ).map(stat => stat.size())
         .handleErrorWith(ex =>
           IO(logger.info(s"Object size not found!!")) *>
             IO.raiseError(InvalidInputException(s"查找上传的文件时发生错误：${ex.getMessage}"))
         )
       _ <- IO(logger.info(s"Object size is ${getHumanReadableSize(fileSize)}"))
       _ <- if (fileSize < 10 * 1024) {
-        IO.raiseError(InvalidInputException(s"上传的文件过小(${getHumanReadableSize(fileSize)}, 至少需要 10KB)"))
+        IO.raiseError(InvalidInputException(s"上传的文件过小(${getHumanReadableSize(fileSize)}), 至少需要 10KB)"))
       } else if (fileSize > fileLim) {
-        IO.raiseError(InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}, 最多只能 $fileLimStr)"))
+        IO.raiseError(InvalidInputException(s"上传的文件过大(${getHumanReadableSize(fileSize)}), 最多只能 ${getHumanReadableSize(fileLim)})"))
       } else IO.unit
-    } yield()
+    } yield ()
   }
 
-  private def getHumanReadableSize(fileSize: Long): String = {
+  def getHumanReadableSize(fileSize: Long): String = {
 
     val units = Array("B", "KB", "MB", "GB", "TB")
     val digitGroups = (Math.log10(fileSize.toDouble) / Math.log10(1024)).toInt
@@ -88,7 +72,7 @@ case class ValidateFileMessagePlanner(
       .format(fileSize / Math.pow(1024, digitGroups)) + " " + units(digitGroups)
   }
 
-  private def sendMessage(token: String, videoID: Int, objName: String): IO[Unit] = clientResource.use { client =>
+  def sendMessage(isVideo: Boolean, token: String, videoID: Int, objName: String): IO[Unit] = clientResource.use { client =>
     val request = if (isVideo) {
       Request[IO](
         method = Method.POST,
@@ -102,7 +86,9 @@ case class ValidateFileMessagePlanner(
     }
     logger.info(s"Sending Message to Media")
     client.run(request).use { response =>
-      if (response.status.isSuccess) {response.body.compile.drain }
+      if (response.status.isSuccess) {
+        response.body.compile.drain
+      }
       else {
         response.bodyText.compile.string.flatMap { errorBody =>
           IO(sessions.invalidate(token)) >> IO.raiseError(new RuntimeException(
@@ -111,5 +97,18 @@ case class ValidateFileMessagePlanner(
         }
       }
     }
+  }
+  def checkVideoStatus(videoID: Int)(using PlanContext): IO[String] = {
+    val querySQL =
+      s"""
+         |UPDATE ${schemaName}.video_table
+         |SET status = 'Pending'
+         |WHERE video_id = ?
+         |  AND m3u8_name IS NOT NULL
+         |  AND m3u8_name NOT LIKE '0/%'
+         |  AND cover IS NOT NULL
+         |  AND cover NOT LIKE '0/%'
+       """.stripMargin
+    writeDB(querySQL, List(SqlParameter("Int", videoID.toString)))
   }
 }

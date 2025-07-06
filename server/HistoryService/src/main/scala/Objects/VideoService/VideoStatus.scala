@@ -23,6 +23,7 @@ enum VideoStatus(val desc: String):
   case Rejected extends VideoStatus("Rejected") // 审核未通过
   case Uploading extends VideoStatus("Uploading") // 上传中
   case Private extends VideoStatus("Private") // 公众不可见
+  case Broken extends VideoStatus("Broken") // 上传失败
 
 object VideoStatus:
   given encode: Encoder[VideoStatus] = Encoder.encodeString.contramap[VideoStatus](toString)
@@ -35,6 +36,7 @@ object VideoStatus:
     case "Rejected" => Rejected
     case "Uploading" => Uploading
     case "Private" => Private
+    case "Broken" => Broken
     case _ => throw Exception(s"Unknown VideoStatus: $s")
 
   def fromStringEither(s: String):Either[String, VideoStatus]  = s match
@@ -43,6 +45,7 @@ object VideoStatus:
     case "Rejected" => Right(Rejected)
     case "Uploading" => Right(Uploading)
     case "Private" => Right(Private)
+    case "Broken" => Right(Broken)
     case _ => Left(s"Unknown VideoStatus: $s")
 
   def toString(t: VideoStatus): String = t match
@@ -51,6 +54,7 @@ object VideoStatus:
     case Rejected => "Rejected"
     case Uploading => "Uploading"
     case Private => "Private"
+    case Broken => "Broken"
 
 // Jackson 序列化器
 class VideoStatusSerializer extends JsonSerializer[VideoStatus] {
