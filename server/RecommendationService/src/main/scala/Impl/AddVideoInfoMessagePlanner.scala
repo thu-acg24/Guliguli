@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 
 case class AddVideoInfoMessagePlanner(
     token: String,
-    info: VideoInfo,
+    videoID: Int,
     override val planContext: PlanContext
 ) extends Planner[Unit] {
 
@@ -38,49 +38,32 @@ case class AddVideoInfoMessagePlanner(
       _ <- IO(logger.info(s"[Step 1] 校验Token是否合法并获取用户的userID: ${token}"))
       userID <- GetUIDByTokenMessage(token).send
 
-      // Step 2: 校验用户是否为当前视频的上传者
-      _ <- IO(logger.info(s"[Step 2] 校验用户是否为视频ID [${info.videoID}] 的上传者"))
-      _ <- validateUploader(userID)
+      // Step 2: 获取视频
+      _ <- IO(logger.info(s"[Step 2] 获取视频中"))
+      video <- QueryVideoInfoMessage(Some(token), videoID).send
 
       // Step 3: 在VideoInfoTable中创建新的视频信息记录
-      _ <- IO(logger.info(s"[Step 3] 准备在VideoInfoTable中插入视频信息: ${info}"))
-      insertResult <- insertVideoInfo()
+      _ <- IO(logger.info(s"[Step 3] 准备在VideoInfoTable中插入视频信息:"))
+      insertResult <- insertVideoInfo(video)
 
       // Step 4: 返回结果
       _ <- IO(logger.info("[Step 4] 操作完成，返回结果"))
     } yield ()
   }
 
-  // 子函数：校验用户是否为上传者
-  private def validateUploader(userID: Int)(using PlanContext): IO[Unit] = {
-    for{
-      video <- QueryVideoInfoMessage(None, info.videoID).send
-      _ <- if (video.uploaderID == userID) {
-        IO(logger.info(s"用户${userID}是视频ID [${info.videoID}] 的上传者"))
-      }else{
-        IO.raiseError(InvalidInputException("User Are Not The Uploader Of Video"))
-      }
-    } yield ()
-  }
-
   // 子函数：插入视频信息记录
-  private def insertVideoInfo()(using PlanContext): IO[Unit] = {
+  private def insertVideoInfo(video: Video)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
         INSERT INTO ${schemaName}.video_info_table
-        (video_id, title, description, tag, uploader_id, views, likes, favorites, visible)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        (video_id, title, visible, embedding)
+        VALUES (?, ?, ?, ?);
       """
     val parameters = List(
-      SqlParameter("Int", info.videoID.toString),
-      SqlParameter("String", info.title),
-      SqlParameter("String", info.description),
-      SqlParameter("Array[String]", info.tag.asJson.noSpaces),
-      SqlParameter("Int", info.uploaderID.toString),
-      SqlParameter("Int", info.views.toString),
-      SqlParameter("Int", info.likes.toString),
-      SqlParameter("Int", info.favorites.toString),
-      SqlParameter("Boolean", info.visible.toString)
+      SqlParameter("Int", video.videoID.toString),
+      SqlParameter("String", video.title),
+      SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
+      SqlParameter("Vector", info.tag.asJson.noSpaces),
     )
     writeDB(sql, parameters).as(())
   }
