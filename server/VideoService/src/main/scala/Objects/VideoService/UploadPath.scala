@@ -18,18 +18,14 @@ import scala.util.Try
 
 /**
  * UploadPath
- * desc: 视频收藏记录，记录用户收藏视频的相关信息
- * @param coverPath: String (封面上传链接)
- * @param coverToken: String (封面上传会话Token)
- * @param videoPath: String (视频上传链接)
- * @param videoToken: String (视频上传会话Token)
+ * desc: 上传文件的相关信息
+ * @param path: List[String] (上传文件的minio自签名链接)
+ * @param token: String (上传会话Token)
  */
 
 case class UploadPath(
-  coverPath: String,
-  coverToken: String,
-  videoPath: String,
-  videoToken: String 
+  path: List[String],
+  token: String
 ){
 
   //process class code 预留标志位，不要删除

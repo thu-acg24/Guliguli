@@ -74,13 +74,6 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
-      case "FinishUploadingMessage" =>
-        IO(
-          decode[FinishUploadingMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for FinishUploadingMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-
       case "ModifyVideoMessage" =>
         IO(
           decode[ModifyVideoMessagePlanner](str) match
@@ -130,10 +123,17 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
-      case "QueryUploadPathMessage" =>
+      case "QueryUploadVideoPathMessage" =>
         IO(
-          decode[QueryUploadPathMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryUploadPathMessage[${err.getMessage}]")
+          decode[QueryUploadVideoPathMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryUploadVideoPathMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryUploadCoverPathMessage" =>
+        IO(
+          decode[QueryUploadCoverPathMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryUploadCoverPathMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
@@ -158,10 +158,17 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
-      case "ValidateFileMessage" =>
+      case "ValidateCoverMessage" =>
         IO(
-          decode[ValidateFileMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateFileMessage[${err.getMessage}]")
+          decode[ValidateCoverMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateCoverMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ValidateVideoMessage" =>
+        IO(
+          decode[ValidateVideoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateVideoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

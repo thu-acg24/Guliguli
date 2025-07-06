@@ -17,6 +17,7 @@ import io.circe.syntax.*
 import io.minio.{CopyObjectArgs, CopySource, StatObjectArgs}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+import Utils.VerifyProcess.checkVideoStatus
 
 case class ConfirmVideoMessagePlanner(
                                          sessionToken: String,
@@ -43,7 +44,7 @@ case class ConfirmVideoMessagePlanner(
       _ <- IO(sessions.invalidate(session.token))
       _ <- status match {
         case "success" => updateVideoInDB(session.videoID, sliceCount)
-        case "failure" => updateVideoInDB(session.videoID, 0)
+        case "failure" => failureControl(session.videoID)
         case _ => IO.raiseError(InvalidInputException(s"status必须是success或failure中的一个"))
       }
     } yield ()
@@ -62,6 +63,30 @@ case class ConfirmVideoMessagePlanner(
       SqlParameter("String", tsPrefix),
       SqlParameter("Int", sliceCount.toString),
       SqlParameter("Float", duration.toString),
+      SqlParameter("Int", videoID.toString)
+    )
+
+    for {
+      _ <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams"))
+      updateResponse <- writeDB(querySQL, queryParams)
+      _ <- checkVideoStatus(videoID)
+    } yield ()
+  }
+
+  private def failureControl(videoID: Int)(using PlanContext): IO[Unit] = {
+    val querySQL =
+        s"""
+         |UPDATE ${schemaName}.video_table
+         |SET m3u8_name = ?, ts_prefix = ?, slice_count = ?, duration = ?, status = ?
+         |WHERE video_id = ?
+         """.stripMargin
+
+    val queryParams = List(
+      SqlParameter("String", "0/fallback/index.m3u8"),
+      SqlParameter("String", "0/fallback/segment"),
+      SqlParameter("Int", "3"),
+      SqlParameter("Float", "29.3"),
+      SqlParameter("String", "Broken"),
       SqlParameter("Int", videoID.toString)
     )
 

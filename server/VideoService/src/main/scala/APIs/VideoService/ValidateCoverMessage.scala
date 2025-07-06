@@ -15,39 +15,39 @@ import java.util.UUID
 import scala.util.Try
 
 /**
- * FinishUploadingMessage
- * desc: 根据用户Token校验权限后，更改视频状态
- * @param token: String (用户身份验证Token。)
- * @param videoID: Int (需要删除的视频的唯一标识ID。)
+ * ValidateCoverMessage
+ * desc: 通知服务器视频或封面已经上传完毕
+ * @param sessionToken: String (会话Token)
+ * @param isVideo: Boolean (是否为视频)
  */
 
-case class FinishUploadingMessage(
-  token: String,
-  videoID: Int
+case class ValidateCoverMessage(
+  sessionToken: String,
+  isVideo: Boolean
 ) extends API[Unit](VideoServiceCode)
 
-case object FinishUploadingMessage{
+case object ValidateCoverMessage{
 
-  private val circeEncoder: Encoder[FinishUploadingMessage] = deriveEncoder
-  private val circeDecoder: Decoder[FinishUploadingMessage] = deriveDecoder
+  private val circeEncoder: Encoder[ValidateCoverMessage] = deriveEncoder
+  private val circeDecoder: Decoder[ValidateCoverMessage] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[FinishUploadingMessage] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[ValidateCoverMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[FinishUploadingMessage] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[FinishUploadingMessage]() {})) } 
+  private val jacksonDecoder: Decoder[ValidateCoverMessage] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[ValidateCoverMessage]() {})) }
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given deleteVideoMessageEncoder: Encoder[FinishUploadingMessage] = Encoder.instance { config =>
+  given ValidateCoverMessageEncoder: Encoder[ValidateCoverMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given deleteVideoMessageDecoder: Decoder[FinishUploadingMessage] = Decoder.instance { cursor =>
+  given ValidateCoverMessageDecoder: Decoder[ValidateCoverMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

@@ -3,7 +3,7 @@ package Global
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import Global.ServiceCenter.*
 import cats.effect.{IO, Resource}
-import io.minio.{GetObjectArgs, MinioClient}
+import io.minio.{GetObjectArgs, MinioAsyncClient, MinioClient}
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import Common.API.loggerFactory
@@ -18,9 +18,9 @@ object GlobalVariables {
   lazy val serviceCode : String = VideoServiceCode
   val projectIDLength:Int=20
   val minioConfig: MinioConfig = MinioConfig.fromConfig()
-  val minioClient: MinioClient = {
+  val minioClient: MinioAsyncClient = {
     val tmp = try {
-      MinioClient.builder()
+      MinioAsyncClient.builder()
         .endpoint(minioConfig.endpoint)
         .credentials(minioConfig.accessKey, minioConfig.secretKey)
         .build()
@@ -33,14 +33,19 @@ object GlobalVariables {
   }
 
   // 获取 MinIO 中对象的 InputStream
-  def getObjectStream(bucket: String, key: String): Resource[IO, InputStream] =
+  private def getObjectStream(bucket: String, key: String): Resource[IO, InputStream] =
     Resource.make {
-      IO.blocking(minioClient.getObject(
-        GetObjectArgs.builder()
-          .bucket(bucket)
-          .`object`(key)
-          .build()
-      ))
+      // 将异步回调转换为 IO
+      IO.fromCompletableFuture(
+        IO.delay {
+          minioClient.getObject(
+            GetObjectArgs.builder()
+              .bucket(bucket)
+              .`object`(key)
+              .build()
+          )
+        }
+      )
     }(in => IO.blocking(in.close()))
 
   // 读取 InputStream 为字符串列表
