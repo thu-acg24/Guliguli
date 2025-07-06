@@ -46,7 +46,7 @@ case class QueryUserInfoMessagePlanner(
       _ <- IO(logger.info("[Step 1.1.1] 开始构造查询用户信息的数据库指令"))
       sql <- IO {
         s"""
-           |SELECT user_id, username, avatar_path, is_banned
+           |SELECT user_id, username, avatar_path, is_banned, bio
            |FROM ${schemaName}.user_table
            |WHERE user_id = ?;
          """.stripMargin
