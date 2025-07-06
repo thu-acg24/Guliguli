@@ -59,7 +59,7 @@ case class ChangeFollowStatusMessagePlanner(
   private def handleFollow(followerID: Int, followeeID: Int)(using PlanContext): IO[Unit] = {
     val checkSQL =
       s"""
-         SELECT 1
+         SELECT *
          FROM $schemaName.follow_relation_table
          WHERE follower_id = ? AND followee_id = ?;
        """
@@ -72,7 +72,7 @@ case class ChangeFollowStatusMessagePlanner(
 
     for {
       _ <- IO(logger.info(s"Handling follow action for followerID=$followerID and followeeID=$followeeID."))
-      alreadyExists <- readDBBoolean(checkSQL, params)
+      alreadyExists <- readDBJsonOptional(checkSQL, params).map(_.isDefined)
       _ <- if (alreadyExists) {
         IO(logger.info(s"Follow relation already exists between followerID=$followerID and followeeID=$followeeID."))
       } else {
