@@ -33,7 +33,7 @@ case class QueryVideoCommentsMessagePlanner(
 
   override def plan(using PlanContext): IO[List[Comment]] = {
     for {
-      // Step 1: Validate videoId
+      // Step 1: Validate videoID
       _ <- IO(logger.info(s"Validating videoID: ${videoID}"))
       _ <- validateVideoExists(videoID)
 
@@ -61,14 +61,14 @@ case class QueryVideoCommentsMessagePlanner(
   }
 
   /**
-   * Validates if the given videoId exists in the database by calling `QueryVideoInfoMessage`.
+   * Validates if the given videoID exists in the database by calling `QueryVideoInfoMessage`.
    *
-   * @param videoId Video ID to validate.
+   * @param videoID Video ID to validate.
    * @return IO[Unit], raises an error if the video does not exist.
    */
-  private def validateVideoExists(videoId: Int)(using PlanContext): IO[Unit] = {
-    QueryVideoInfoMessage(None, videoId).send.flatMap { video =>
-        IO(logger.info(s"Video with videoId=${videoId} exists. Title: '${video.title}'")) >> IO.unit
+  private def validateVideoExists(videoID: Int)(using PlanContext): IO[Unit] = {
+    QueryVideoInfoMessage(None, videoID).send.flatMap { video =>
+        IO(logger.info(s"Video with videoID=${videoID} exists. Title: '${video.title}'")) >> IO.unit
     }
   }
 

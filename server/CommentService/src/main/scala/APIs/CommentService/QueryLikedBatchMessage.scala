@@ -23,13 +23,13 @@ import scala.util.Try
  * QueryLikedBatchMessage
  * desc: 根据commentID获取对应评论的详细信息
  * @param token: String (用户token，用来获取userID)
- * @param commentIds: List[Int] (评论ID列表)
+ * @param commentIDs: List[Int] (评论ID列表)
  * @return liked: List[Boolean] (返回的boolean列表，表示用户是否点赞过该评论)
  */
 
 case class QueryLikedBatchMessage(
   token: String,
-  commentIds: List[Int]
+  commentIDs: List[Int]
 ) extends API[List[Boolean]](CommentServiceCode)
 
 case object QueryLikedBatchMessage{

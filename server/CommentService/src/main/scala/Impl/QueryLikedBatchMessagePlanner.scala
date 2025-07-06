@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 
 case class QueryLikedBatchMessagePlanner(
     token: String,
-    commentIds: List[Int],
+    commentIDs: List[Int],
     override val planContext: PlanContext
 ) extends Planner[List[Boolean]] {
 
@@ -29,19 +29,19 @@ case class QueryLikedBatchMessagePlanner(
 
   override def plan(using PlanContext): IO[List[Boolean]] = {
     for {
-      // Step 1: Check if the commentIds exists
+      // Step 1: Check if the commentIDs exists
       _ <- IO(logger.info(s"[QueryLikedBatchMessage] 获取userID"))
       userID <- GetUIDByTokenMessage(token).send
       _ <- IO(logger.info(s"[QueryLikedBatchMessage] 获取点赞状态"))
-      result <- queryLikeStatus(userID, commentIds)
+      result <- queryLikeStatus(userID, commentIDs)
     } yield result
   }
 
-  private def queryLikeStatus(userID: Int, commentIds: List[Int])(using PlanContext): IO[List[Boolean]] = {
-    if (commentIds.isEmpty) return IO.pure(List.empty)
+  private def queryLikeStatus(userID: Int, commentIDs: List[Int])(using PlanContext): IO[List[Boolean]] = {
+    if (commentIDs.isEmpty) return IO.pure(List.empty)
 
     // 构建SQL查询
-    val placeholders = commentIds.map(_ => "?").mkString(",")
+    val placeholders = commentIDs.map(_ => "?").mkString(",")
     val sqlQuery =
       s"""
         |SELECT comment_id
@@ -53,11 +53,11 @@ case class QueryLikedBatchMessagePlanner(
     // 准备参数
     val parameters =
       SqlParameter("Int", userID.toString) ::
-        commentIds.map(id => SqlParameter("Int", id.toString))
+        commentIDs.map(id => SqlParameter("Int", id.toString))
 
     readDBRows(sqlQuery, parameters).map { jsonList =>
-      val likedCommentIds = jsonList.map(json => decodeField[Int](json, "comment_id")).toSet
-      commentIds.map(likedCommentIds.contains)
+      val likedCommentIDs = jsonList.map(json => decodeField[Int](json, "comment_id")).toSet
+      commentIDs.map(likedCommentIDs.contains)
     }
   }
 }

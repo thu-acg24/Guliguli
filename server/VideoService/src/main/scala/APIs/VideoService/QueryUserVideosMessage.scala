@@ -23,13 +23,13 @@ import scala.util.Try
  * QueryUserVideosMessage
  * desc: 根据用户ID获取其发布的视频。
  * @param token: String (用户Token（可选）)
- * @param userId: Int
+ * @param userID: Int
  * @return video: Video:1120 (用户发布的所有视频信息)
  */
 
 case class QueryUserVideosMessage(
   token: Option[String] = None,
-  userId: Int
+  userID: Int
 ) extends API[List[Video]](VideoServiceCode)
 
 case object QueryUserVideosMessage{

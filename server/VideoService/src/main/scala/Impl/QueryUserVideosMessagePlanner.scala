@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 
 case class QueryUserVideosMessagePlanner(
                                          token: Option[String],
-                                         userId: Int,
+                                         userID: Int,
                                          override val planContext: PlanContext
                                        ) extends Planner[List[Video]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
@@ -68,14 +68,14 @@ case class QueryUserVideosMessagePlanner(
     val (whereClause, parameters) = (currentUserID, role) match {
       case (Some(uid), Some(UserRole.Auditor)) =>
         // 审核员可以看到指定用户的所有视频
-        ("WHERE uploader_id = ?", List(SqlParameter("Int", userId.toString)))
-      case (Some(uid), _) if uid == userId =>
+        ("WHERE uploader_id = ?", List(SqlParameter("Int", userID.toString)))
+      case (Some(uid), _) if uid == userID =>
         // 查询自己的视频，可以看到所有状态
-        ("WHERE uploader_id = ?", List(SqlParameter("Int", userId.toString)))
+        ("WHERE uploader_id = ?", List(SqlParameter("Int", userID.toString)))
       case _ =>
         // 查询别人的视频，只能看到已审核通过的视频
         ("WHERE uploader_id = ? AND status = ?", 
-         List(SqlParameter("Int", userId.toString), SqlParameter("String", VideoStatus.Approved.toString)))
+         List(SqlParameter("Int", userID.toString), SqlParameter("String", VideoStatus.Approved.toString)))
     }
     
     val sql =
