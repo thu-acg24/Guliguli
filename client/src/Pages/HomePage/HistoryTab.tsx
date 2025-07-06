@@ -1,12 +1,13 @@
 // src/Pages/HomePage/HistoryTab.tsx
 import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { useUserToken } from "Globals/GlobalStore";
 import expiredVideoCover from "Images/ExpiredVideo.jpg";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
 import { QueryHistoryMessage } from "Plugins/HistoryService/APIs/QueryHistoryMessage";
+import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import "./HomePage.css";
 
 const perpage = 10; // 每次新显示的历史记录数量
@@ -14,6 +15,7 @@ const perpage = 10; // 每次新显示的历史记录数量
 const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
     const userToken = useUserToken();
+    const navigate = useNavigate();
 
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -98,6 +100,12 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
         }
     };
 
+    // 处理视频点击
+    const handleVideoClick = (videoID: number) => {
+        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
+        navigate(videoPath);
+    };
+
     useEffect(() => {
         fetchHistory(page);
     }, [page]);
@@ -110,7 +118,7 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
         <div className="home-history-tab">
             <div className="home-video-list">
                 {videos.map(video => (
-                    <div key={video.videoID} className="home-video-item">
+                    <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
                         <div className="home-video-cover-container">
                             <img src={video.coverPath} alt="视频封面" className="home-video-cover" />
                         </div>

@@ -1,13 +1,15 @@
 // src/Pages/HomePage/VideoTab.tsx
 import React, { useState, useEffect } from "react";
 import { Video } from "Plugins/VideoService/Objects/Video";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
+import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import "./HomePage.css";
 
 const VideoTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
     const userID = props.userID ?? outlet?.userID;
+    const navigate = useNavigate();
 
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,6 +33,12 @@ const VideoTab: React.FC<{ userID?: number }> = (props) => {
         }
     };
 
+    // 处理视频点击
+    const handleVideoClick = (videoID: number) => {
+        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
+        navigate(videoPath);
+    };
+
     useEffect(() => {
         if (userID) {
             fetchVideos();
@@ -46,7 +54,7 @@ const VideoTab: React.FC<{ userID?: number }> = (props) => {
             ) : (
                 <div className="home-video-list">
                     {videos.map(video => (
-                        <div key={video.videoID} className="home-video-item">
+                        <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
                             <div className="home-video-cover-container">
                                 <img src={video.coverPath} alt="视频封面" className="home-video-cover" />
                             </div>

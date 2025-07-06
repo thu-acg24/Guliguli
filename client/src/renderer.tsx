@@ -22,7 +22,6 @@ import MemberOverview from 'Pages/MemberPage/MemberOverview';
 import MemberUpload from 'Pages/MemberPage/MemberUpload';
 import MemberVideoEdit from 'Pages/MemberPage/MemberVideoEdit';
 import MemberDanmakuManagement from 'Pages/MemberPage/MemberDanmakuManagement';
-import MemberCommentManagement from 'Pages/MemberPage/MemberCommentManagement';
 
 const Layout = () => {
     // 初始化全局用户状态的副作用
@@ -55,7 +54,6 @@ const Layout = () => {
                         <Route path="upload" element={<MemberUpload />} />
                         <Route path="edit/:videoID" element={<MemberVideoEdit />} />
                         <Route path="danmaku/:videoID" element={<MemberDanmakuManagement />} />
-                        <Route path="comments/:videoID" element={<MemberCommentManagement />} />
                     </Route>
                     {/*<Route path={managementPagePath} element={<ManagementPage />} />
                     <Route path={searchPagePath} element={<SearchPage />} /> */}

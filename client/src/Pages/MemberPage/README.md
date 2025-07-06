@@ -21,7 +21,6 @@ MemberPage 是一个完整的创作者中心页面，为用户提供视频管理
 3. **MemberUpload.tsx** - 视频上传页面（三步上传流程）
 4. **MemberVideoEdit.tsx** - 视频编辑页面
 5. **MemberDanmakuManagement.tsx** - 弹幕管理页面
-6. **MemberCommentManagement.tsx** - 评论管理页面
 
 ## 功能特性
 

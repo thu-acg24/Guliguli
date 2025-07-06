@@ -157,10 +157,11 @@ const HomePage: React.FC = () => {
 
     // 侧边栏点击跳转
     const handleTabClick = (tab: string) => {
+        const basePath = homePagePath.replace(":user_id", user_id!);
         if (tab === TAB_VIDEOS) {
-            navigate(`/home/${user_id}`);
+            navigate(basePath);
         } else {
-            navigate(`/home/${user_id}/${tab}`);
+            navigate(`${basePath}/${tab}`);
         }
     };
 

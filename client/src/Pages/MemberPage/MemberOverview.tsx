@@ -6,6 +6,7 @@ import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
 import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { memberPagePath } from "./MemberPage";
+import { videoPagePath } from "Pages/VideoPage/VideoPage";
 
 const MemberOverview: React.FC = () => {
     const navigate = useNavigate();
@@ -80,7 +81,8 @@ const MemberOverview: React.FC = () => {
     };
 
     const handleManageComments = (videoID: number) => {
-        navigate(`${memberPagePath}/comments/${videoID}`);
+        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
+        navigate(videoPath);
     };
 
     if (loading) {
