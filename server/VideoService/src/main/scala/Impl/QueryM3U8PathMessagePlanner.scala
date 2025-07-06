@@ -97,16 +97,18 @@ case class QueryM3U8PathMessagePlanner(
   private val bucket = "video-server"
 
   // 为每个 ts 文件生成签名 URL
-  def generatePresignedUrls(tsKeys: List[String]): IO[List[String]] = IO {
-    tsKeys.map { key =>
-      minioClient.getPresignedObjectUrl(
-        GetPresignedObjectUrlArgs.builder()
-          .method(Method.GET)
-          .bucket(bucket)
-          .`object`(key)
-          .expiry(7 * 24 * 60 * 60) // 一周有效
-          .build()
-      )
+  def generatePresignedUrls(tsKeys: List[String]): IO[List[String]] = {
+    IO.parTraverseN(10)(tsKeys) { key =>
+      IO.blocking {
+        minioClient.getPresignedObjectUrl(
+          GetPresignedObjectUrlArgs.builder()
+            .method(Method.GET)
+            .bucket(bucket)
+            .`object`(key)
+            .expiry(7 * 24 * 60 * 60)
+            .build()
+        )
+      }
     }
   }
 
