@@ -32,8 +32,8 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ commentID, videoID, replyingToC
           (info:string) => {
             try {
               const data: Comment = JSON.parse(info);
-              onSuccess(data)
               resolve(data);
+              onSuccess(data)
             } catch (e) {
               reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
             }

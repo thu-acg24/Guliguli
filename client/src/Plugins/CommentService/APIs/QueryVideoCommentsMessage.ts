@@ -5,6 +5,7 @@
  * @param lastTime: string (已获取的最新一条评论的时间戳，用于分页查询)
  * @param lastID: Int (已获取的最新一条评论的ID，用于分页查询)
  * @param rootID: Int (空则是一级评论，否则获取该一级评论下的二级评论)
+ * @param fetchLimit: number (每次查询的评论数量限制，默认值为10)
  * @return comments: Comment:1140 (查询到的评论列表，每个评论包含评论内容及相关信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
@@ -17,7 +18,8 @@ export class QueryVideoCommentsMessage extends TongWenMessage {
         public  videoID: number,
         public  lastTime: number,
         public  lastID: number,
-        public  rootID: number | null
+        public  rootID: number | null,
+        public  fetchLimit: number=10
     ) {
         super()
     }

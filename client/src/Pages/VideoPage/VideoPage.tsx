@@ -14,7 +14,6 @@ import { DeleteCommentMessage } from 'Plugins/CommentService/APIs/DeleteCommentM
 import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import { formatTime } from 'Components/GetTime';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
-import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
 import { Video } from 'Plugins/VideoService/Objects/Video';
 import { QueryVideoInfoMessage } from 'Plugins/VideoService/APIs/QueryVideoInfoMessage';
 import { QueryFavoriteMessage } from 'Plugins/VideoService/APIs/QueryFavoriteMessage';
@@ -31,6 +30,7 @@ import { set } from "lodash";
 export const videoPagePath = "/video/:video_id";
 
 interface CommentWithUserInfo extends Comment {
+  isLocal?:boolean;
   userInfo?: UserInfo;
   replies?: CommentWithUserInfo[];
   isLiked?: boolean;
@@ -284,12 +284,16 @@ const VideoPage: React.FC = () => {
     if (!comment.replyCount) return;
     
     try {
+      
+      const limit=Math.min(10,comment.replyCount-(comment.replies?.length||0));
+      if(limit<=0)return;
       const newReplies = await new Promise<Comment[]>((resolve, reject) => {
         new QueryVideoCommentsMessage(
           parseInt(video_id || "0"),
           new Date("1970-01-01 00:00:00").getTime(),
           0,
-          comment.commentID
+          comment.commentID,
+          limit
         ).send(
           (info: string) => {
             try {
@@ -375,13 +379,21 @@ const VideoPage: React.FC = () => {
     if (!comment.replies || comment.replies.length === 0) return;
     
     try {
-      const lastReply = comment.replies[comment.replies.length - 1];
+      const limit=Math.min(10,comment.replyCount-(comment.replies?.length||0));
+      if(limit<=0)return;
+
+      //fetch server replies
+      const serverReplies = comment.replies.filter(reply => !reply.isLocal);
+      if (serverReplies.length === 0) return;
+      const lastReply = serverReplies[serverReplies.length - 1];
+
       const newReplies = await new Promise<Comment[]>((resolve, reject) => {
         new QueryVideoCommentsMessage(
           parseInt(video_id || "0"),
           new Date(lastReply.timestamp).getTime(),
           lastReply.commentID,
-          comment.commentID
+          comment.commentID,
+          limit
         ).send(
           (info: string) => {
             try {
@@ -400,7 +412,7 @@ const VideoPage: React.FC = () => {
           if (c.commentID === comment.commentID) {
             return Object.assign(Object.create(Object.getPrototypeOf(c)), {
               ...c,
-              hasMoreReplies: false
+              hasMoreReplies: false,   
             });
           }
           return c;
@@ -418,6 +430,7 @@ const VideoPage: React.FC = () => {
             ...reply, 
             userInfo, 
             replyToUsername,
+            isLocal:false,
             isLiked: userToken ? await fetchLikedStatus([reply.commentID]).then(res => res[0]) : false
           };
         })
@@ -561,6 +574,8 @@ const VideoPage: React.FC = () => {
           userInfo,
           isLiked: false,
           replies: [],
+          replyCount:0,
+          isLocal:true,
           showAllReplies: false,
           hasMoreReplies: false
         }),
@@ -578,6 +593,7 @@ const VideoPage: React.FC = () => {
     newReply.userInfo=userInfo;
     newReply.isLiked=false;
     newReply.replyToUsername=replyingTo.username;
+    newReply.isLocal=true;
     setComments((comments) => {
       return comments.map((comment) => {
         if (comment.commentID === replyingTo.id) {
