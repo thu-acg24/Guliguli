@@ -20,6 +20,7 @@ import Impl.ModifyPasswordMessagePlanner
 import Impl.ModifyUserInfoMessagePlanner
 import Impl.QueryAuditorsMessagePlanner
 import Impl.QueryFollowerListMessagePlanner
+import Impl.QueryFollowMessagePlanner
 import Impl.QueryFollowingListMessagePlanner
 import Impl.QueryUserInfoMessagePlanner
 import Impl.QueryUserRoleMessagePlanner
@@ -138,6 +139,13 @@ object Routes:
         IO(
           decode[ChangeBanStatusMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for changeBanStatusMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "QueryFollowMessage" =>
+        IO(
+          decode[QueryFollowMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFollowMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
