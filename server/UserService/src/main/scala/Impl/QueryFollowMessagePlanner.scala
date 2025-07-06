@@ -43,7 +43,7 @@ case class QueryFollowMessagePlanner(
   }
 
   private def validateUserExists(userID: Int, userType: String)(using PlanContext): IO[Unit] = {
-    val sql = s"SELECT user_id FROM ${schemaName}.user_info_table WHERE user_id = ?;"
+    val sql = s"SELECT user_id FROM ${schemaName}.user_table WHERE user_id = ?;"
     readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString))).map {
       case Some(_) => ()
       case None => throw InvalidInputException(s"User ${userType} (ID: ${userID}) does not exist")
