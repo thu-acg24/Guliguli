@@ -40,7 +40,7 @@ object Init {
             video_id INT NOT NULL PRIMARY KEY,
             title TEXT NOT NULL,
             visible BOOLEAN DEFAULT TRUE,
-            embedding VECTOR(768)
+            embedding VECTOR(384)
         );
         """,
         List()
