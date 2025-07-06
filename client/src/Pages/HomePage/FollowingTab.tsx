@@ -39,15 +39,7 @@ const FollowingTab: React.FC<{ userID?: number }> = (props) => {
                     return await new Promise<UserInfo>((resolve, reject) => {
                         new QueryUserInfoMessage(id).send(
                             (info: string) => {
-                                const userInfo = JSON.parse(info);
-                                resolve(
-                                    new UserInfo(
-                                        userInfo.userID,
-                                        userInfo.username,
-                                        userInfo.avatarPath,
-                                        userInfo.isFollowing
-                                    )
-                                );
+                                resolve(JSON.parse(info) as UserInfo);
                             },
                             (error: any) => {
                                 console.error("获取用户信息失败", error);
@@ -58,7 +50,7 @@ const FollowingTab: React.FC<{ userID?: number }> = (props) => {
                 })
             );
 
-            const HasMore = newFollowing.length === perpage;
+            const hasMore = newFollowing.length === perpage;
 
             // 模拟数据
             // const newFollowings = Array.from({ length: perpage }, (_, i) =>
@@ -69,10 +61,10 @@ const FollowingTab: React.FC<{ userID?: number }> = (props) => {
             //         false
             //     )
             // );
-            // const HasMore = true
+            // const hasMore = true
 
             setFollowing(prev => [...prev, ...newFollowing]);
-            setHasMore(HasMore);
+            setHasMore(hasMore);
         } catch (error) {
             console.error("获取关注列表失败", error);
         } finally {

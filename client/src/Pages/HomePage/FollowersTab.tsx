@@ -1,7 +1,7 @@
 // src/Pages/HomePage/FollowersTab.tsx
 import React, { useState, useEffect } from "react";
-import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { useOutletContext } from "react-router-dom";
+import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { QueryFollowerListMessage } from "Plugins/UserService/APIs/QueryFollowerListMessage";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import "./HomePage.css";
@@ -39,15 +39,7 @@ const FollowersTab: React.FC<{ userID?: number }> = (props) => {
                     return await new Promise<UserInfo>((resolve, reject) => {
                         new QueryUserInfoMessage(id).send(
                             (info: string) => {
-                                const userInfo = JSON.parse(info);
-                                resolve(
-                                    new UserInfo(
-                                        userInfo.userID,
-                                        userInfo.username,
-                                        userInfo.avatarPath,
-                                        userInfo.isFollowing
-                                    )
-                                );
+                                resolve(JSON.parse(info) as UserInfo);
                             },
                             (error: any) => {
                                 console.error("获取用户信息失败", error);
@@ -58,7 +50,7 @@ const FollowersTab: React.FC<{ userID?: number }> = (props) => {
                 })
             );
 
-            const HasMore = newFollowers.length === perpage;
+            const hasMore = newFollowers.length === perpage;
 
             // 模拟数据
             // const newFollowers = Array.from({ length: perpage }, (_, i) =>
@@ -69,10 +61,10 @@ const FollowersTab: React.FC<{ userID?: number }> = (props) => {
             //         false
             //     )
             // );
-            // const HasMore = true
+            // const hasMore = true
 
             setFollowers(prev => [...prev, ...newFollowers]);
-            setHasMore(HasMore);
+            setHasMore(hasMore);
         } catch (error) {
             console.error("获取粉丝列表失败", error);
         } finally {

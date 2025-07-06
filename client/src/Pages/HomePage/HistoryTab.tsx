@@ -1,17 +1,19 @@
 // src/Pages/HomePage/HistoryTab.tsx
 import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+import { useUserToken } from "Globals/GlobalStore";
+import expiredVideoCover from "Images/ExpiredVideo.jpg";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
-import { useOutletContext } from "react-router-dom";
+import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
+import { QueryHistoryMessage } from "Plugins/HistoryService/APIs/QueryHistoryMessage";
 import "./HomePage.css";
 
-interface HistoryTabProps {
-    userID: number;
-}
+const perpage = 10; // 每次新显示的历史记录数量
 
 const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
-    const userID = props.userID ?? outlet?.userID;
+    const userToken = useUserToken();
 
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -22,32 +24,73 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     const fetchHistory = async (page: number) => {
         setLoading(true);
         try {
-            // API调用留空
-            // const result = await getUserHistory(userID, page, 10);
-            // setVideos(prev => [...prev, ...result.videos]);
-            // setHasMore(result.hasMore);
+            const newVideosID = await new Promise<number[]>((resolve, reject) => {
+                new QueryHistoryMessage(userToken, (page - 1) * perpage + 1, page * perpage).send(
+                    (info: string) => {
+                        const historyList = JSON.parse(info);
+                        resolve(historyList.map((record: any) => record.videoID));
+                    },
+                    (error: any) => {
+                        console.error("获取历史记录失败", error);
+                        reject(error);
+                    }
+                );
+            });
 
-            // 模拟数据
-            const mockVideos = Array.from({ length: 10 }, (_, i) =>
-                new Video(
-                    i + (page - 1) * 10,
-                    `观看过的视频 ${i + (page - 1) * 10}`,
-                    "视频描述",
-                    120,
-                    ["标签1", "标签2"],
-                    "",
-                    "https://picsum.photos/300/169",
-                    userID,
-                    Math.floor(Math.random() * 10000),
-                    Math.floor(Math.random() * 1000),
-                    Math.floor(Math.random() * 500),
-                    VideoStatus.approved,
-                    Date.now()
-                )
+            const newVideos = await Promise.all(
+                newVideosID.map(async (id) => {
+                    return await new Promise<Video>((resolve, reject) => {
+                        new QueryVideoInfoMessage(userToken, id).send(
+                            (info: string) => {
+                                resolve(JSON.parse(info) as Video);
+                            },
+                            (error: any) => {
+                                console.error("获取视频信息失败", error);
+                                resolve(new Video(
+                                    0,
+                                    "视频已失效",
+                                    "该视频已被删除或不存在",
+                                    0,
+                                    [],
+                                    "",
+                                    expiredVideoCover,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    VideoStatus.rejected,
+                                    null
+                                ))
+                            }
+                        );
+                    });
+                })
             );
 
-            setVideos(prev => [...prev, ...mockVideos]);
-            setHasMore(true);
+            const hasMore = newVideos.length === perpage;
+
+            // 模拟数据
+            // const newVideos = Array.from({ length: 10 }, (_, i) =>
+            //     new Video(
+            //         i + (page - 1) * 10,
+            //         `观看过的视频 ${i + (page - 1) * 10}`,
+            //         "视频描述",
+            //         120,
+            //         ["标签1", "标签2"],
+            //         "",
+            //         "https://picsum.photos/300/169",
+            //         userID,
+            //         Math.floor(Math.random() * 10000),
+            //         Math.floor(Math.random() * 1000),
+            //         Math.floor(Math.random() * 500),
+            //         VideoStatus.approved,
+            //         Date.now()
+            //     )
+            // );
+            // const hasMore = true
+
+            setVideos(prev => [...prev, ...newVideos]);
+            setHasMore(hasMore);
         } catch (error) {
             console.error("获取历史记录失败", error);
         } finally {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import iconSrc from "./icon.png";
+import iconSrc from "Images/LOGO.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
