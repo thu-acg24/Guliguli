@@ -15,7 +15,6 @@ import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import { formatTime } from 'Components/GetTime';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
-import {ReplyNotice} from 'Plugins/MessageService/Objects/ReplyNotice';
 import "./VideoPage.css";
 
 export const videoPagePath = "/video/:video_id";
@@ -41,7 +40,7 @@ const VideoPage: React.FC = () => {
   const [comments, setComments] = useState<CommentWithUserInfo[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [noMoreComments, setNoMoreComments] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<{ id: number, username: string } | null>(null);
+  const [replyingTo, setReplyingTo] = useState<{ id: number, username: string, content: string } | null>(null);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const commentsSectionRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLDivElement>(null);
@@ -106,9 +105,11 @@ const VideoPage: React.FC = () => {
 
   useEffect(() => {
     setIsLoggedIn(!!userToken);
-    if (userToken) {
-      fetchComments();
-    }
+    setComments([]);
+    setNoMoreComments(false);
+    setCommentInput("");
+    setReplyingTo(null);
+    fetchComments();
   }, [userToken]);
 
   useEffect(() => {
@@ -129,7 +130,7 @@ const VideoPage: React.FC = () => {
     
     setLoadingComments(true);
     try {
-      const lastTime = lastComment ? lastComment.timestamp.toString() : "9999-12-31 23:59:59";
+      const lastTime = lastComment ? lastComment.timestamp : "9999-12-31 23:59:59";
       const lastID = lastComment?.commentID || 0;
       
       const newComments = await new Promise<Comment[]>((resolve, reject) => {
@@ -209,13 +210,13 @@ const VideoPage: React.FC = () => {
         );
       });
 
-      const replyToCommentIds = newReplies
+      const replyToCommentIDs = newReplies
         .filter(reply => reply.replyToID && reply.replyToID !== comment.commentID)
         .map(reply => reply.replyToID) as number[];
       
-      const uniqueReplyToIds = [...new Set(replyToCommentIds)];
+      const uniqueReplyToIDs = [...new Set(replyToCommentIDs)];
       const replyToComments = await Promise.all(
-        uniqueReplyToIds.map(async id => {
+        uniqueReplyToIDs.map(async id => {
           try {
             const replyToComment = await new Promise<Comment>((resolve, reject) => {
               new QueryCommentByIDMessage(id).send(
@@ -274,11 +275,11 @@ const VideoPage: React.FC = () => {
     }
   };
 
-  const fetchLikedStatus = async (commentIds: number[]): Promise<boolean[]> => {
-    if (!userToken || commentIds.length === 0) return new Array(commentIds.length).fill(false);
+  const fetchLikedStatus = async (commentIDs: number[]): Promise<boolean[]> => {
+    if (!userToken || commentIDs.length === 0) return new Array(commentIDs.length).fill(false);
     
     return new Promise((resolve, reject) => {
-      new QueryLikedBatchMessage(userToken, commentIds).send(
+      new QueryLikedBatchMessage(userToken, commentIDs).send(
         (info: string) => {
           try {
             const data: boolean[] = JSON.parse(info);
@@ -350,13 +351,13 @@ const VideoPage: React.FC = () => {
         return;
       }
 
-      const replyToCommentIds = newReplies
+      const replyToCommentIDs = newReplies
         .filter(reply => reply.replyToID && reply.replyToID !== comment.commentID)
         .map(reply => reply.replyToID) as number[];
       
-      const uniqueReplyToIds = [...new Set(replyToCommentIds)];
+      const uniqueReplyToIDs = [...new Set(replyToCommentIDs)];
       const replyToComments = await Promise.all(
-        uniqueReplyToIds.map(async id => {
+        uniqueReplyToIDs.map(async id => {
           try {
             const replyToComment = await new Promise<Comment>((resolve, reject) => {
               new QueryCommentByIDMessage(id).send(
@@ -415,28 +416,28 @@ const VideoPage: React.FC = () => {
     }
   };
 
-  const handleLikeComment = async (commentId: number) => {
+  const handleLikeComment = async (commentID: number) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
 
     try {
-      const comment = comments.find(c => c.commentID === commentId) || 
-                     comments.flatMap(c => c.replies || []).find(r => r.commentID === commentId);
+      const comment = comments.find(c => c.commentID === commentID) || 
+                     comments.flatMap(c => c.replies || []).find(r => r.commentID === commentID);
       
       if (!comment) return;
       console.log("当前评论" ,comment);
       const isLike = !comment.isLiked;
       await new Promise((resolve, reject) => {
-        new UpdateLikeCommentMessage(userToken, commentId, isLike).send(
+        new UpdateLikeCommentMessage(userToken, commentID, isLike).send(
           () => resolve(true),
           (error) => reject(new Error(`请求失败: ${error}`))
         );
       });
 
       setComments(prev => prev.map(c => {
-        if (c.commentID === commentId) {
+        if (c.commentID === commentID) {
           return Object.assign(Object.create(Object.getPrototypeOf(c)), {
             ...c,
             isLiked: isLike,
@@ -448,7 +449,7 @@ const VideoPage: React.FC = () => {
           return Object.assign(Object.create(Object.getPrototypeOf(c)), {
             ...c,
             replies: c.replies.map(r => {
-              if (r.commentID === commentId) {
+              if (r.commentID === commentID) {
                 return Object.assign(Object.create(Object.getPrototypeOf(r)), {
                   ...r,
                   isLiked: isLike,
@@ -467,19 +468,19 @@ const VideoPage: React.FC = () => {
     }
   };
 
-  const handleDeleteComment = async (commentId: number) => {
+  const handleDeleteComment = async (commentID: number) => {
     if (!isLoggedIn) return;
     
     try {
       await new Promise((resolve, reject) => {
-        new DeleteCommentMessage(userToken, commentId).send(
+        new DeleteCommentMessage(userToken, commentID).send(
           () => resolve(true),
           (error) => reject(new Error(`请求失败: ${error}`))
         );
       });
 
       setComments(prev => {
-        const commentIndex = prev.findIndex(c => c.commentID === commentId);
+        const commentIndex = prev.findIndex(c => c.commentID === commentID);
         if (commentIndex !== -1) {
           return [
             ...prev.slice(0, commentIndex),
@@ -491,8 +492,8 @@ const VideoPage: React.FC = () => {
           if (c.replies) {
             return Object.assign(Object.create(Object.getPrototypeOf(c)), {
               ...c,
-              replies: c.replies.filter(r => r.commentID !== commentId),
-              replyCount: c.replies.some(r => r.commentID === commentId) ? c.replyCount - 1 : c.replyCount
+              replies: c.replies.filter(r => r.commentID !== commentID),
+              replyCount: c.replies.some(r => r.commentID === commentID) ? c.replyCount - 1 : c.replyCount
             });
           }
           return c;
@@ -515,7 +516,7 @@ const VideoPage: React.FC = () => {
       const newComment = await new Promise<Comment>((resolve, reject) => {
         new PublishCommentMessage(
           userToken,
-          parseInt(video_id || "0"),
+          parseInt(video_id),
           commentInput,
           null
         ).send(
@@ -550,40 +551,12 @@ const VideoPage: React.FC = () => {
     }
   };
 
-  const handlePostReply = async (content: string) => {
-    if (!replyingTo) return;
-    
-    try {
-      await new Promise((resolve, reject) => {
-        new PublishCommentMessage(
-          userToken,
-          parseInt(video_id || "0"),
-          content,
-          replyingTo.id
-        ).send(
-          () => resolve(true),
-          (error) => reject(new Error(`请求失败: ${error}`))
-        );
-      });
 
-      const parentComment = comments.find(c => 
-        c.commentID === replyingTo.id || 
-        (c.replies && c.replies.some(r => r.commentID === replyingTo.id))
-      );
-      
-      if (parentComment) {
-        await fetchReplies(parentComment);
-      }
-    } catch (error) {
-      console.error('回复失败:', error);
-    }
+  const navigateToUser = (userID: number) => {
+    navigate(`/home/${userID}`);
   };
 
-  const navigateToUser = (userId: number) => {
-    navigate(`/home/${userId}`);
-  };
-
-  const followUp = (upId: string) => {
+  const followUp = (upID: string) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -591,7 +564,7 @@ const VideoPage: React.FC = () => {
     setIsFollowing(!isFollowing);
   };
 
-  const likeVideo = (videoId: string) => {
+  const likeVideo = (videoID: string) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -599,7 +572,7 @@ const VideoPage: React.FC = () => {
     setIsLiked(!isLiked);
   };
 
-  const favoriteVideo = (videoId: string) => {
+  const favoriteVideo = (videoID: string) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -718,9 +691,15 @@ const VideoPage: React.FC = () => {
                         <button
                           className="video-reply-btn"
                           onClick={() => {
+            
+                            if (!isLoggedIn) {
+                              setShowLoginModal(true);
+                              return;
+                            }
                             setReplyingTo({ 
                               id: comment.commentID, 
-                              username: comment.userInfo?.username || '用户'
+                              username: comment.userInfo?.username || '用户',
+                              content: comment.content
                             });
                             setShowReplyModal(true);
                           }}
@@ -783,7 +762,8 @@ const VideoPage: React.FC = () => {
                                         onClick={() => {
                                           setReplyingTo({ 
                                             id: reply.commentID, 
-                                            username: reply.userInfo?.username || '用户'
+                                            username: reply.userInfo?.username || '用户',
+                                            content: reply.content
                                           });
                                           setShowReplyModal(true);
                                         }}
@@ -846,9 +826,15 @@ const VideoPage: React.FC = () => {
                                       <button
                                         className="video-reply-btn"
                                         onClick={() => {
+                                          
+                                          if (!isLoggedIn) {
+                                            setShowLoginModal(true);
+                                            return;
+                                          }
                                           setReplyingTo({ 
                                             id: reply.commentID, 
-                                            username: reply.userInfo?.username || '用户'
+                                            username: reply.userInfo?.username || '用户',
+                                            content: reply.content
                                           });
                                           setShowReplyModal(true);
                                         }}
@@ -991,22 +977,17 @@ const VideoPage: React.FC = () => {
       />
 
       {/* Reply Modal */}
-      {/* {showReplyModal && replyingTo && (
+      
+      {showReplyModal && replyingTo && (
         <ReplyModal
-            replyingComment={new ReplyNotice(
-            0,
-            userInfo?.userID || 0,
-            "",
-            replyingTo.id,
-            "",
-            replyingTo.id,
-            parseInt(video_id || "0"),
-            new Date().toISOString()
-            )}
-            onClose={() => setShowReplyModal(false)}
-            onSuccess={(content) => handlePostReply(content)}
+            videoID={parseInt(video_id || "0")}
+            commentID={replyingTo.id}
+            replyingToContent={replyingTo.content}
+            content={commentInput}
+            onClose={() => {setCommentInput(null), setShowReplyModal(false), setReplyingTo(null)}}
+            onSuccess={() => {setCommentInput(null), setShowReplyModal(false), setReplyingTo(null)}}
         />
-      )} */}
+      )}
     </div>
   );
 };

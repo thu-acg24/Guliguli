@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
 import { PublishCommentMessage } from 'Plugins/CommentService/APIs/PublishCommentMessage';
-import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
 import './ReplyModal.css';
 
 interface ReplyModalProps {
-  replyingComment: ReplyNotice;
+  commentID: number;
+  videoID: number;
+  replyingToContent:string|null;
+  content: string;
   onClose: () => void;
   onSuccess?: () => void;
 }
-
-const ReplyModal: React.FC<ReplyModalProps> = ({ replyingComment, onClose, onSuccess }) => {
+//只需要commentID, videoID, content
+const ReplyModal: React.FC<ReplyModalProps> = ({ commentID, videoID, replyingToContent,content, onClose, onSuccess }) => {
   const [replyContent, setReplyContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userToken = useUserToken();
@@ -23,9 +25,9 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ replyingComment, onClose, onSuc
       await new Promise((resolve, reject) => {
         new PublishCommentMessage(
           userToken, 
-          replyingComment.videoID, 
+          videoID, 
           replyContent, 
-          replyingComment.commentID
+          commentID
         ).send(
           () => {
             resolve(true);
@@ -65,9 +67,10 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ replyingComment, onClose, onSuc
         </div>
         
         <div className="replymodal-body">
+        
           <div className="replymodal-original-comment">
-            <span className="replymodal-original-label">评论：</span>
-            {replyingComment.content}
+            <span className="replymodal-original-label">评论：{replyingToContent}</span>
+            {content}
           </div>
           <textarea
             className="replymodal-textarea"

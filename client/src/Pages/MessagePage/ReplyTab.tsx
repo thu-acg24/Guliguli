@@ -112,7 +112,10 @@ const ReplyTab: React.FC = () => {
 
       {replyingComment && (
         <ReplyModal
-          replyingComment={replyingComment}
+          commentID={replyingComment.commentID}
+          videoID={replyingComment.videoID}
+          replyingToContent={replyingComment.originalContent}
+          content={replyingComment.content}
           onClose={() => setReplyingComment(null)}
           onSuccess={() => {
             fetchRepliesWithUserInfo();
