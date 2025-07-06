@@ -5,6 +5,7 @@
  * @param videoID: Int (需要评论的视频的ID。)
  * @param commentContent: String (评论的具体内容。)
  * @param replyToCommentID: Int (回复的目标评论ID，可空。)
+ * @return commentID: Int (发布的新评论的id)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 import { ServerAddr } from '../../../server-config';

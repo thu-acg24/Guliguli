@@ -57,7 +57,7 @@ case class PublishCommentMessagePlanner(
 
       // Step 5: 组装评论数据并存储到数据库
       _ <- IO(logger.info("组装数据并插入到数据库"))
-      curID <- insertComment(userID, videoID, commentContent, replyToCommentID, rootID)
+      (timeStamp, curID) <- insertComment(userID, videoID, commentContent, replyToCommentID, rootID)
 
       // Step 6: 如果是回复，发送通知并增加所属楼层回复数
       _ <- replyToCommentID match {
@@ -66,7 +66,7 @@ case class PublishCommentMessagePlanner(
           writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
             List(SqlParameter("Int", rootID.toString))) >> SendReplyNoticeMessage(token, curID).send
       }
-    } yield Comment(curID, commentContent, videoID, userID, replyToCommentID, 0, 0)
+    } yield Comment(curID, commentContent, videoID, userID, replyToCommentID, 0, 0, timeStamp)
   }
 
   /**
@@ -113,41 +113,43 @@ case class PublishCommentMessagePlanner(
                              commentContent: String,
                              replyToCommentIDOpt: Option[Int],
                              rootIDOpt: Option[Int],
-                           )(using PlanContext): IO[Int] = {
-    val time_stamp = DateTime.now()
-    (replyToCommentIDOpt, rootIDOpt) match {
-      case (Some(replyToCommentID), Some(rootID)) =>
-        readDBInt(
-          s"""
-            |INSERT INTO ${schemaName}.comment_table
-            |  (content, video_id, author_id, reply_to_id, root_id, likes, time_stamp)
-            |VALUES (?, ?, ?, ?, ?, 0, ?)
-            |RETURNING comment_id;
-            |""".stripMargin,
-          List(
-          SqlParameter("String", commentContent),
-          SqlParameter("Int", videoID.toString),
-          SqlParameter("Int", userID.toString),
-          SqlParameter("int", replyToCommentID.toString),
-          SqlParameter("int", rootID.toString),
-          SqlParameter("DateTime", time_stamp.getMillis.toString)
-          ))
-      case (None, None) =>
-        readDBInt(
-          s"""
-            |INSERT INTO ${schemaName}.comment_table
-            |  (content, video_id, author_id, likes, time_stamp)
-            |VALUES (?, ?, ?, 0, ?)
-            |RETURNING comment_id;
-            |""".stripMargin,
-          List(
-          SqlParameter("String", commentContent),
-          SqlParameter("Int", videoID.toString),
-          SqlParameter("Int", userID.toString),
-          SqlParameter("DateTime", time_stamp.getMillis.toString)
-          ))
-      case _ =>
-        IO.raiseError(InvalidInputException("replyToCommentID和rootID必须同时为空或同时不为空"))
-    }
+                           )(using PlanContext): IO[(DateTime, Int)] = {
+    for {
+      timeStamp <- IO(DateTime.now())
+      commentID <- (replyToCommentIDOpt, rootIDOpt) match {
+        case (Some(replyToCommentID), Some(rootID)) =>
+          readDBInt(
+            s"""
+               |INSERT INTO ${schemaName}.comment_table
+               |  (content, video_id, author_id, reply_to_id, root_id, likes, time_stamp)
+               |VALUES (?, ?, ?, ?, ?, 0, ?)
+               |RETURNING comment_id;
+               |""".stripMargin,
+            List(
+              SqlParameter("String", commentContent),
+              SqlParameter("Int", videoID.toString),
+              SqlParameter("Int", userID.toString),
+              SqlParameter("int", replyToCommentID.toString),
+              SqlParameter("int", rootID.toString),
+              SqlParameter("DateTime", timeStamp.getMillis.toString)
+            ))
+        case (None, None) =>
+          readDBInt(
+            s"""
+               |INSERT INTO ${schemaName}.comment_table
+               |  (content, video_id, author_id, likes, time_stamp)
+               |VALUES (?, ?, ?, 0, ?)
+               |RETURNING comment_id;
+               |""".stripMargin,
+            List(
+              SqlParameter("String", commentContent),
+              SqlParameter("Int", videoID.toString),
+              SqlParameter("Int", userID.toString),
+              SqlParameter("DateTime", timeStamp.getMillis.toString)
+            ))
+        case _ =>
+          IO.raiseError(InvalidInputException("replyToCommentID和rootID必须同时为空或同时不为空"))
+      }
+    } yield (timeStamp, commentID)
   }
 }
