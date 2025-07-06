@@ -1,0 +1,45 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/myapp.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- File name pattern with 5 minutes rolling interval -->
+            <fileNamePattern>logs/myapp.%d{yyyy-MM-dd_HH-mm}.%i.log</fileNamePattern>
+            <!-- Keep 10 files -->
+            <maxHistory>10</maxHistory>
+            <!-- Set the maximum file size to a large value to ensure time-based rolling -->
+            <maxFileSize>100MB</maxFileSize>
+            <!-- Set the time-based triggering policy to roll every 5 minutes -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.TimeBasedFileNamingAndTriggeringPolicy">
+                    <checkPeriod>5</checkPeriod>
+                </timeBasedFileNamingAndTriggeringPolicy>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+
+<!--    <logger name="GenerateDocObjectsDetailsMessagePlanner_">-->
+<!--        <appender-ref ref="ROLLING" />-->
+<!--    </logger>-->
+
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="org.http4s" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

@@ -48,13 +48,7 @@ case class UpdateFeedbackFavoriteMessagePlanner(
 
       // Step 2: Check if videoID exists
       _ <- IO(logger.info(s"Checking video existence for video ID: $videoID"))
-      maybeVideo <- QueryVideoInfoMessage(None, videoID).send
-      video <- maybeVideo match {
-        case Some(video) if video.status == VideoStatus.Approved => IO.pure(video)
-        case _ =>
-          IO(logger.error(s"Video Not Found for ID: '$videoID' or not approved.")) >>
-            IO.pure(Some("Video Not Found"))
-      }
+      video <- QueryVideoInfoMessage(None, videoID).send
 
       _ <- IO(logger.info(s"Video valid: ID=${video.videoID}, Title=${video.title}"))
 

@@ -38,7 +38,7 @@ case class DeleteVideoInfoMessagePlanner(
       // Step 3: Delete video metadata
       _ <- IO(logger.info(s"Deleting video metadata for video ID: ${videoID}"))
       - <- deleteVideoMetadata
-    } yield Unit
+    } yield ()
   }
 
   private def getUIDByToken(using PlanContext): IO[Int] = {

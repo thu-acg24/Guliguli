@@ -48,7 +48,7 @@ case class AddVideoInfoMessagePlanner(
 
       // Step 4: 返回结果
       _ <- IO(logger.info("[Step 4] 操作完成，返回结果"))
-    } yield Unit
+    } yield ()
   }
 
   // 子函数：校验用户是否为上传者
@@ -60,7 +60,7 @@ case class AddVideoInfoMessagePlanner(
       }else{
         IO.raiseError(InvalidInputException("User Are Not The Uploader Of Video"))
       }
-    } yield Unit
+    } yield ()
   }
 
   // 子函数：插入视频信息记录
