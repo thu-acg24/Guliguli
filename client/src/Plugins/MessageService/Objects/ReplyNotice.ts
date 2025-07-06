@@ -2,11 +2,11 @@
  * CommentReply
  * desc: 回复通知
  * @param noticeID: Int (通知的唯一ID)
- * @param senderID: Int (回复发布者ID)
+ * @param senderID: Int (回复者ID)
  * @param content: String (回复内容)
- * @param commentID: Int (回复ID)
+ * @param commentID: Int (回复的评论的ID)
  * @param originalContent: String (被回复评论内容)
- * @param originalCommentID: Int (评论ID)
+ * @param originalCommentID: Int (被回复的评论的ID)
  * @param timestamp: DateTime (消息发送的时间戳)
  */
 import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'

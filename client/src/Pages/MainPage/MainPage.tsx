@@ -38,11 +38,11 @@ const MainPage: React.FC = () => {
     };
 
     // API call placeholder for video click
-    const handleVideoClick = (videoId: string) => {
+    const handleVideoClick = (videoId: number) => {
         // API call would go here for tracking or fetching video details
         // Example: fetch(`/api/video/${videoId}/view`)
-        navigate(videoPagePath);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        navigate(`/video/${videoId}`);
+        // window.scrollTo({ top: 0, behavior: "instant" });
         // alert(`跳转到视频页面，视频ID: ${videoId}`);
     };
 
@@ -96,7 +96,7 @@ const MainPage: React.FC = () => {
                         {[1, 2, 3, 4].map((i) => (
                             <div key={i} className="main-video-item" data-video-id={`100${i}`} onClick={(e) => {
                                 if (!(e.target as HTMLElement).classList.contains('video-author')) {
-                                    handleVideoClick(`100${i}`);
+                                    handleVideoClick(i);
                                 }
                             }}>
                                 <div className="main-video-cover-container">
@@ -124,7 +124,7 @@ const MainPage: React.FC = () => {
                     {Array.from({ length: 10 }, (_, i) => i + 1).map((i) => (
                         <div key={i} className="main-video-item" data-video-id={`200${i}`} onClick={(e) => {
                             if (!(e.target as HTMLElement).classList.contains('video-author')) {
-                                handleVideoClick(`200${i}`);
+                                handleVideoClick(i);
                             }
                         }}>
                             <div className="main-video-cover-container">

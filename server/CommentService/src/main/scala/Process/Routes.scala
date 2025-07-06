@@ -69,7 +69,7 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
-      case "QueryLikedBatchIDMessage" =>
+      case "QueryLikedBatchMessage" =>
         IO(
           decode[QueryLikedBatchMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikedBatchMessage[${err.getMessage}]")

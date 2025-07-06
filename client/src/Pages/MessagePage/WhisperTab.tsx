@@ -203,9 +203,9 @@ const WhisperTab: React.FC = () => {
               {messages.map(msg => {
                 const isMe = userInfo ? msg.senderID === userInfo.userID : false;
                 return (
-                  <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}  onClick={() => handleAvatarClick(msg.senderID)}>
+                  <div key={msg.messageID} className={`message ${isMe ? 'me' : 'other'}`}  >
                     {!isMe && (
-                      <div className="message-avatar">
+                      <div className="message-avatar" onClick={() => handleAvatarClick(msg.senderID)}>
                         <img src={conversations.find(u => u.userInfo.userID === selectedUser)?.userInfo.avatarPath} alt="头像" />
                       </div>
                     )}
