@@ -46,7 +46,7 @@ object GlobalVariables {
   // 读取 InputStream 为字符串列表
   def readLines(bucket: String, key: String): IO[List[String]] =
     getObjectStream(bucket, key).use { in =>
-      readInputStream(IO.pure(in), 8192, closeAfterUse = false)
+      readInputStream(IO.pure(in), 8192, closeAfterUse = true)
         .through(text.utf8.decode)
         .through(text.lines)
         .compile

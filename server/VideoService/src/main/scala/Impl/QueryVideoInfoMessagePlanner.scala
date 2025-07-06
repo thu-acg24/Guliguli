@@ -48,7 +48,7 @@ case class QueryVideoInfoMessagePlanner(
       _ <- IO(logger.info(s"[Step 3] Querying detailed information for videoID: $videoID"))
       videoQueryResult <- readDBJsonOptional(
         s"""
-          SELECT video_id, title, description, duration, tag, cover, m3u8_name, ts_prefix, slice_count,
+          SELECT video_id, title, description, duration, tag, cover,
                  uploader_id, views, likes, favorites, status, upload_time
           FROM ${schemaName}.video_table
           WHERE video_id = ?;

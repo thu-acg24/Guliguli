@@ -114,19 +114,21 @@ case class QueryM3U8PathMessagePlanner(
 
   // 替换 m3u8 模板文件中的 segment_[number].ts 占位符
   def replaceSegments(templateLines: List[String], tsUrls: List[String]): List[String] = {
-    val tsPlaceholderPattern: Regex = raw"""segment_\d+\.ts""".r
+    val tsPlaceholderPattern: Regex = raw"segment_(\d{5})\.ts".r
 
-    var tsIndex = 0
     templateLines.map { line =>
-      tsPlaceholderPattern.findFirstIn(line) match {
-        case Some(_) if tsIndex < tsUrls.length =>
-          val replaced = tsPlaceholderPattern.replaceFirstIn(line, tsUrls(tsIndex))
-          tsIndex += 1
-          replaced
-        case _ => line
+      tsPlaceholderPattern.findFirstMatchIn(line) match {
+        case Some(m) =>
+          val index = m.group(1).toInt  // 提取五位数字并转为整数
+          if (index < tsUrls.length) {
+            tsPlaceholderPattern.replaceFirstIn(line, tsUrls(index))
+          } else {
+            throw InvalidInputException("索引不匹配")  // 索引越界时保留原行（根据要求可不处理）
+          }
+        case None => line  // 无匹配时保留原行
       }
     }
-    }
+  }
 
     // 上传新的 m3u8 内容并生成分享链接
   def uploadNewM3U8(content: String, targetKey: String): IO[String] = IO.blocking {
