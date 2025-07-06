@@ -5,6 +5,7 @@ import Common.API.API
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.Serialize.JacksonSerializeUtils
+import Objects.CommentService.Comment
 import Global.ServiceCenter.CommentServiceCode
 import com.fasterxml.jackson.core.`type`.TypeReference
 import io.circe.Decoder
