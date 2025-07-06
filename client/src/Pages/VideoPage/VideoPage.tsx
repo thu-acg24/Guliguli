@@ -36,7 +36,7 @@ interface CommentWithUserInfo extends Comment {
   isLiked?: boolean;
   showAllReplies?: boolean;
   hasMoreReplies?: boolean;
-  replyToUser?: UserInfo;
+  replyToUsername?: string;
 }
 const VideoPage: React.FC = () => {
   const { video_id } = useParams<{ video_id: string }>();
@@ -245,7 +245,6 @@ const VideoPage: React.FC = () => {
           (error: string) => reject(new Error(`请求失败: ${error}`))
         );
       });
-
       if (newComments.length === 0) {
         setNoMoreComments(true);
         return;
@@ -303,51 +302,16 @@ const VideoPage: React.FC = () => {
           (error: string) => reject(new Error(`请求失败: ${error}`))
         );
       });
-
-      const replyToCommentIDs = newReplies
-        .filter(reply => reply.replyToID && reply.replyToID !== comment.commentID)
-        .map(reply => reply.replyToID) as number[];
-      
-      const uniqueReplyToIDs = [...new Set(replyToCommentIDs)];
-      const replyToComments = await Promise.all(
-        uniqueReplyToIDs.map(async id => {
-          try {
-            const replyToComment = await new Promise<Comment>((resolve, reject) => {
-              new QueryCommentByIDMessage(id).send(
-                (info: string) => {
-                  try {
-                    const data: Comment = JSON.parse(info);
-                    resolve(data);
-                  } catch (e) {
-                    reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
-                  }
-                },
-                (error: string) => reject(new Error(`请求失败: ${error}`))
-              );
-            });
-            return replyToComment;
-          } catch (error) {
-            console.error(`获取回复目标评论 ${id} 失败:`, error);
-            return null;
-          }
-        })
-      );
-
+      console.log("获取的回复",newReplies);
       const repliesWithUserInfo = await Promise.all(
         newReplies.map(async (reply) => {
           const userInfo = await fetchOtherUserInfo(reply.authorID);
-          let replyToUser: UserInfo | undefined;
-          
-          if (reply.replyToID && reply.replyToID !== comment.commentID) {
-            const replyToComment = replyToComments.find(c => c?.commentID === reply.replyToID);
-            if (replyToComment) {
-              replyToUser = await fetchOtherUserInfo(replyToComment.authorID);
-            }
-          }
+          let replyToUsername: string | undefined;
+          if (reply.replyToUserID ) replyToUsername = (await fetchOtherUserInfo(reply.replyToUserID)).username;
           return { 
             ...reply, 
             userInfo, 
-            replyToUser,
+            replyToUsername,
             isLiked: userToken ? await fetchLikedStatus([reply.commentID]).then(res => res[0]) : false
           };
         })
@@ -430,7 +394,7 @@ const VideoPage: React.FC = () => {
           (error: string) => reject(new Error(`请求失败: ${error}`))
         );
       });
-
+      console.log("获取到的回复",newReplies);
       if (newReplies.length === 0) {
         setComments(prev => prev.map(c => {
           if (c.commentID === comment.commentID) {
@@ -444,51 +408,16 @@ const VideoPage: React.FC = () => {
         return;
       }
 
-      const replyToCommentIDs = newReplies
-        .filter(reply => reply.replyToID && reply.replyToID !== comment.commentID)
-        .map(reply => reply.replyToID) as number[];
-      
-      const uniqueReplyToIDs = [...new Set(replyToCommentIDs)];
-      const replyToComments = await Promise.all(
-        uniqueReplyToIDs.map(async id => {
-          try {
-            const replyToComment = await new Promise<Comment>((resolve, reject) => {
-              new QueryCommentByIDMessage(id).send(
-                (info: string) => {
-                  try {
-                    const data: Comment = JSON.parse(info);
-                    resolve(data);
-                  } catch (e) {
-                    reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
-                  }
-                },
-                (error: string) => reject(new Error(`请求失败: ${error}`))
-              );
-            });
-            return replyToComment;
-          } catch (error) {
-            console.error(`获取回复目标评论 ${id} 失败:`, error);
-            return null;
-          }
-        })
-      );
 
       const repliesWithUserInfo = await Promise.all(
         newReplies.map(async (reply) => {
           const userInfo = await fetchOtherUserInfo(reply.authorID);
-          let replyToUser: UserInfo | undefined;
-          
-          if (reply.replyToID && reply.replyToID !== comment.commentID) {
-            const replyToComment = replyToComments.find(c => c?.commentID === reply.replyToID);
-            if (replyToComment) {
-              replyToUser = await fetchOtherUserInfo(replyToComment.authorID);
-            }
-          }
-          
+          let replyToUsername: string | undefined;
+          if (reply.replyToUserID ) replyToUsername = (await fetchOtherUserInfo(reply.replyToUserID)).username;
           return { 
             ...reply, 
             userInfo, 
-            replyToUser,
+            replyToUsername,
             isLiked: userToken ? await fetchLikedStatus([reply.commentID]).then(res => res[0]) : false
           };
         })
@@ -643,7 +572,39 @@ const VideoPage: React.FC = () => {
       console.error('发布评论失败:', error);
     }
   };
-
+  const handlePostReply = async (newComment:Comment) => {
+    console.log("用户回复了新评论",newComment)
+    const newReply:CommentWithUserInfo=newComment;
+    newReply.userInfo=userInfo;
+    newReply.isLiked=false;
+    newReply.replyToUsername=replyingTo.username;
+    setComments((comments) => {
+      return comments.map((comment) => {
+        if (comment.commentID === replyingTo.id) {
+            return {
+              ...comment,
+              replies: [newReply, ...(comment.replies || [])], // 新回复置顶
+              replyCount: comment.replyCount + 1, // 总数+1
+            };
+          }
+        if (comment.replies?.some((reply) => reply.commentID === replyingTo.id)) {
+          const updatedReplies = [...comment.replies];
+          const targetIndex = updatedReplies.findIndex(
+            (reply) => reply.commentID === replyingTo.id
+          );
+          if (targetIndex !== -1) {
+            updatedReplies.splice(targetIndex + 1, 0, newReply); // 在目标位置后插入
+          }
+          return Object.assign(Object.create(Object.getPrototypeOf(comment)), {
+            ...comment,
+            replies: updatedReplies,
+            replyCount: comment.replyCount + 1,
+          });
+        }
+        return comment;
+      });
+    });
+  };
 
   const navigateToUser = (userID: number) => {
     navigate(`/home/${userID}`);
@@ -773,7 +734,7 @@ const VideoPage: React.FC = () => {
           {/* Comments section */}
           <div className="video-comments-container" ref={commentsSectionRef}>
             <div className="video-comments-header">
-              <h3>评论 ({comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)})</h3>
+              <h3>评论 </h3>
             </div>
 
             {/* Comment input */}
@@ -876,14 +837,14 @@ const VideoPage: React.FC = () => {
                                       <span className="video-reply-time">{formatTime(reply.timestamp)}</span>
                                     </div>
                                     <div className="video-reply-text">
-                                      {reply.replyToUser && (
+                                      {reply.replyToUserID && (
                                         <>
                                           回复&nbsp;
                                           <span 
                                             className="video-reply-highlight"
-                                            onClick={() => navigateToUser(reply.replyToUser?.userID || 0)}
+                                            onClick={() => navigateToUser(reply.replyToUserID)}
                                           >
-                                            @{reply.replyToUser.username}：
+                                            @{reply.replyToUsername}：
                                           </span>
                                         </>
                                       )}
@@ -945,14 +906,14 @@ const VideoPage: React.FC = () => {
                                       <span className="video-reply-time">{formatTime(reply.timestamp)}</span>
                                     </div>
                                     <div className="video-reply-text">
-                                      {reply.replyToUser && (
+                                      {reply.replyToUserID && (
                                         <>
                                           回复&nbsp;
                                           <span 
                                             className="video-reply-highlight"
-                                            onClick={() => navigateToUser(reply.replyToUser?.userID || 0)}
+                                            onClick={() => navigateToUser(reply.replyToUserID)}
                                           >
-                                            @{reply.replyToUser.username}：
+                                            @{reply.replyToUsername}：
                                           </span>
                                         </>
                                       )}
@@ -1004,6 +965,7 @@ const VideoPage: React.FC = () => {
                                 className="video-view-replies" 
                                 onClick={() => handleToggleReplies(comment)}
                               >
+                              
                                 {comment.showAllReplies ? '收起' : `共${comment.replyCount}条回复，点击查看`}
                               </span>
                             )}
@@ -1047,10 +1009,20 @@ const VideoPage: React.FC = () => {
             {/* 头像和名字/签名在同一行 */}
             <div className="video-up-top-row">
               <div className="video-up-avatar">
-                <img src={uploaderInfo.avatarPath} alt="UP主头像" />
+                <img 
+                src={uploaderInfo.avatarPath} 
+                alt="UP主头像" 
+                onClick={() => navigateToUser(uploaderInfo.userID)}
+                />
               </div>
               <div className="video-up-details">
-                <div className="video-up-name">{uploaderInfo.username}</div>
+                <div className="video-up-name">
+                  <span
+                  onClick={()=>navigateToUser(uploaderInfo.userID)}
+                  >
+                    {uploaderInfo.username}
+                  </span>
+                </div>
                 <div className="video-up-description" title={uploaderInfo.bio}>
                   {uploaderInfo.bio.length > 17
                     ? `${uploaderInfo.bio.substring(0, 17)}...`
@@ -1134,7 +1106,7 @@ const VideoPage: React.FC = () => {
             replyingToContent={replyingTo.content}
             content={commentInput}
             onClose={() => {setCommentInput(""), setShowReplyModal(false), setReplyingTo(null)}}
-            onSuccess={() => {setCommentInput(""), setShowReplyModal(false), setReplyingTo(null)}}
+            onSuccess={(newComment:Comment) => {handlePostReply(newComment).then(()=>{setCommentInput(""),setShowReplyModal(false), setReplyingTo(null)})}}
         />
       )}
     </div>

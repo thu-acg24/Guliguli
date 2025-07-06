@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
+import { Comment } from 'Plugins/CommentService/Objects/Comment';
 import { PublishCommentMessage } from 'Plugins/CommentService/APIs/PublishCommentMessage';
 import './ReplyModal.css';
 
@@ -9,7 +10,7 @@ interface ReplyModalProps {
   replyingToContent:string|null;
   content: string;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (newComment: Comment) => void;
 }
 //只需要commentID, videoID, content
 const ReplyModal: React.FC<ReplyModalProps> = ({ commentID, videoID, replyingToContent,content, onClose, onSuccess }) => {
@@ -19,19 +20,23 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ commentID, videoID, replyingToC
 
   const handleSubmit = async () => {
     if (!replyContent.trim()) return;
-    
     setIsSubmitting(true);
     try {
-      await new Promise((resolve, reject) => {
+      new Promise<Comment>((resolve, reject) => {
         new PublishCommentMessage(
           userToken, 
           videoID, 
           replyContent, 
           commentID
         ).send(
-          () => {
-            resolve(true);
-            onSuccess?.();
+          (info:string) => {
+            try {
+              const data: Comment = JSON.parse(info);
+              onSuccess(data)
+              resolve(data);
+            } catch (e) {
+              reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
+            }
             onClose();
           },
           (error) => {
