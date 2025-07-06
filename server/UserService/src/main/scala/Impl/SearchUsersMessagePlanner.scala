@@ -82,6 +82,7 @@ case class SearchUsersMessagePlanner(
       userID <- IO(decodeField[Int](userJson, "user_id"))
       username <- IO(decodeField[String](userJson, "username"))
       avatarPath <- IO(decodeField[String](userJson, "avatar_path"))
+      bio <- IO(decodeField[String](userJson, "bios"))
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
 
       // Get presigned URL for avatar
@@ -102,6 +103,7 @@ case class SearchUsersMessagePlanner(
           userID = userID,
           username = username,
           avatarPath = avatarUrl,
+          bio = bio,
           isBanned = isBanned
         )
       }

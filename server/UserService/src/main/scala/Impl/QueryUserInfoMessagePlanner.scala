@@ -64,6 +64,7 @@ case class QueryUserInfoMessagePlanner(
       userID <- IO(decodeField[Int](userJson, "user_id"))
       username <- IO(decodeField[String](userJson, "username"))
       avatarPath <- IO(decodeField[String](userJson, "avatar_path"))
+      bio <- IO(decodeField[String](userJson, "bio"))
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
 
       _ <- IO(logger.info("[Step 2.2] 开始获取头像的minIO自签名url"))
@@ -84,6 +85,7 @@ case class QueryUserInfoMessagePlanner(
           userID = userID,
           username = username,
           avatarPath = avatarUrl,
+          bio = bio,
           isBanned = isBanned
         )
         logger.info(s"[Step 2.3] 封装成UserInfo对象: ${userInfo}")

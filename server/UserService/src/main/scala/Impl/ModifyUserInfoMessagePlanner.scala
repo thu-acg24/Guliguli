@@ -60,16 +60,20 @@ case class ModifyUserInfoMessagePlanner(
     val querySQL =
       s"""
          UPDATE ${schemaName}.user_table
-         SET username = ?, updated_at = ?
+         SET username = ?, bio = ?, updated_at = ?
          WHERE user_id = ?
        """.stripMargin
 
-    val queryParams = List(
-      SqlParameter("String", newField.username),
-      SqlParameter("DateTime", DateTime.now().getMillis.toString),
-      SqlParameter("Int", userID.toString)
-    )
-    IO(logger.info(s"Executing update query: $querySQL with params: $queryParams")) >>
-      writeDB(querySQL, queryParams)
+    for {
+      timestamp <- IO(DateTime.now().getMillis.toString)
+      queryParams = List(
+        SqlParameter("String", newField.username),
+        SqlParameter("String", newField.bio),
+        SqlParameter("DateTime", timestamp),
+        SqlParameter("Int", userID.toString)
+      )
+      result <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams")) >>
+        writeDB(querySQL, queryParams)
+    } yield result
   }
 }

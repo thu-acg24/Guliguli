@@ -10,7 +10,6 @@ import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.FollowRelation
-import Objects.UserService.User
 import Objects.UserService.UserRole
 import cats.effect.IO
 import cats.implicits.*

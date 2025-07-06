@@ -54,6 +54,7 @@ object Init {
        * username: 用户名，唯一
        * email: 邮箱地址，唯一
        * password_hash: 用户密码的哈希值
+       * bio: 用户个性签名
        * avatar_path: 用户头像路径
        * user_role: 用户角色，可能的值有Admin, Auditor, Normal
        * video_count: 用户上传的视频数量
@@ -68,6 +69,7 @@ object Init {
             username TEXT NOT NULL,
             email TEXT NOT NULL,
             password_hash TEXT NOT NULL,
+            bio TEXT NOT NULL DEFAULT 'Gugugaga!',
             avatar_path TEXT NOT NULL DEFAULT 'default.jpg',
             user_role TEXT NOT NULL DEFAULT 'Normal',
             video_count INT NOT NULL DEFAULT 0,

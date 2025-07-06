@@ -64,7 +64,7 @@ case class QueryAuditorsMessagePlanner(
   private def fetchAuditors()(using PlanContext): IO[List[UserInfo]] = {
     val sql =
       s"""
-         SELECT user_id, username, avatar_path, is_banned
+         SELECT user_id, username, avatar_path, bio, is_banned
          FROM ${schemaName}.user_table
          WHERE user_role = ?
        """
@@ -80,6 +80,7 @@ case class QueryAuditorsMessagePlanner(
           userID = decodeField[Int](row, "user_id"),
           username = decodeField[String](row, "username"),
           avatarPath = decodeField[Option[String]](row, "avatar_path").getOrElse(""),
+          bio = decodeField[String](row, "bio"),
           isBanned = decodeField[Boolean](row, "is_banned")
         )
       }

@@ -22,6 +22,7 @@ import scala.util.Try
  * @param userID: Int (用户的唯一ID)
  * @param username: String (用户名)
  * @param avatarPath: String (用户头像的存储路径)
+ * @param bio: String (用户个性签名)
  * @param isBanned: Boolean (用户是否被封禁)
  */
 
@@ -29,6 +30,7 @@ case class UserInfo(
   userID: Int,
   username: String,
   avatarPath: String,
+  bio: String,
   isBanned: Boolean
 ){
 
