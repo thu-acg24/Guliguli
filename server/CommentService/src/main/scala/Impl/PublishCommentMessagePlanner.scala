@@ -111,28 +111,43 @@ case class PublishCommentMessagePlanner(
                              userID: Int,
                              videoID: Int,
                              commentContent: String,
-                             replyToCommentID: Option[Int],
-                             rootID: Option[Int],
+                             replyToCommentIDOpt: Option[Int],
+                             rootIDOpt: Option[Int],
                            )(using PlanContext): IO[Int] = {
     val time_stamp = DateTime.now()
-    val sql =
-      s"""
-         |INSERT INTO ${schemaName}.comment_table
-         |  (content, video_id, author_id, reply_to_id, root_id, likes, time_stamp)
-         |VALUES (?, ?, ?, ?, ?, 0, ?)
-         |RETURNING comment_id;
-         |""".stripMargin
-
-    readDBInt(
-      sql,
-      List(
-        SqlParameter("String", commentContent),
-        SqlParameter("Int", videoID.toString),
-        SqlParameter("Int", userID.toString),
-        SqlParameter("Int", replyToCommentID.map(_.toString).getOrElse("null")),
-        SqlParameter("Int", rootID.map(_.toString).getOrElse("null")),
-        SqlParameter("DateTime", time_stamp.getMillis.toString)
-      )
-    )
+    (replyToCommentIDOpt, rootIDOpt) match {
+      case (Some(replyToCommentID), Some(rootID)) =>
+        readDBInt(
+          s"""
+            |INSERT INTO ${schemaName}.comment_table
+            |  (content, video_id, author_id, reply_to_id, root_id, likes, time_stamp)
+            |VALUES (?, ?, ?, ?, ?, 0, ?)
+            |RETURNING comment_id;
+            |""".stripMargin,
+          List(
+          SqlParameter("String", commentContent),
+          SqlParameter("Int", videoID.toString),
+          SqlParameter("Int", userID.toString),
+          SqlParameter("int", replyToCommentID.toString),
+          SqlParameter("int", rootID.toString),
+          SqlParameter("DateTime", time_stamp.getMillis.toString)
+          ))
+      case (None, None) =>
+        readDBInt(
+          s"""
+            |INSERT INTO ${schemaName}.comment_table
+            |  (content, video_id, author_id, likes, time_stamp)
+            |VALUES (?, ?, ?, 0, ?)
+            |RETURNING comment_id;
+            |""".stripMargin,
+          List(
+          SqlParameter("String", commentContent),
+          SqlParameter("Int", videoID.toString),
+          SqlParameter("Int", userID.toString),
+          SqlParameter("DateTime", time_stamp.getMillis.toString)
+          ))
+      case _ =>
+        IO.raiseError(InvalidInputException("replyToCommentID和rootID必须同时为空或同时不为空"))
+    }
   }
 }
