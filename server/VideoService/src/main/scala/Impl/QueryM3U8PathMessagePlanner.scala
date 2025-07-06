@@ -58,7 +58,7 @@ case class QueryM3U8PathMessagePlanner(
             replacedLines = replaceSegments(templateLines, tsUrls)
             newM3U8Content = replacedLines.mkString("\n")
             // Step 8: Upload and get final share link
-            finalUrl <- uploadNewM3U8(newM3U8Content, videoID.toString + UUID.randomUUID().toString + ".m3u8")
+            finalUrl <- uploadNewM3U8(newM3U8Content, videoID.toString + "/" + UUID.randomUUID().toString + ".m3u8")
             _ <- IO.blocking(m3u8Cache.put(m3u8Name, finalUrl))
           } yield finalUrl
       }
