@@ -15,7 +15,15 @@ import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import { formatTime } from 'Components/GetTime';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
+import { Video } from 'Plugins/VideoService/Objects/Video';
+import { QueryVideoInfoMessage } from 'Plugins/VideoService/APIs/QueryVideoInfoMessage';
+import { QueryFavoriteMessage } from 'Plugins/VideoService/APIs/QueryFavoriteMessage';
+import { QueryLikeMessage } from 'Plugins/VideoService/APIs/QueryLikeMessage';
+import { ChangeLikeMessage } from 'Plugins/VideoService/APIs/ChangeLikeMessage';
+import { ChangeFavoriteMessage } from 'Plugins/VideoService/APIs/ChangeFavoriteMessage'
+
 import "./VideoPage.css";
+import { set } from "lodash";
 
 export const videoPagePath = "/video/:video_id";
 
@@ -27,13 +35,14 @@ interface CommentWithUserInfo extends Comment {
   hasMoreReplies?: boolean;
   replyToUser?: UserInfo;
 }
-
 const VideoPage: React.FC = () => {
   const { video_id } = useParams<{ video_id: string }>();
   const userToken = useUserToken();
   const navigate = useNavigate();
   const { userInfo } = useUserInfo();
+  const [uploaderInfo, setUploaderInfo] = useState<UserInfo | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [videoinfoisloading, setVideoinfoIsLoading] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [commentInput, setCommentInput] = useState("");
   const [showBottomCommentBar, setShowBottomCommentBar] = useState(false);
@@ -47,6 +56,10 @@ const VideoPage: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [likeisprocessing, setLikeisprocessing] = useState(false);
+  const [favoriteisprocessing, setFavoriteisprocessing] = useState(false);
+  const [videoinfo, setVideoinfo] =  useState<Video>(null);
+  
 
   // Mock data
   const [videoData, setVideoData] = useState({
@@ -100,9 +113,11 @@ const VideoPage: React.FC = () => {
   ]);
 
   useLayoutEffect(() => {
+    console.log("现在正在看的是", video_id);
+    setVideoinfoIsLoading(true);
     window.scrollTo(0, 0);
-  }, []);
-
+    fetchVideoInfo();
+  }, [video_id]);
   useEffect(() => {
     setIsLoggedIn(!!userToken);
     setComments([]);
@@ -117,14 +132,62 @@ const VideoPage: React.FC = () => {
       if (!commentInputRef.current) return;
       
       const inputRect = commentInputRef.current.getBoundingClientRect();
-      const isInputVisible = inputRect.top < window.innerHeight && inputRect.bottom >= 0;
+      const isInputVisible = inputRect.bottom >= 0;
       setShowBottomCommentBar(!isInputVisible);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  useEffect(() => {
+    if(!userToken || !video_id) return;
+    new QueryLikeMessage(userToken, Number(video_id)).send(
+      (info: string) => {
+        const isLiked = JSON.parse(info);
+        setIsLiked(isLiked);
+      },
+      (error: string) => {
+        console.error("获取用户点赞状态失败:", error);
+      }
+    );
 
+    new QueryFavoriteMessage(userToken, Number(video_id)).send(
+      (info: string) => {
+        const isFavorited = JSON.parse(info);
+        setIsFavorited(isFavorited);
+      },
+      (error: string) => {
+        console.error("获取用户收藏状态失败:", error);
+      }
+    );
+
+    
+  }, [userToken,video_id]);
+  const fetchVideoInfo = async () => {
+    if (!video_id) return;
+    try { 
+      const videoInfo = await new Promise<Video>((resolve, reject) => {
+        new QueryVideoInfoMessage(null, Number(video_id)).send(
+          (info: string) => {
+            try {
+              const data: Video = JSON.parse(info);
+              resolve(data);
+            } catch (e) {
+              reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
+            }
+          },
+          (error: string) => reject(new Error(`请求失败: ${error}`))
+        );
+      });
+      setVideoinfo(videoInfo);
+      const uploaderInfo = await fetchOtherUserInfo(videoInfo.uploaderID);
+      setUploaderInfo(uploaderInfo);
+    } catch (error) {
+      console.error('加载视频信息失败:', error);
+    }finally {
+      setVideoinfoIsLoading(false);
+    }
+  }
   const fetchComments = async (lastComment?: CommentWithUserInfo) => {
     if (loadingComments || noMoreComments) return;
     
@@ -555,7 +618,7 @@ const VideoPage: React.FC = () => {
     navigate(`/home/${userID}`);
   };
 
-  const followUp = (upID: string) => {
+  const followUp = (upID: number) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -563,22 +626,52 @@ const VideoPage: React.FC = () => {
     setIsFollowing(!isFollowing);
   };
 
-  const likeVideo = (videoID: string) => {
+  const likeVideo = () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
+    if(likeisprocessing) return; // 防止重复点击
+    setLikeisprocessing(true);
+    videoinfo.likes = isLiked ? videoinfo.likes - 1 : videoinfo.likes + 1;
     setIsLiked(!isLiked);
+    new ChangeLikeMessage(userToken, Number(video_id), !isLiked).send(
+      () => {
+        console.log("视频点赞状态更新成功");
+        setLikeisprocessing(false);
+      },
+      (error: string) => {
+        console.error("视频点赞状态更新失败:", error);
+      }
+    );
+    
+    
   };
 
-  const favoriteVideo = (videoID: string) => {
+  const favoriteVideo = () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
+    if(favoriteisprocessing) return; // 防止重复点击
+    setFavoriteisprocessing(true);
+    videoinfo.favorites = isFavorited ? videoinfo.favorites - 1 : videoinfo.favorites + 1;
     setIsFavorited(!isFavorited);
+    new ChangeFavoriteMessage(userToken, Number(video_id), !isFavorited).send(
+      () => {
+        console.log("视频收藏状态更新成功");
+        setFavoriteisprocessing(false);
+      },
+      (error: string) => {
+        console.error("视频收藏状态更新失败:", error);
+      }
+    );
+    
   };
 
+  if (videoinfoisloading) {
+    return // 骨架屏或加载动画
+  }
   return (
     <div className="video-video-page">
       <Header />
@@ -588,12 +681,12 @@ const VideoPage: React.FC = () => {
         <div className="video-video-main-content">
           {/* Video player section */}
           <div className="video-video-player-section">
-            <h1 className="video-video-title">{videoData.title}</h1>
+            <h1 className="video-video-title">{videoinfo.title}</h1>
 
             <div className="video-video-meta">
-              <span>播放: {videoData.views}</span>
-              <span>弹幕: {videoData.danmaku}</span>
-              <span>投稿时间: {videoData.uploadDate}</span>
+              <span>播放: {videoinfo.views}</span>
+              {/* <span>弹幕: {videoData.danmaku}</span> */}
+              <span>投稿时间: {formatTime(videoinfo.uploadTime,false)}</span>
             </div>
 
             <div className="video-video-player-container">
@@ -608,15 +701,15 @@ const VideoPage: React.FC = () => {
             <div className="video-video-actions">
               <button
                 className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
-                onClick={() => likeVideo(videoData.id)}
+                onClick={() => likeVideo()}
               >
-                <span className="video-icon">👍</span> {isLiked ? '已点赞' : '点赞'}
+                 {isLiked ? '点赞' : '点赞'}&nbsp;{videoinfo.likes}
               </button>
               <button
                 className={`video-videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
-                onClick={() => favoriteVideo(videoData.id)}
+                onClick={() => favoriteVideo()}
               >
-                <span className="video-icon">⭐</span> {isFavorited ? '已收藏' : '收藏'}
+                 {isFavorited ? '收藏' : '收藏'}&nbsp;{videoinfo.favorites}
               </button>
             </div>
 
@@ -705,7 +798,7 @@ const VideoPage: React.FC = () => {
                         >
                           回复
                         </button>
-                        {comment.authorID === userInfo?.userID && (
+                        {(comment.authorID === userInfo?.userID||userInfo?.userID === videoinfo?.uploaderID) && (
                           <button
                             className="video-delete-btn"
                             onClick={() => handleDeleteComment(comment.commentID)}
@@ -908,18 +1001,18 @@ const VideoPage: React.FC = () => {
           {/* UP info */}
           <div className="video-up-info">
             <div className="video-up-avatar">
-              <img src={videoData.author.avatar} alt="UP主头像" />
+              <img src={uploaderInfo.avatarPath} alt="UP主头像" />
             </div>
             <div className="video-up-details">
-              <div className="video-up-name">{videoData.author.name}</div>
-              <div className="video-up-description" title={videoData.author.description}>
-                {videoData.author.description.length > 20
+              <div className="video-up-name">{uploaderInfo.username}</div>
+              {/* <div className="video-up-description" title={""}>
+                {uploaderInfo.description.length > 20
                   ? `${videoData.author.description.substring(0, 20)}...`
                   : videoData.author.description}
-              </div>
+              </div> */}
               <button
                 className={`video-follow-btn ${isFollowing ? 'following' : ''}`}
-                onClick={() => followUp(videoData.author.id)}
+                onClick={() => followUp(uploaderInfo.userID)}
               >
                 {isFollowing ? '已关注' : '关注'}
               </button>
