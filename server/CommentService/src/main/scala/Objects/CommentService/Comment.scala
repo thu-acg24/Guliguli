@@ -24,6 +24,7 @@ import scala.util.Try
  * @param videoID: Int (视频的唯一标识符，被评论的视频)
  * @param authorID: Int (评论作者的唯一标识符)
  * @param replyToID: Int (被回复的评论ID, 如果为空则表示不是回复)
+ * @param replyToUserID: Int (被回复的用户ID, 如果为空则表示不是回复)
  * @param likes: Int (点赞数)
  * @param replyCount: Int (一级评论的回复数)
  * @param timestamp: DateTime (评论创建的时间戳)
@@ -34,7 +35,8 @@ case class Comment(
   content: String,
   videoID: Int,
   authorID: Int,
-  replyToID: Option[Int] = None,
+  replyToID: Option[Int],
+  replyToUserID: Option[Int],
   likes: Int,
   replyCount: Int,
   timestamp: DateTime

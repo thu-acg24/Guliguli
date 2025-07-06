@@ -50,6 +50,7 @@ case class QueryVideoCommentsMessagePlanner(
           videoID = decodeField[Int] (json, "video_id"),
           authorID = decodeField[Int] (json, "author_id"),
           replyToID = decodeField[Option[Int]] (json, "reply_to_id"),
+          replyToUserID = decodeField[Option[Int]] (json, "reply_to_user_id"),
           likes = decodeField[Int] (json, "likes"),
           replyCount = decodeField[Int] (json, "reply_count"),
           timestamp = decodeField[DateTime] (json, "time_stamp")

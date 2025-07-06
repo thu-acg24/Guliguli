@@ -53,11 +53,11 @@ case class PublishCommentMessagePlanner(
         case Some(id) => checkCommentExists(id)
         case None => IO.unit
       }
-      rootID <- validateTargetComment(replyToCommentID)
+      (replyToUserID, rootID) <- validateTargetComment(replyToCommentID)
 
       // Step 5: 组装评论数据并存储到数据库
       _ <- IO(logger.info("组装数据并插入到数据库"))
-      (timeStamp, curID) <- insertComment(userID, videoID, commentContent, replyToCommentID, rootID)
+      (timeStamp, curID) <- insertComment(userID, videoID, commentContent, replyToCommentID, replyToUserID, rootID)
 
       // Step 6: 如果是回复，发送通知并增加所属楼层回复数
       _ <- rootID match {
@@ -66,7 +66,7 @@ case class PublishCommentMessagePlanner(
           writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
             List(SqlParameter("Int", rootID.toString))) >> SendReplyNoticeMessage(token, curID).send
       }
-    } yield Comment(curID, commentContent, videoID, userID, replyToCommentID, 0, 0, timeStamp)
+    } yield Comment(curID, commentContent, videoID, userID, replyToCommentID, replyToUserID, 0, 0, timeStamp)
   }
 
   /**
@@ -84,16 +84,19 @@ case class PublishCommentMessagePlanner(
       .ensure(InvalidInputException("回复不存在"))(x => !x).void
   }
 
-  private def validateTargetComment(replyToCommentID: Option[Int])(using PlanContext): IO[Option[Int]] = {
+  private def validateTargetComment(replyToCommentID: Option[Int])(using PlanContext): IO[(Option[Int],Option[Int])] = {
     val sql = s"""
-         |SELECT root_id FROM ${schemaName}.comment_table
+         |SELECT author_id, root_id FROM ${schemaName}.comment_table
          |WHERE comment_id = ?;
          |""".stripMargin
     replyToCommentID match {
       case Some(commentID) => readDBJson(sql, List(SqlParameter("Int", commentID.toString))).map {
-        json => Some(decodeField[Option[Int]](json, "root_id").getOrElse(commentID))
+        json => (
+          decodeField[Option[Int]](json, "author_id"),
+          Some(decodeField[Option[Int]](json, "root_id").getOrElse(commentID))
+        )
       }
-      case None => IO.pure(None)
+      case None => IO.pure((None, None))
     }
   }
 
@@ -112,17 +115,18 @@ case class PublishCommentMessagePlanner(
                              videoID: Int,
                              commentContent: String,
                              replyToCommentIDOpt: Option[Int],
+                             replyToUserIDOpt: Option[Int],
                              rootIDOpt: Option[Int],
                            )(using PlanContext): IO[(DateTime, Int)] = {
     for {
       timeStamp <- IO(DateTime.now())
-      commentID <- (replyToCommentIDOpt, rootIDOpt) match {
-        case (Some(replyToCommentID), Some(rootID)) =>
+      commentID <- (replyToCommentIDOpt, replyToUserIDOpt, rootIDOpt) match {
+        case (Some(replyToCommentID), Some(replyToUserID), Some(rootID)) =>
           readDBInt(
             s"""
                |INSERT INTO ${schemaName}.comment_table
-               |  (content, video_id, author_id, reply_to_id, root_id, likes, time_stamp)
-               |VALUES (?, ?, ?, ?, ?, 0, ?)
+               |  (content, video_id, author_id, reply_to_id, reply_to_user_id, root_id, likes, time_stamp)
+               |VALUES (?, ?, ?, ?, ?, ?, 0, ?)
                |RETURNING comment_id;
                |""".stripMargin,
             List(
@@ -130,10 +134,11 @@ case class PublishCommentMessagePlanner(
               SqlParameter("Int", videoID.toString),
               SqlParameter("Int", userID.toString),
               SqlParameter("Int", replyToCommentID.toString),
+              SqlParameter("Int", replyToUserID.toString),
               SqlParameter("Int", rootID.toString),
               SqlParameter("DateTime", timeStamp.getMillis.toString)
             ))
-        case (None, None) =>
+        case (None, None, None) =>
           readDBInt(
             s"""
                |INSERT INTO ${schemaName}.comment_table
@@ -148,7 +153,7 @@ case class PublishCommentMessagePlanner(
               SqlParameter("DateTime", timeStamp.getMillis.toString)
             ))
         case _ =>
-          IO.raiseError(InvalidInputException("replyToCommentID和rootID必须同时为空或同时不为空"))
+          IO.raiseError(InvalidInputException("replyToCommentID, replyToUserID, rootID必须同时为空或同时不为空"))
       }
     } yield (timeStamp, commentID)
   }

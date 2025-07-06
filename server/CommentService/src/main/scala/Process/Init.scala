@@ -32,7 +32,8 @@ object Init {
        * video_id: 所属视频的ID
        * author_id: 评论发布者的用户ID
        * reply_to_id: 回复的目标评论ID，可以为空
-       * root_id: 评论所属楼的评论ID
+       * reply_to_user_id: 回复的目标用户ID，可以为空
+       * root_id: 评论所属楼的评论ID，如果自身是一级评论则为空
        * likes: 评论的点赞数量
        * time_stamp: 评论的发布时间
        */
@@ -44,6 +45,7 @@ object Init {
             video_id INT NOT NULL,
             author_id INT NOT NULL,
             reply_to_id INT,
+            reply_to_user_id INT,
             root_id INT,
             reply_count INT NOT NULL DEFAULT 0,
             likes INT NOT NULL DEFAULT 0,
