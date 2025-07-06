@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
-import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 
 interface CoverUploadProps {
     videoID: number;
@@ -13,6 +12,18 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
     const [coverUploading, setCoverUploading] = useState(false);
     const [coverUrl, setCoverUrl] = useState<string>("");
     const [loading, setLoading] = useState(true);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [message, setMessage] = useState("");
+
+    const setErrorMessage = (msg: string) => {
+        setIsSuccess(false);
+        setMessage(msg);
+    };
+
+    const setSuccessMessage = (msg: string) => {
+        setIsSuccess(true);
+        setMessage(msg);
+    };
 
     useEffect(() => {
         loadCurrentCover();
@@ -55,6 +66,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
         }
 
         setCoverUploading(true);
+        setMessage(""); // 清除之前的消息
 
         try {
             // 实际上传封面逻辑
@@ -69,11 +81,11 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
             const newCoverUrl = URL.createObjectURL(file);
             setCoverUrl(newCoverUrl);
 
-            materialAlertSuccess("封面上传成功", "");
+            setSuccessMessage("封面上传成功");
             return newCoverUrl;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "封面上传失败";
-            materialAlertError("上传失败", errorMessage);
+            setErrorMessage(errorMessage);
             throw error;
         } finally {
             setCoverUploading(false);
@@ -83,7 +95,10 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
     const handleCoverFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            uploadCover(file);
+            uploadCover(file).catch(error => {
+                // 错误已经在 uploadCover 中处理了
+                console.error("封面上传失败:", error);
+            });
         }
     };
 
@@ -96,7 +111,6 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
     return (
         <div className="member-edit-tab-content">
             <div className="member-cover-setting">
-                <h3>当前封面</h3>
                 {loading ? (
                     <div className="member-loading">
                         <div>加载中...</div>
@@ -118,12 +132,28 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
                     </button>
                 </div>
             </div>
+
+            {message && (
+                isSuccess ? (
+                    <div className="member-success-message">
+                        <div className="member-success-icon">✓</div>
+                        <div className="member-message-text">{message}</div>
+                    </div>
+                ) : (
+                    <div className="member-error-message">
+                        <div className="member-error-icon">!</div>
+                        <div className="member-message-text">{message}</div>
+                    </div>
+                )
+            )}
+
             <input
                 ref={coverInputRef}
                 type="file"
                 accept="image/*"
                 style={{ display: 'none' }}
                 onChange={handleCoverFileSelect}
+                multiple={false}
             />
         </div>
     );

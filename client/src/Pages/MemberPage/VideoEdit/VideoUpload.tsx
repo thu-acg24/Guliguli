@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 
 interface VideoUploadProps {
     isCreating: boolean;
@@ -15,24 +14,37 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
     const videoInputRef = useRef<HTMLInputElement>(null);
     const [videoUploading, setVideoUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [message, setMessage] = useState("");
+
+    const setErrorMessage = (msg: string) => {
+        setIsSuccess(false);
+        setMessage(msg);
+    };
+
+    const setSuccessMessage = (msg: string) => {
+        setIsSuccess(true);
+        setMessage(msg);
+    };
 
     const handleVideoUpload = async (file: File) => {
         // 验证文件类型
         const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov'];
         if (!allowedTypes.includes(file.type)) {
-            materialAlertError("文件类型不支持", "请选择 MP4、WebM、OGG、AVI 或 MOV 格式的视频文件");
+            setErrorMessage("请选择 MP4、WebM、OGG、AVI 或 MOV 格式的视频文件");
             return;
         }
 
         // 验证文件大小 (500MB)
         const maxSize = 500 * 1024 * 1024;
         if (file.size > maxSize) {
-            materialAlertError("文件过大", "视频文件大小不能超过 500MB");
+            setErrorMessage("视频文件大小不能超过 500MB");
             return;
         }
 
         setVideoUploading(true);
         setUploadProgress(0);
+        setMessage(""); // 清除之前的消息
 
         try {
             // 模拟上传进度
@@ -56,6 +68,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
 
             clearInterval(progressInterval);
             setUploadProgress(100);
+            setSuccessMessage(isCreating ? "视频上传成功" : "视频上传成功，请等待审核");
 
             // 如果是创建视频，设置默认封面
             if (isCreating) {
@@ -87,13 +100,13 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
             }
 
             setTimeout(() => {
-                materialAlertSuccess("视频上传成功", isCreating ? "请设置视频封面" : "新视频已上传");
                 if (onVideoUploaded) {
                     onVideoUploaded();
                 }
             }, 1000);
         } catch (error) {
-            materialAlertError("上传失败", error instanceof Error ? error.message : "视频上传失败");
+            const errorMsg = error instanceof Error ? error.message : "视频上传失败";
+            setErrorMessage(errorMsg);
         } finally {
             setVideoUploading(false);
         }
@@ -115,7 +128,6 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
     return (
         <div className="member-edit-tab-content">
             <div className="member-video-upload-section">
-                <h3>{isCreating ? "上传视频" : "更换视频"}</h3>
                 {!videoUploading ? (
                     <div
                         className="member-upload-area"
@@ -123,19 +135,11 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
                     >
                         <div className="member-upload-icon">📹</div>
                         <div className="member-upload-text">
-                            {isCreating ? "拖拽到此处也可上传" : "点击选择新视频文件"}
+                            {"也可拖拽上传"}
                         </div>
                         <button className="member-upload-btn" disabled={videoUploading}>
                             {isCreating ? "上传视频" : "选择视频"}
                         </button>
-                        {isCreating && (
-                            <div className="member-upload-audit-progress">
-                                <span>当前审核队列</span>
-                                <span className="tag" style={{ backgroundColor: "#4581B6" }}>
-                                    快速 <span className="tag-block">预计审核完成时间：10分钟内</span>
-                                </span>
-                            </div>
-                        )}
                     </div>
                 ) : (
                     <div className="member-upload-progress">
@@ -152,10 +156,25 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
                 )}
             </div>
 
+            {message && (
+                isSuccess ? (
+                    <div className="member-success-message">
+                        <div className="member-success-icon">✓</div>
+                        <div className="member-message-text">{message}</div>
+                    </div>
+                ) : (
+                    <div className="member-error-message">
+                        <div className="member-error-icon">!</div>
+                        <div className="member-message-text">{message}</div>
+                    </div>
+                )
+            )}
+
             <input
                 ref={videoInputRef}
                 type="file"
                 accept="video/*"
+                multiple={false}
                 style={{ display: 'none' }}
                 onChange={handleVideoFileSelect}
             />

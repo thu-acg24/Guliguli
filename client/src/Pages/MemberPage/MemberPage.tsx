@@ -30,6 +30,16 @@ const MemberPage: React.FC = () => {
 
     const activeTab = getActiveTab();
 
+    // 如果用户未登录，不显示内容
+    if (!userToken) {
+        return (
+            <div className="member-page">
+                <Header />
+                <div className="member-login-message">请先登录后访问创作者中心</div>
+            </div>
+        );
+    }
+
     return (
         <div className="member-page">
             <Header />
@@ -37,16 +47,16 @@ const MemberPage: React.FC = () => {
                 <div className="member-sidebar">
                     <div className="member-sidebar-title">创作者中心</div>
                     <div
-                        className={`member-sidebar-item ${activeTab === 'overview' ? 'active' : ''}`}
-                        onClick={() => navigate(memberPagePath)}
-                    >
-                        内容管理
-                    </div>
-                    <div
                         className={`member-sidebar-item ${activeTab === 'upload' ? 'active' : ''}`}
                         onClick={() => navigate(`${memberPagePath}/upload`)}
                     >
                         上传视频
+                    </div>
+                    <div
+                        className={`member-sidebar-item ${activeTab === 'overview' ? 'active' : ''}`}
+                        onClick={() => navigate(memberPagePath)}
+                    >
+                        内容管理
                     </div>
                 </div>
                 <div className="member-main-content">

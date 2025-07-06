@@ -190,14 +190,14 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 20px;
+    padding: 0 40px;
     position: relative;
 }
 
 .member-upload-step:not(:last-child)::after {
     content: '';
     position: absolute;
-    right: -20px;
+    right: -10px;
     top: 50%;
     transform: translateY(-50%);
     width: 20px;
@@ -207,6 +207,10 @@
 
 .member-upload-step.active::after {
     background-color: #fb7299;
+}
+
+.member-upload-step.completed::after {
+    background-color: #4caf50;
 }
 
 .member-upload-step-number {
@@ -284,7 +288,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .member-tag-item {
@@ -447,7 +451,6 @@
 .member-page-title {
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 20px;
     color: #333;
 }
 
@@ -565,10 +568,6 @@
     margin-bottom: 20px;
 }
 
-.member-video-upload-section {
-    margin-bottom: 30px;
-}
-
 .member-video-upload-section h3 {
     font-size: 18px;
     margin-bottom: 15px;
@@ -653,6 +652,17 @@
     color: #d32f2f;
     font-size: 14px;
     animation: memberFadeIn 0.3s ease-in-out;
+}
+
+/* 登录提示样式 */
+.member-login-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 60px);
+    /* 减去Header高度，用于居中显示 */
+    font-size: 24px;
+    color: #666;
 }
 
 .member-error-icon {
@@ -784,5 +794,270 @@
     .member-comment-stats {
         flex-direction: column;
         gap: 5px;
+    }
+}
+
+/* 成功提示弹窗样式 */
+.member-upload-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.member-upload-modal {
+    background-color: white;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+.member-upload-modal-content {
+    padding: 40px 30px 30px 30px;
+    text-align: center;
+}
+
+.member-upload-success-icon {
+    margin: 0 auto 20px auto;
+    width: 80px;
+    height: 80px;
+}
+
+.member-upload-success-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.member-upload-success-message {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 30px;
+}
+
+.member-upload-modal-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.member-upload-continue-btn {
+    background-color: #fb7299;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.member-upload-continue-btn:hover {
+    background-color: #f0608c;
+    transform: translateY(-1px);
+}
+
+.member-upload-continue-btn:active {
+    transform: translateY(0);
+}
+
+/* 成功图标动画 */
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    display: inline-block;
+}
+
+.success-checkmark .check-icon {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    border-radius: 50%;
+    box-sizing: content-box;
+    border: 4px solid #4caf50;
+}
+
+.success-checkmark .check-icon::before {
+    top: 3px;
+    left: -2px;
+    width: 30px;
+    transform-origin: 100% 50%;
+    border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+    top: 0;
+    left: 30px;
+    width: 60px;
+    transform-origin: 0 50%;
+    border-radius: 0 100px 100px 0;
+    animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+    content: '';
+    height: 100px;
+    position: absolute;
+    background: white;
+    transform: rotate(-45deg);
+}
+
+.success-checkmark .icon-line {
+    height: 5px;
+    background-color: #4caf50;
+    display: block;
+    border-radius: 2px;
+    position: absolute;
+    z-index: 10;
+}
+
+.success-checkmark .icon-line.line-tip {
+    top: 46px;
+    left: 14px;
+    width: 25px;
+    transform: rotate(45deg);
+    animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .icon-line.line-long {
+    top: 38px;
+    right: 8px;
+    width: 47px;
+    transform: rotate(-45deg);
+    animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .icon-circle {
+    top: -4px;
+    left: -4px;
+    z-index: 10;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    position: absolute;
+    box-sizing: content-box;
+    border: 4px solid rgba(76, 175, 80, 0.2);
+}
+
+.success-checkmark .icon-fix {
+    top: 8px;
+    width: 5px;
+    left: 26px;
+    z-index: 1;
+    height: 85px;
+    position: absolute;
+    transform: rotate(-45deg);
+    background-color: white;
+}
+
+@keyframes rotate-circle {
+    0% {
+        transform: rotate(-45deg);
+    }
+
+    5% {
+        transform: rotate(-45deg);
+    }
+
+    12% {
+        transform: rotate(-405deg);
+    }
+
+    100% {
+        transform: rotate(-405deg);
+    }
+}
+
+@keyframes icon-line-tip {
+    0% {
+        width: 0;
+        left: 1px;
+        top: 19px;
+    }
+
+    54% {
+        width: 0;
+        left: 1px;
+        top: 19px;
+    }
+
+    70% {
+        width: 50px;
+        left: -8px;
+        top: 37px;
+    }
+
+    84% {
+        width: 17px;
+        left: 21px;
+        top: 48px;
+    }
+
+    100% {
+        width: 25px;
+        left: 14px;
+        top: 45px;
+    }
+}
+
+@keyframes icon-line-long {
+    0% {
+        width: 0;
+        right: 46px;
+        top: 54px;
+    }
+
+    65% {
+        width: 0;
+        right: 46px;
+        top: 54px;
+    }
+
+    84% {
+        width: 55px;
+        right: 0px;
+        top: 35px;
+    }
+
+    100% {
+        width: 47px;
+        right: 8px;
+        top: 38px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
     }
 }

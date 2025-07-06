@@ -237,6 +237,7 @@ const UserInfoForm: React.FC<UserInfoFormProps> = ({
                             style={{ display: 'none' }}
                             accept="image/*"
                             onChange={handleFileChange}
+                            multiple={false}
                         />
                         <button
                             type="button"

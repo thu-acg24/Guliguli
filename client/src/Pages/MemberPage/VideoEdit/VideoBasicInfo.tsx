@@ -159,6 +159,15 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
             <div className="member-form-group">
                 <label htmlFor="tags">标签</label>
                 <div className="member-tag-input-container">
+                    <input
+                        type="text"
+                        id="tags"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyPress={handleTagInputKeyPress}
+                        placeholder="输入标签后按回车添加"
+                        maxLength={15}
+                    />
                     {tags.length > 0 && (
                         <div className="member-tag-list">
                             {tags.map((tag, index) => (
@@ -174,15 +183,6 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
                             ))}
                         </div>
                     )}
-                    <input
-                        type="text"
-                        id="tags"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyPress={handleTagInputKeyPress}
-                        placeholder="输入标签后按回车添加"
-                        maxLength={15}
-                    />
                 </div>
             </div>
 

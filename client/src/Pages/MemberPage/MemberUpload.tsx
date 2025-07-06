@@ -12,12 +12,21 @@ const MemberUpload: React.FC = () => {
 
     const [step, setStep] = useState(1); // 1: 基本信息, 2: 上传视频, 3: 设置封面
     const [videoID, setVideoID] = useState<number | null>(null);
+    const [modalConfig, setModalConfig] = useState<{
+        show: boolean;
+        title: string;
+        message: string;
+        buttonText: string;
+        onConfirm: () => void;
+    }>({
+        show: false,
+        title: '',
+        message: '',
+        buttonText: '',
+        onConfirm: () => { }
+    });
 
     const handleCreateVideo = async (title: string, description: string, tags: string[]) => {
-        if (!userToken) {
-            throw new Error("未登录");
-        }
-
         const response = await new Promise<string>((resolve, reject) => {
             new UploadVideoMessage(
                 userToken,
@@ -32,22 +41,49 @@ const MemberUpload: React.FC = () => {
 
         const createdVideoID = parseInt(response);
         setVideoID(createdVideoID);
-        setStep(2);
-        materialAlertSuccess("视频创建成功", "请继续上传视频文件");
+
+        // 显示成功弹窗
+        setModalConfig({
+            show: true,
+            title: '视频基本信息创建成功！',
+            message: '您的视频信息已成功保存，现在可以上传视频文件了。',
+            buttonText: '上传视频',
+            onConfirm: () => {
+                setModalConfig(prev => ({ ...prev, show: false }));
+                setStep(2);
+            }
+        });
+        console.log("视频创建成功", "继续上传视频文件");
     };
 
     const handleVideoUploaded = () => {
-        setStep(3);
+        setModalConfig({
+            show: true,
+            title: '视频上传成功！',
+            message: '您的视频文件已成功上传，现在可以设置视频封面了。',
+            buttonText: '设置封面',
+            onConfirm: () => {
+                setModalConfig(prev => ({ ...prev, show: false }));
+                setStep(3);
+            }
+        });
     };
 
     const handleFinish = () => {
-        materialAlertSuccess("视频上传完成", "您的视频已成功上传，等待审核");
-        navigate(memberPagePath);
+        setModalConfig({
+            show: true,
+            title: '视频上传完成！',
+            message: '您的视频已成功上传，等待审核！感谢您的投稿。',
+            buttonText: '返回创作中心',
+            onConfirm: () => {
+                setModalConfig(prev => ({ ...prev, show: false }));
+                navigate(memberPagePath);
+            }
+        });
     };
 
     const renderStep1 = () => (
         <div className="member-upload-step-content">
-            <h2 style={{ marginBottom: '20px' }}>基本信息</h2>
             <VideoBasicInfo
                 isCreating={true}
                 onSubmit={handleCreateVideo}
@@ -67,7 +103,6 @@ const MemberUpload: React.FC = () => {
 
     const renderStep3 = () => (
         <div className="member-upload-step-content">
-            <h2>设置封面</h2>
             <CoverUpload
                 videoID={videoID!}
             />
@@ -78,6 +113,37 @@ const MemberUpload: React.FC = () => {
                 >
                     完成上传
                 </button>
+            </div>
+        </div>
+    );
+
+    const renderSuccessModal = () => (
+        <div className="member-upload-modal-overlay">
+            <div className="member-upload-modal">
+                <div className="member-upload-modal-content">
+                    <div className="member-upload-success-icon">
+                        <div className="success-checkmark">
+                            <div className="check-icon">
+                                <span className="icon-line line-tip"></span>
+                                <span className="icon-line line-long"></span>
+                                <div className="icon-circle"></div>
+                                <div className="icon-fix"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 className="member-upload-success-title">{modalConfig.title}</h2>
+                    <p className="member-upload-success-message">
+                        {modalConfig.message}
+                    </p>
+                    <div className="member-upload-modal-actions">
+                        <button
+                            className="member-upload-continue-btn"
+                            onClick={modalConfig.onConfirm}
+                        >
+                            {modalConfig.buttonText}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -104,6 +170,8 @@ const MemberUpload: React.FC = () => {
             {step === 1 && renderStep1()}
             {step === 2 && renderStep2()}
             {step === 3 && renderStep3()}
+
+            {modalConfig.show && renderSuccessModal()}
         </div>
     );
 };
