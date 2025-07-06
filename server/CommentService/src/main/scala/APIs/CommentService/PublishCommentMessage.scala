@@ -33,7 +33,7 @@ case class PublishCommentMessage(
   videoID: Int,
   commentContent: String,
   replyToCommentID: Option[Int] = None
-) extends API[Int](CommentServiceCode)
+) extends API[Comment](CommentServiceCode)
 
 case object PublishCommentMessage{
 
