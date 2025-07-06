@@ -25,6 +25,7 @@ import scala.util.Try
  * @param videoID: Int (需要评论的视频的ID。)
  * @param commentContent: String (评论的具体内容。)
  * @param replyToCommentID: Int (回复的目标评论ID，可空。)
+ * @return comment: Comment (发布的新评论的信息)
  */
 
 case class PublishCommentMessage(
@@ -32,7 +33,7 @@ case class PublishCommentMessage(
   videoID: Int,
   commentContent: String,
   replyToCommentID: Option[Int] = None
-) extends API[Unit](CommentServiceCode)
+) extends API[Int](CommentServiceCode)
 
 case object PublishCommentMessage{
 

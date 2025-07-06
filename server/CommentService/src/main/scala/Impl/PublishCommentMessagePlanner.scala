@@ -30,10 +30,10 @@ case class PublishCommentMessagePlanner(
                                          commentContent: String,
                                          replyToCommentID: Option[Int],
                                          override val planContext: PlanContext
-                                       ) extends Planner[Unit] {
+                                       ) extends Planner[Comment] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Unit] = {
+  override def plan(using PlanContext): IO[Comment] = {
     for {
       // Step 1: 校验token是否有效并获取用户ID
       _ <- IO(logger.info(s"校验token是否有效: token=${token}"))
@@ -66,7 +66,7 @@ case class PublishCommentMessagePlanner(
           writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
             List(SqlParameter("Int", rootID.toString))) >> SendReplyNoticeMessage(token, curID).send
       }
-    } yield ()
+    } yield Comment(curID, commentContent, videoID, userID, replyToCommentID, 0, 0)
   }
 
   /**

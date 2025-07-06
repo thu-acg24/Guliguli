@@ -38,6 +38,13 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ChangeFavoriteMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
+
+      case "ChangeLikeMessage" =>
+        IO(
+          decode[ChangeLikeMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ChangeLikeMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
        
       case "ChangeVideoStatusMessage" =>
         IO(
@@ -59,18 +66,60 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ConfirmVideoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
-      case "UploadVideoMessage" =>
-        IO(
-          decode[UploadVideoMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for UploadVideoMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
+
       case "DeleteVideoMessage" =>
         IO(
           decode[DeleteVideoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for DeleteVideoMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "FinishUploadingMessage" =>
+        IO(
+          decode[FinishUploadingMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for FinishUploadingMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ModifyVideoMessage" =>
+        IO(
+          decode[ModifyVideoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ModifyVideoMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryFavoriteMessage" =>
+        IO(
+          decode[QueryFavoriteMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryFavoriteVideosMessage" =>
+        IO(
+          decode[QueryFavoriteVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryLikeMessage" =>
+        IO(
+          decode[QueryLikeMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikeMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryLikeVideosMessage" =>
+        IO(
+          decode[QueryLikeVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikeVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryM3U8PathMessage" =>
+        IO(
+          decode[QueryM3U8PathMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryM3U8PathMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
@@ -78,6 +127,13 @@ object Routes:
         IO(
           decode[QueryPendingVideosMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryPendingVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryUploadPathMessage" =>
+        IO(
+          decode[QueryUploadPathMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryUploadPathMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
@@ -94,46 +150,11 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryVideoInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
-      case "ModifyVideoMessage" =>
+
+      case "UploadVideoMessage" =>
         IO(
-          decode[ModifyVideoMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ModifyVideoMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "ChangeLikeMessage" =>
-        IO(
-          decode[ChangeLikeMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ChangeLikeMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "QueryLikeVideosMessage" =>
-        IO(
-          decode[QueryLikeVideosMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikeVideosMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "QueryFavoriteVideosMessage" =>
-        IO(
-          decode[QueryFavoriteVideosMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteVideosMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "QueryLikeMessage" =>
-        IO(
-          decode[QueryLikeMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryLikeMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "QueryFavoriteMessage" =>
-        IO(
-          decode[QueryFavoriteMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFavoriteMessage[${err.getMessage}]")
+          decode[UploadVideoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for UploadVideoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 

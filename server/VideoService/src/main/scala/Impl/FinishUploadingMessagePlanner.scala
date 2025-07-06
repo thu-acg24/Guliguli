@@ -35,19 +35,20 @@ case class FinishUploadingMessagePlanner(
 
       // Step 2: 验证视频ID的存在性和状态
       _ <- IO(logger.info("[validateVideoStatus] Validating videoID existence and status"))
-      _ <- validateVideo()
+      _ <- validateVideo(userID)
       
       // Step 3: 修改视频状态
       _ <- updateVideoStatus()
     } yield ()
   }
 
-  private def validateVideo()(using PlanContext): IO[Unit] = {
+  private def validateVideo(userID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""SELECT COUNT(*) > 0 FROM ${schemaName}.video_table WHERE video_id = ?
          |AND cover IS NOT NULL AND m3u8_name IS NOT NULL
+         |AND uploader_id = ?
          |""".stripMargin
-    val param = List(SqlParameter("Int", videoID.toString))
+    val param = List(SqlParameter("Int", videoID.toString), SqlParameter("Int", userID.toString))
     for {
       exists <- readDBBoolean(sql, param)
       _ <- IO.raiseUnless(exists)(InvalidInputException("视频不存在或封面/视频未上传"))
@@ -58,7 +59,7 @@ case class FinishUploadingMessagePlanner(
     IO(logger.info(s"[updateVideoStatus] Updating video status for videoID=${videoID} to status=Pending")) >> {
       val updateSql = s"UPDATE ${schemaName}.video_table SET status = ? WHERE video_id = ?;"
       writeDB(updateSql, List(
-        SqlParameter("Int", VideoStatus.Pending.toString),
+        SqlParameter("String", VideoStatus.Pending.toString),
         SqlParameter("Int", videoID.toString)
       ))
     }
