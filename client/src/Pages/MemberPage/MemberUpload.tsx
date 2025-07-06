@@ -47,7 +47,7 @@ const MemberUpload: React.FC = () => {
 
     const renderStep1 = () => (
         <div className="member-upload-step-content">
-            <h2>基本信息</h2>
+            <h2 style={{ marginBottom: '20px' }}>基本信息</h2>
             <VideoBasicInfo
                 isCreating={true}
                 onSubmit={handleCreateVideo}

@@ -22,6 +22,8 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
     const [description, setDescription] = useState("");
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
         if (!isCreating && loadVideoInfo) {
@@ -34,23 +36,46 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
 
         try {
             setLoading(true);
+            setMessage(""); // 清除之前的消息
             const videoInfo = await loadVideoInfo();
             setTitle(videoInfo.title);
             setDescription(videoInfo.description);
             setTags(videoInfo.tags);
         } catch (error) {
-            materialAlertError("加载失败", error instanceof Error ? error.message : "获取视频信息失败");
+            const errorMsg = error instanceof Error ? error.message : "获取视频信息失败";
+            setErrorMessage(errorMsg);
+            materialAlertError("加载失败", errorMsg);
         } finally {
             setLoading(false);
         }
     };
 
+    const setErrorMessage = (msg: string) => {
+        setIsSuccess(false);
+        setMessage(msg);
+    };
+
+    const setSuccessMessage = (msg: string) => {
+        setIsSuccess(true);
+        setMessage(msg);
+    };
+
     const handleAddTag = () => {
         const trimmedTag = tagInput.trim();
-        if (trimmedTag && !tags.includes(trimmedTag)) {
-            setTags([...tags, trimmedTag]);
-            setTagInput("");
+        if (!trimmedTag) {
+            setErrorMessage("标签不能为空");
+            return;
         }
+        if (tags.includes(trimmedTag)) {
+            setErrorMessage("标签已存在");
+            return;
+        }
+        if (tags.length >= 10) {
+            setErrorMessage("不能超过10个标签");
+            return;
+        }
+        setTags([...tags, trimmedTag]);
+        setTagInput("");
     };
 
     const handleRemoveTag = (tagToRemove: string) => {
@@ -71,23 +96,24 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
         }
 
         if (!title.trim()) {
-            materialAlertError("标题不能为空", "请输入视频标题");
+            const errorMsg = "请输入视频标题";
+            setErrorMessage(errorMsg);
+            console.error("标题不能为空", errorMsg);
             return;
         }
 
         if (!description.trim()) {
-            materialAlertError("简介不能为空", "请输入视频简介");
-            return;
-        }
-
-        if (tags.length === 0) {
-            materialAlertError("标签不能为空", "请至少添加一个标签");
+            const errorMsg = "请输入视频简介";
+            setErrorMessage(errorMsg);
+            console.error("简介不能为空", errorMsg);
             return;
         }
 
         try {
             setSaving(true);
+            setMessage(""); // 清除之前的消息
             await onSubmit(title, description, tags);
+            setSuccessMessage(isCreating ? "视频创建成功" : "基本信息保存成功");
         } catch (error) {
             materialAlertError("操作失败", error instanceof Error ? error.message : "操作失败");
         } finally {
@@ -105,6 +131,7 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
 
     return (
         <div className="member-edit-tab-content">
+
             <div className="member-form-group">
                 <label htmlFor="title">视频标题</label>
                 <input
@@ -113,7 +140,7 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="请输入视频标题"
-                    maxLength={100}
+                    maxLength={30}
                 />
             </div>
 
@@ -154,9 +181,24 @@ const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
                         onChange={(e) => setTagInput(e.target.value)}
                         onKeyPress={handleTagInputKeyPress}
                         placeholder="输入标签后按回车添加"
+                        maxLength={15}
                     />
                 </div>
             </div>
+
+            {message && (
+                isSuccess ? (
+                    <div className="member-success-message">
+                        <div className="member-success-icon">✓</div>
+                        <div className="member-message-text">{message}</div>
+                    </div>
+                ) : (
+                    <div className="member-error-message">
+                        <div className="member-error-icon">!</div>
+                        <div className="member-message-text">{message}</div>
+                    </div>
+                )
+            )}
 
             <button
                 className="member-form-submit"

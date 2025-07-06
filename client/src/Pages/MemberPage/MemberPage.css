@@ -247,9 +247,6 @@
 }
 
 /* 表单样式 */
-.member-form-group {
-    margin-bottom: 20px;
-}
 
 .member-form-group label {
     display: block;
@@ -519,8 +516,14 @@
 }
 
 /* 编辑页面标签页样式 */
+.member-video-edit {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 .member-edit-tabs {
     display: flex;
+    justify-content: center;
     border-bottom: 2px solid #e7e7e7;
     margin-bottom: 30px;
 }
@@ -546,6 +549,7 @@
 
 .member-edit-content {
     max-width: 600px;
+    margin: 0 auto;
 }
 
 .member-edit-tab-content {
@@ -638,7 +642,79 @@
     margin-bottom: 8px;
 }
 
-/* 响应式设计补充 */
+/* 错误信息样式 */
+.member-error-message {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #fff6f6;
+    border: 1px solid #ffcccc;
+    border-radius: 4px;
+    color: #d32f2f;
+    font-size: 14px;
+    animation: memberFadeIn 0.3s ease-in-out;
+}
+
+.member-error-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    background-color: #d32f2f;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* 成功消息样式 */
+.member-success-message {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background-color: #f0fff4;
+    border: 1px solid #c6f6d5;
+    border-radius: 4px;
+    color: #2e7d32;
+    font-size: 14px;
+    animation: memberFadeIn 0.3s ease-in-out;
+}
+
+.member-success-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    background-color: #2e7d32;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.member-message-text {
+    line-height: 1.4;
+}
+
+@keyframes memberFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @media (max-width: 768px) {
     .member-container {
         flex-direction: column;
