@@ -1,4 +1,9 @@
 import React, { useState, useRef } from "react";
+import axios from "axios";
+import { useUserToken } from "Globals/GlobalStore";
+import { UploadPath } from "Plugins/VideoService/Objects/UploadPath";
+import { QueryUploadVideoPathMessage } from "Plugins/VideoService/APIs/QueryUploadVideoPathMessage";
+import { ValidateVideoMessage } from "Plugins/VideoService/APIs/ValidateVideoMessage";
 
 interface VideoUploadProps {
     isCreating: boolean;
@@ -11,6 +16,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
     videoID,
     onVideoUploaded
 }) => {
+    const userToken = useUserToken();
     const videoInputRef = useRef<HTMLInputElement>(null);
     const [videoUploading, setVideoUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -47,63 +53,59 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
         setMessage(""); // 清除之前的消息
 
         try {
-            // 模拟上传进度
-            const progressInterval = setInterval(() => {
-                setUploadProgress(prev => {
-                    if (prev >= 90) {
-                        clearInterval(progressInterval);
-                        return prev;
-                    }
-                    return prev + Math.random() * 10;
+            const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+            const uploadPath = await new Promise<UploadPath>((resolve, reject) => {
+                new QueryUploadVideoPathMessage(userToken, videoID, totalChunks).send(
+                    (info: string) => { resolve(JSON.parse(info) as UploadPath); },
+                    (error: string) => { reject(new Error(error)); }
+                );
+            });
+
+            const uploadUrl = uploadPath.path;
+            const sessionToken = uploadPath.token;
+
+            const uploadPart = async (fileChunk: Blob, presignedUrl: string): Promise<string> => {
+                const response = await axios.put(presignedUrl, fileChunk, {
+                    headers: { 'Content-Type': 'application/octet-stream' },
                 });
-            }, 500);
+                return response.headers.etag.replace(/"/g, ''); // 去掉引号
+            };
 
-            // 实际上传逻辑
-            const formData = new FormData();
-            formData.append('video', file);
-            formData.append('videoID', videoID.toString());
+            // 使用计数器来跟踪完成的块数量
+            let completedChunks = 0;
+            const etags: string[] = await Promise.all(uploadUrl.map(async (url, i) => {
+                const start = i * CHUNK_SIZE;
+                const end = Math.min(file.size, start + CHUNK_SIZE);
+                const chunk = file.slice(start, end);
+                const etag = await uploadPart(chunk, url);
 
-            // 这里应该调用实际的上传 API
-            await new Promise(resolve => setTimeout(resolve, 3000));
+                // 原子性地增加计数器并更新进度
+                completedChunks++;
+                setUploadProgress((completedChunks / totalChunks) * 90);
 
-            clearInterval(progressInterval);
+                return etag;
+            }));
+
+            await new Promise<void>((resolve, reject) => {
+                new ValidateVideoMessage(sessionToken, etags).send(
+                    (info: string) => { resolve(); },
+                    (error: string) => { reject(new Error(error)); }
+                );
+            });
+
+            if (isCreating) {
+                // 设置默认封面
+            }
+
             setUploadProgress(100);
             setSuccessMessage(isCreating ? "视频上传成功" : "视频上传成功，请等待审核");
 
-            // 如果是创建视频，设置默认封面
-            if (isCreating) {
-                try {
-                    // 创建一个虚拟的封面文件（实际应该从视频第一帧生成）
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 320;
-                    canvas.height = 180;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) {
-                        ctx.fillStyle = '#f0f0f0';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.fillStyle = '#666';
-                        ctx.font = '16px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('视频封面', canvas.width / 2, canvas.height / 2);
-                    }
-
-                    canvas.toBlob(async (blob) => {
-                        if (blob) {
-                            // 设置默认封面
-                            const defaultCoverUrl = "/api/video/cover/" + videoID;
-                            // 封面设置逻辑由 CoverUpload 组件内部处理
-                        }
-                    }, 'image/jpeg');
-                } catch (error) {
-                    console.warn("设置默认封面失败:", error);
-                }
+            if (onVideoUploaded) {
+                onVideoUploaded();
             }
 
-            setTimeout(() => {
-                if (onVideoUploaded) {
-                    onVideoUploaded();
-                }
-            }, 1000);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : "视频上传失败";
             setErrorMessage(errorMsg);
@@ -117,6 +119,8 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
         if (file) {
             handleVideoUpload(file);
         }
+        // 清空 input 值，确保下次选择相同文件时也能触发 onChange
+        e.target.value = '';
     };
 
     const handleClick = () => {
