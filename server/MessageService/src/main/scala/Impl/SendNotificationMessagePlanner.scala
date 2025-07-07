@@ -35,7 +35,7 @@ case class SendNotificationMessagePlanner(
         case _ => IO.raiseError(InvalidInputException("Invalid Permission"))
       }
       _ <- IO(logger.info("权限正常"))
-      _ <- IO(logger.info(s"验证接收方ID: $receiverID是否存在"))
+      _ <- IO(logger.info(s"验证接收方ID: $receiverID 是否存在"))
       _ <- QueryUserInfoMessage(receiverID).send
       _ <- IO(logger.info(s"接收方有效"))
       _ <- insertMessageRecord()

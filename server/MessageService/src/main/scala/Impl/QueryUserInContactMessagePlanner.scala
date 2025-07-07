@@ -38,7 +38,7 @@ case class QueryUserInContactMessagePlanner(
       _ <- IO(logger.info(s"与当前用户有联系的用户ID列表: $contactUserIDs"))
       // Step 3: Query contact user information
       userInfo <- retrieveContactUserInfo(contactUserIDs)
-      userWithMessage <- userInfo.traverse(combineInformation)
+      userWithMessage <- userInfo.traverse(id => combineInformation(id, userID))
     } yield userWithMessage
   }
 
@@ -73,7 +73,7 @@ case class QueryUserInContactMessagePlanner(
     }
   }
 
-  private def combineInformation(userInfo: UserInfo)(using PlanContext): IO[UserInfoWithMessage] = {
+  private def combineInformation(userInfo: UserInfo, userID: Int)(using PlanContext): IO[UserInfoWithMessage] = {
     val countSql =
       s"""
          |SELECT COUNT(*) AS unread_count
@@ -85,11 +85,16 @@ case class QueryUserInContactMessagePlanner(
       s"""
          |SELECT content, send_time
          |FROM $schemaName.message_table
-         |WHERE (receiver_id=? OR sender_id=?)
+         |WHERE (receiver_id=? AND sender_id = ?) OR (sender_id=? AND receiver_id = ?)
          |ORDER BY send_time
          |DESC LIMIT 1
       """.stripMargin
-    val parameter = List(SqlParameter("Int", userInfo.userID.toString))
+    val parameter = List(
+      SqlParameter("Int", userInfo.userID.toString),
+      SqlParameter("Int", userID.toString),
+      SqlParameter("Int", userID.toString),
+      SqlParameter("Int", userInfo.userID.toString)
+    )
     for {
       _ <- IO(logger.info("查询信息数量Sql: $countSql"))
       count <- readDBInt(countSql, parameter)
