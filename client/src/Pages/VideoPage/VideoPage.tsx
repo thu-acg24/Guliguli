@@ -19,19 +19,20 @@ import { QueryVideoInfoMessage } from 'Plugins/VideoService/APIs/QueryVideoInfoM
 import { QueryFavoriteMessage } from 'Plugins/VideoService/APIs/QueryFavoriteMessage';
 import { QueryLikeMessage } from 'Plugins/VideoService/APIs/QueryLikeMessage';
 import { ChangeLikeMessage } from 'Plugins/VideoService/APIs/ChangeLikeMessage';
-import { ChangeFavoriteMessage } from 'Plugins/VideoService/APIs/ChangeFavoriteMessage'
-import {UserStat} from 'Plugins/UserService/Objects/UserStat'
-import {QueryUserStatMessage} from 'Plugins/UserService/APIs/QueryUserStatMessage'
-import {QueryFollowMessage} from 'Plugins/UserService/APIs/QueryFollowMessage'
-import {ChangeFollowStatusMessage} from 'Plugins/UserService/APIs/ChangeFollowStatusMessage'
-import HlsVideoPlayerWrapper from "./HlsVideoPlayerWrapper";
+import { ChangeFavoriteMessage } from 'Plugins/VideoService/APIs/ChangeFavoriteMessage';
+import { UserStat } from 'Plugins/UserService/Objects/UserStat';
+import { QueryUserStatMessage } from 'Plugins/UserService/APIs/QueryUserStatMessage';
+import { QueryFollowMessage } from 'Plugins/UserService/APIs/QueryFollowMessage';
+import { ChangeFollowStatusMessage } from 'Plugins/UserService/APIs/ChangeFollowStatusMessage';
+import VideoPlayerSection from "./VideoPlayerSection";
+import CommentSection from "./CommentSection";
+import SidebarSection from "./SidebarSection";
 import "./VideoPage.css";
-import { set } from "lodash";
 
 export const videoPagePath = "/video/:video_id";
 
-interface CommentWithUserInfo extends Comment {
-  isLocal?:boolean;
+export interface CommentWithUserInfo extends Comment {
+  isLocal?: boolean;
   userInfo?: UserInfo;
   replies?: CommentWithUserInfo[];
   isLiked?: boolean;
@@ -39,6 +40,7 @@ interface CommentWithUserInfo extends Comment {
   hasMoreReplies?: boolean;
   replyToUsername?: string;
 }
+
 const VideoPage: React.FC = () => {
   const { video_id } = useParams<{ video_id: string }>();
   const userToken = useUserToken();
@@ -63,28 +65,9 @@ const VideoPage: React.FC = () => {
   const [likeisprocessing, setLikeisprocessing] = useState(false);
   const [followisprocessing, setFollowisprocessing] = useState(false);
   const [favoriteisprocessing, setFavoriteisprocessing] = useState(false);
-  const [videoinfo, setVideoinfo] =  useState<Video>(null);
+  const [videoinfo, setVideoinfo] = useState<Video>(null);
   const [upstat, setUpstat] = useState<UserStat>();
   
-  const getVideoUrl = () => {
-      return `http://183.173.211.15:5004/browser/video-server/testid%2Fvideo%2Findex.m3u8`;
-    };
-  // Mock data
-  const [videoData, setVideoData] = useState({
-    id: "123",
-    title: "这是一个视频标题，可能会比较长，需要显示两行",
-    views: "123.4万",
-    danmaku: "2.3万",
-    uploadDate: "2023-10-15",
-    author: {
-      id: "456",
-      name: "UP主名称",
-      avatar: "https://picsum.photos/50/50?random=1",
-      description: "这是一个UP主的简介，可能会比较长，需要显示省略号..."
-    },
-    tags: ["科技", "数码", "评测", "开箱"]
-  });
-
   const [recommendedVideos, setRecommendedVideos] = useState([
     {
       id: "101",
@@ -120,6 +103,7 @@ const VideoPage: React.FC = () => {
     }
   ]);
 
+  
   useLayoutEffect(() => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
@@ -696,403 +680,56 @@ const VideoPage: React.FC = () => {
   if (videoinfoisloading) {
     return // 骨架屏或加载动画
   }
+
   return (
     <div className="video-video-page">
       <Header />
 
       <div className="video-video-page-container">
-        {/* Main content area */}
         <div className="video-video-main-content">
-          {/* Video player section */}
-          <div className="video-video-player-section">
-            <h1 className="video-video-title">{videoinfo.title}</h1>
+          <VideoPlayerSection
+            video_id={video_id}
+            videoinfo={videoinfo}
+            isLiked={isLiked}
+            isFavorited={isFavorited}
+            likeVideo={likeVideo}
+            favoriteVideo={favoriteVideo}
+          />
 
-            <div className="video-video-meta">
-              <span>播放: {videoinfo.views}</span>
-              {/* <span>弹幕: {videoData.danmaku}</span> */}
-              <span>投稿时间: {formatTime(videoinfo.uploadTime,false)}</span>
-            </div>
-
-            <div className="video-video-player-container">
-              {/* 替换原有的 MinioVideoPlayer */}
-              <HlsVideoPlayerWrapper videoID={Number(video_id)} />
-            </div>
-
-            <div className="video-video-actions">
-              <button
-                className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
-                onClick={() => likeVideo()}
-              >
-                 {isLiked ? '点赞' : '点赞'}&nbsp;{videoinfo.likes}
-              </button>
-              <button
-                className={`video-videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
-                onClick={() => favoriteVideo()}
-              >
-                 {isFavorited ? '收藏' : '收藏'}&nbsp;{videoinfo.favorites}
-              </button>
-            </div>
-
-            <div className="video-video-tags">
-              {videoData.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="video-tag"
-                  onClick={() => alert(`搜索标签: ${tag}`)}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Comments section */}
-          <div className="video-comments-container" ref={commentsSectionRef}>
-            <div className="video-comments-header">
-              <h3>评论 </h3>
-            </div>
-
-            {/* Comment input */}
-            <div className="video-comment-input-area" ref={commentInputRef}>
-              <img
-                src={isLoggedIn ? (userInfo?.avatarPath || '/default-avatar.png') : '/default-avatar.png'}
-                alt="用户头像"
-                className="video-comment-avatar"
-                onClick={() => isLoggedIn && navigateToUser(userInfo?.userID || 0)}
-              />
-              <div className="video-comment-input-wrapper">
-                <input
-                  type="text"
-                  placeholder="发一条友善的评论"
-                  value={commentInput}
-                  onChange={(e) => setCommentInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handlePostComment()}
-                />
-              </div>
-            </div>
-
-            {/* Comments list */}
-            <div className="video-comments-list">
-              {comments.map(comment => (
-                <div key={comment.commentID} className="video-comment-item">
-                  <div className="video-comment-main">
-                    <img
-                      src={comment.userInfo?.avatarPath || '/default-avatar.png'}
-                      alt="用户头像"
-                      className="video-comment-avatar"
-                      onClick={() => navigateToUser(comment.authorID)}
-                    />
-                    <div className="video-comment-content">
-                      <div className="video-comment-header">
-                        <span 
-                          className="video-comment-username"
-                          onClick={() => navigateToUser(comment.authorID)}
-                        >
-                          {comment.userInfo?.username || '未知用户'}
-                        </span>
-                        <span className="video-comment-time">{formatTime(comment.timestamp)}</span>
-                      </div>
-                      <div className="video-comment-text">{comment.content}</div>
-                      <div className="video-comment-actions">
-                        <button
-                          className={`video-like-btn ${comment.isLiked ? 'liked' : ''}`}
-                          onClick={() => handleLikeComment(comment.commentID)}
-                        >
-                          <span>👍</span> {comment.likes}
-                        </button>
-                        <button
-                          className="video-reply-btn"
-                          onClick={() => {
-            
-                            if (!isLoggedIn) {
-                              setShowLoginModal(true);
-                              return;
-                            }
-                            setReplyingTo({ 
-                              id: comment.commentID, 
-                              username: comment.userInfo?.username || '用户',
-                              content: comment.content
-                            });
-                            setShowReplyModal(true);
-                          }}
-                        >
-                          回复
-                        </button>
-                        {(comment.authorID === userInfo?.userID||userInfo?.userID === videoinfo?.uploaderID) && (
-                          <button
-                            className="video-delete-btn"
-                            onClick={() => handleDeleteComment(comment.commentID)}
-                          >
-                            删除
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Replies section */}
-                      {comment.replyCount > 0 && (
-                        <div className="video-replies-section">
-                          {!comment.showAllReplies && comment.replies && comment.replies.length > 0 && (
-                            <div className="video-replies-list">
-                              {comment.replies.slice(0, 2).map(reply => (
-                                <div key={reply.commentID} className="video-reply-item">
-                                  <img
-                                    src={reply.userInfo?.avatarPath || '/default-avatar.png'}
-                                    alt="用户头像"
-                                    className="video-reply-avatar"
-                                    onClick={() => navigateToUser(reply.authorID)}
-                                  />
-                                  <div className="video-reply-content">
-                                    <div className="video-reply-header">
-                                      <span 
-                                        className="video-reply-username"
-                                        onClick={() => navigateToUser(reply.authorID)}
-                                      >
-                                        {reply.userInfo?.username || '未知用户'}
-                                      </span>
-                                      <span className="video-reply-time">{formatTime(reply.timestamp)}</span>
-                                    </div>
-                                    <div className="video-reply-text">
-                                      {reply.replyToUserID && (
-                                        <>
-                                          回复&nbsp;
-                                          <span 
-                                            className="video-reply-highlight"
-                                            onClick={() => navigateToUser(reply.replyToUserID)}
-                                          >
-                                            @{reply.replyToUsername}：
-                                          </span>
-                                        </>
-                                      )}
-                                      {reply.content}
-                                    </div>
-                                    <div className="video-reply-actions">
-                                      <button
-                                        className={`video-like-btn ${reply.isLiked ? 'liked' : ''}`}
-                                        onClick={() => handleLikeComment(reply.commentID)}
-                                      >
-                                        <span>👍</span> {reply.likes}
-                                      </button>
-                                      <button
-                                        className="video-reply-btn"
-                                        onClick={() => {
-                                          setReplyingTo({ 
-                                            id: reply.commentID, 
-                                            username: reply.userInfo?.username || '用户',
-                                            content: reply.content
-                                          });
-                                          setShowReplyModal(true);
-                                        }}
-                                      >
-                                        回复
-                                      </button>
-                                      {reply.authorID === userInfo?.userID && (
-                                        <button
-                                          className="video-delete-btn"
-                                          onClick={() => handleDeleteComment(reply.commentID)}
-                                        >
-                                          删除
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {comment.showAllReplies && comment.replies && comment.replies.length > 0 && (
-                            <div className="video-replies-list">
-                              {comment.replies.map(reply => (
-                                <div key={reply.commentID} className="video-reply-item">
-                                  <img
-                                    src={reply.userInfo?.avatarPath || '/default-avatar.png'}
-                                    alt="用户头像"
-                                    className="video-reply-avatar"
-                                    onClick={() => navigateToUser(reply.authorID)}
-                                  />
-                                  <div className="video-reply-content">
-                                    <div className="video-reply-header">
-                                      <span 
-                                        className="video-reply-username"
-                                        onClick={() => navigateToUser(reply.authorID)}
-                                      >
-                                        {reply.userInfo?.username || '未知用户'}
-                                      </span>
-                                      <span className="video-reply-time">{formatTime(reply.timestamp)}</span>
-                                    </div>
-                                    <div className="video-reply-text">
-                                      {reply.replyToUserID && (
-                                        <>
-                                          回复&nbsp;
-                                          <span 
-                                            className="video-reply-highlight"
-                                            onClick={() => navigateToUser(reply.replyToUserID)}
-                                          >
-                                            @{reply.replyToUsername}：
-                                          </span>
-                                        </>
-                                      )}
-                                      {reply.content}
-                                    </div>
-                                    <div className="video-reply-actions">
-                                      <button
-                                        className={`video-like-btn ${reply.isLiked ? 'liked' : ''}`}
-                                        onClick={() => handleLikeComment(reply.commentID)}
-                                      >
-                                        <span>👍</span> {reply.likes}
-                                      </button>
-                                      <button
-                                        className="video-reply-btn"
-                                        onClick={() => {
-                                          
-                                          if (!isLoggedIn) {
-                                            setShowLoginModal(true);
-                                            return;
-                                          }
-                                          setReplyingTo({ 
-                                            id: reply.commentID, 
-                                            username: reply.userInfo?.username || '用户',
-                                            content: reply.content
-                                          });
-                                          setShowReplyModal(true);
-                                        }}
-                                      >
-                                        回复
-                                      </button>
-                                      {reply.authorID === userInfo?.userID && (
-                                        <button
-                                          className="video-delete-btn"
-                                          onClick={() => handleDeleteComment(reply.commentID)}
-                                        >
-                                          删除
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          <div className="video-reply-actions">
-                            {comment.replyCount > 0 && (
-                              <span 
-                                className="video-view-replies" 
-                                onClick={() => handleToggleReplies(comment)}
-                              >
-                              
-                                {comment.showAllReplies ? '收起' : `共${comment.replyCount}条回复，点击查看`}
-                              </span>
-                            )}
-                            {comment.showAllReplies && comment.hasMoreReplies && (
-                              <span 
-                                className="video-load-more-replies" 
-                                onClick={() => handleLoadMoreReplies(comment)}
-                              >
-                                点击查看更多回复
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {loadingComments && (
-                <div className="video-comments-loading">加载中...</div>
-              )}
-              
-              {noMoreComments && comments.length > 0 && (
-                <div className="video-comments-end">没有更多评论了</div>
-              )}
-              
-              {!noMoreComments && comments.length > 0 && (
-                <div className="video-load-more" onClick={handleLoadMore}>
-                  点击加载更多评论
-                </div>
-              )}
-            </div>
-          </div>
+          <CommentSection
+            comments={comments}
+            loadingComments={loadingComments}
+            noMoreComments={noMoreComments}
+            isLoggedIn={isLoggedIn}
+            userInfo={userInfo}
+            commentInput={commentInput}
+            setCommentInput={setCommentInput}
+            handlePostComment={handlePostComment}
+            handleLoadMore={handleLoadMore}
+            handleLikeComment={handleLikeComment}
+            handleDeleteComment={handleDeleteComment}
+            navigateToUser={navigateToUser}
+            setReplyingTo={setReplyingTo}
+            setShowReplyModal={setShowReplyModal}
+            setShowLoginModal={setShowLoginModal}
+            handleToggleReplies={handleToggleReplies}
+            handleLoadMoreReplies={handleLoadMoreReplies}
+          />
         </div>
 
-        {/* Sidebar */}
-        <div className="video-video-sidebar">
-          {/* UP info */}
-           <div className="video-up-info">
-            {/* 头像和名字/签名在同一行 */}
-            <div className="video-up-top-row">
-              <div className="video-up-avatar">
-                <img 
-                src={uploaderInfo.avatarPath} 
-                alt="UP主头像" 
-                onClick={() => navigateToUser(uploaderInfo.userID)}
-                />
-              </div>
-              <div className="video-up-details">
-                <div className="video-up-name">
-                  <span
-                  onClick={()=>navigateToUser(uploaderInfo.userID)}
-                  >
-                    {uploaderInfo.username}
-                  </span>
-                </div>
-                <div className="video-up-description" title={uploaderInfo.bio}>
-                  {uploaderInfo.bio.length > 17
-                    ? `${uploaderInfo.bio.substring(0, 17)}...`
-                    : uploaderInfo.bio}
-                </div>
-              </div>
-            </div>
-            {/* 关注按钮单独一行 */}
-            {((!userToken)||(videoinfo.uploaderID!==userInfo?.userID ))&&(
-              <button
-              className={`video-follow-btn ${isFollowing ? 'following' : ''}`}
-              onClick={() => followUp(uploaderInfo.userID)}
-            >
-              {isFollowing ? '已关注' : '关注'}&nbsp;{upstat.followerCount}
-            </button>
-            )}
-            
-          </div>
-
-          {/* Recommended videos */}
-          <div className="video-recommended-videos">
-            <h3 className="video-recommended-title">推荐视频</h3>
-            {recommendedVideos.map(video => (
-              <div key={video.id} className="video-recommended-video">
-                <div
-                  className="video-recommended-cover"
-                  onClick={() => alert(`跳转到视频 ${video.id}`)}
-                >
-                  <img src={video.cover} alt="视频封面" />
-                </div>
-                <div className="video-recommended-info">
-                  <div
-                    className="video-recommended-title"
-                    onClick={() => alert(`跳转到视频 ${video.id}`)}
-                  >
-                    {video.title}
-                  </div>
-                  <div
-                    className="video-recommended-author"
-                    onClick={() => alert(`跳转到UP主 ${video.author}`)}
-                  >
-                    {video.author}
-                  </div>
-                  <div className="video-recommended-meta">
-                    <span>播放: {video.views}</span>
-                    <span>弹幕: {video.danmaku}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <SidebarSection
+          uploaderInfo={uploaderInfo}
+          videoinfo={videoinfo}
+          userToken={userToken}
+          userInfo={userInfo}
+          isFollowing={isFollowing}
+          upstat={upstat}
+          followUp={followUp}
+          navigateToUser={navigateToUser}
+          recommendedVideos={recommendedVideos}
+        />
       </div>
 
-      {/* Bottom comment bar */}
       {showBottomCommentBar && (
         <div className="video-bottom-comment-bar">
           <input
@@ -1106,13 +743,10 @@ const VideoPage: React.FC = () => {
         </div>
       )}
 
-      {/* Login Modal */}
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
       />
-
-      {/* Reply Modal */}
       
       {showReplyModal && replyingTo && (
         <ReplyModal
