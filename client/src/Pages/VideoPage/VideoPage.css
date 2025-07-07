@@ -415,7 +415,7 @@
 /* Replies Section */
 .video-replies-section {
     margin-top: 15px;
-    padding-left: 52px;
+    padding-left: 0px;
 }
 
 .video-replies-list {
@@ -470,6 +470,7 @@
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 8px;
+    margin-top: 5px;
     word-break: break-word;
 }
 
@@ -492,7 +493,7 @@
     color: #00a1d6;
     font-size: 13px;
     cursor: pointer;
-    margin-top: 5px;
+    margin-top: 10px;
     transition: color 0.2s;
 }
 
@@ -777,7 +778,7 @@
     }
     
     .video-replies-section {
-        padding-left: 42px;
+        padding-left: 0px;
     }
     
     .video-bottom-comment-bar {

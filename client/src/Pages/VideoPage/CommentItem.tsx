@@ -60,7 +60,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               className={`video-like-btn ${comment.isLiked ? 'liked' : ''}`}
               onClick={() => handleLikeComment(comment.commentID)}
             >
-              <span>👍</span> {comment.likes}
+              <span>点赞</span> {comment.likes}
             </button>
             <button
               className="video-reply-btn"
@@ -137,15 +137,15 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     className="video-view-replies" 
                     onClick={() => handleToggleReplies(comment)}
                   >
-                    {comment.showAllReplies ? '收起' : `共${comment.replyCount}条回复，点击查看`}
+                    {comment.showAllReplies ? '收起' : ((comment.replies?.length|0)>2?`查看剩余${comment.replyCount-2}条回复`:``)}
                   </span>
                 )}
-                {comment.showAllReplies && comment.hasMoreReplies && (
+                {comment.showAllReplies && comment.hasMoreReplies && (//展开了后
                   <span 
                     className="video-load-more-replies" 
                     onClick={() => handleLoadMoreReplies(comment)}
                   >
-                    点击查看更多回复
+                    查看剩余{comment.replyCount-comment.replies.length}条回复
                   </span>
                 )}
               </div>

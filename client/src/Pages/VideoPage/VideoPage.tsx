@@ -250,7 +250,6 @@ const VideoPage: React.FC = () => {
           });
         })
       );
-
       if (userToken) {
         const likedStatus = await fetchLikedStatus(commentsWithUserInfo.map(c => c.commentID));
         console.log("评论的点赞状态:", likedStatus);
@@ -258,68 +257,18 @@ const VideoPage: React.FC = () => {
           comment.isLiked = likedStatus[index];
         });
       }
-
       setComments(prev => [...prev, ...commentsWithUserInfo]);
+      await Promise.all(//先一步获取适当评论
+        commentsWithUserInfo.map(async(comment)=>{
+          console.log("即将要进去获取的回复",comment);
+          await handleLoadMoreReplies(comment);
+          return ;
+        })
+      );
     } catch (error) {
       console.error('加载评论失败:', error);
     } finally {
       setLoadingComments(false);
-    }
-  };
-
-  const fetchReplies = async (comment: CommentWithUserInfo) => {
-    if (!comment.replyCount) return;
-    
-    try {
-      
-      const limit=Math.min(10,comment.replyCount-(comment.replies?.length||0));
-      if(limit<=0)return;
-      const newReplies = await new Promise<Comment[]>((resolve, reject) => {
-        new QueryVideoCommentsMessage(
-          parseInt(video_id || "0"),
-          new Date("1970-01-01 00:00:00").getTime(),
-          0,
-          comment.commentID,
-          limit
-        ).send(
-          (info: string) => {
-            try {
-              const data: Comment[] = JSON.parse(info);
-              resolve(data);
-            } catch (e) {
-              reject(new Error(`解析失败: ${e instanceof Error ? e.message : String(e)}`));
-            }
-          },
-          (error: string) => reject(new Error(`请求失败: ${error}`))
-        );
-      });
-      console.log("获取的回复",newReplies);
-      const repliesWithUserInfo = await Promise.all(
-        newReplies.map(async (reply) => {
-          const userInfo = await fetchOtherUserInfo(reply.authorID);
-          let replyToUsername: string | undefined;
-          if (reply.replyToUserID ) replyToUsername = (await fetchOtherUserInfo(reply.replyToUserID)).username;
-          return { 
-            ...reply, 
-            userInfo, 
-            replyToUsername,
-            isLiked: userToken ? await fetchLikedStatus([reply.commentID]).then(res => res[0]) : false
-          };
-        })
-      );
-
-      setComments(prev => prev.map(c => {
-        if (c.commentID === comment.commentID) {
-          return Object.assign(Object.create(Object.getPrototypeOf(c)), {
-            ...c,
-            replies: repliesWithUserInfo,
-            hasMoreReplies: repliesWithUserInfo.length < c.replyCount
-          });
-        }
-        return c;
-      }));
-    } catch (error) {
-      console.error('加载回复失败:', error);
     }
   };
 
@@ -346,10 +295,7 @@ const VideoPage: React.FC = () => {
     fetchComments(comments[comments.length - 1]);
   };
 
-  const handleToggleReplies = async (comment: CommentWithUserInfo) => {
-    if (!comment.showAllReplies && (!comment.replies || comment.replies.length === 0)) {
-      await fetchReplies(comment);
-    }
+  const handleToggleReplies = async (comment: CommentWithUserInfo) => { //切换收起和展开的状态
     
     setComments(prev => prev.map(c => {
       if (c.commentID === comment.commentID) {
@@ -363,22 +309,19 @@ const VideoPage: React.FC = () => {
   };
 
   const handleLoadMoreReplies = async (comment: CommentWithUserInfo) => {
-    if (!comment.replies || comment.replies.length === 0) return;
-    
     try {
       const limit=Math.min(10,comment.replyCount-(comment.replies?.length||0));
       if(limit<=0)return;
-
       //fetch server replies
       const serverReplies = comment.replies.filter(reply => !reply.isLocal);
-      if (serverReplies.length === 0) return;
-      const lastReply = serverReplies[serverReplies.length - 1];
+      const lastReplytimestamp=(serverReplies.length === 0?"1900-12-31 23:59:59":serverReplies[serverReplies.length - 1].timestamp);
+      const lastReplycommentID=(serverReplies.length === 0?0:serverReplies[serverReplies.length - 1].commentID);
 
       const newReplies = await new Promise<Comment[]>((resolve, reject) => {
         new QueryVideoCommentsMessage(
           parseInt(video_id || "0"),
-          new Date(lastReply.timestamp).getTime(),
-          lastReply.commentID,
+          new Date(lastReplytimestamp).getTime(),
+          lastReplycommentID,
           comment.commentID,
           limit
         ).send(
@@ -563,7 +506,7 @@ const VideoPage: React.FC = () => {
           replies: [],
           replyCount:0,
           isLocal:true,
-          showAllReplies: false,
+          showAllReplies: true,
           hasMoreReplies: false
         }),
         ...prev
