@@ -5,19 +5,20 @@ import APIs.UserService.GetUIDByTokenMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.PerferenceProcess.updateEmbedding
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -58,15 +59,7 @@ case class UpdateFeedbackFavoriteMessagePlanner(
   }
 
   private def handleFavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    if (isFavorite) performFavoriteAction(userID, videoID)
-    else performUnfavoriteAction(userID, videoID)
-  }
-
-  private def performFavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    return IO.unit
-  }
-
-  private def performUnfavoriteAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    return IO.unit
+    if (isFavorite) updateEmbedding(userID, videoID, None, Some(0.15F))
+    else updateEmbedding(userID, videoID, None, Some(-0.12F))
   }
 }

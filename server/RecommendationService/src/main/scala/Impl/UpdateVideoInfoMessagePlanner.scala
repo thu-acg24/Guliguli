@@ -57,7 +57,7 @@ case class UpdateVideoInfoMessagePlanner(
       """.stripMargin
 
     val parameters = List(
-      SqlParameter("String", video.title),
+      SqlParameter("String", video.title + video.description),
       SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
       SqlParameter("String", videoID.toString),
     )

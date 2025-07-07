@@ -6,22 +6,27 @@ import Common.APIException.InvalidInputException
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Objects.PGVector
 import Objects.RecommendationService.VideoInfo
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import cats.effect.IO
+import cats.effect.std.Random
 import cats.implicits.*
-import io.circe._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.generic.auto.*
 import io.circe.syntax.*
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+
+import java.security.MessageDigest
+import java.util.UUID
 
 case class AddVideoInfoMessagePlanner(
     token: String,
@@ -57,14 +62,23 @@ case class AddVideoInfoMessagePlanner(
       s"""
         INSERT INTO ${schemaName}.video_info_table
         (video_id, title, visible, embedding)
-        VALUES (?, ?, ?, ?);
+        VALUES (?, ?, ?, ?::vector);
       """
     val parameters = List(
       SqlParameter("Int", video.videoID.toString),
-      SqlParameter("String", video.title),
+      SqlParameter("String", video.title + video.description),
       SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
-      SqlParameter("Vector", info.tag.asJson.noSpaces),
+      SqlParameter("Vector", getInfo(video.tag).toString),
     )
     writeDB(sql, parameters).as(())
+  }
+
+  private def getInfo(strings: List[String])(using PlanContext): IO[PGVector] = {
+    for {
+      initVector <- PGVector.fromString(UUID.randomUUID().toString)
+      result <- strings.traverse(str => PGVector.fromString(str)).map { vectors =>
+        vectors.foldLeft(initVector)(_ + _)
+      }
+    } yield result.normalize
   }
 }

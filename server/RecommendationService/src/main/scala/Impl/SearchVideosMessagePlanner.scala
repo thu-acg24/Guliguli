@@ -26,7 +26,7 @@ case class SearchVideosMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[Option[List[Video]]] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Option[List[Video]]] = {
     logger.info(s"执行SearchVideosMessage，searchString=${searchString}, rangeL=${rangeL}, rangeR=${rangeR}")

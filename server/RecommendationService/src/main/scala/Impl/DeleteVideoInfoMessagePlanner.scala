@@ -32,7 +32,7 @@ case class DeleteVideoInfoMessagePlanner(
     for {
       // Step 1: Validate user token
       _ <- IO(logger.info(s"Validating token: ${token}"))
-      userID <- getUIDByToken
+      userID <- GetUIDByTokenMessage(token).send
       // Step 2: Verify if the user is the uploader of the video
       _ <- IO(logger.info(s"Checking if user ${userID} is the uploader of video ID: ${videoID}"))
       video <- QueryVideoInfoMessage(Some(token), videoID).send
@@ -41,10 +41,6 @@ case class DeleteVideoInfoMessagePlanner(
       _ <- IO(logger.info(s"Deleting video metadata for video ID: ${videoID}"))
       - <- deleteVideoMetadata
     } yield ()
-  }
-
-  private def getUIDByToken(using PlanContext): IO[Int] = {
-    GetUIDByTokenMessage(token).send
   }
 
   private def deleteVideoMetadata(using PlanContext): IO[Unit] = {
