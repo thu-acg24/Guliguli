@@ -68,7 +68,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
             className={`video-like-btn ${reply.isLiked ? 'liked' : ''}`}
             onClick={() => handleLikeComment(reply.commentID)}
           >
-            <span>👍</span> {reply.likes}
+            <span>点赞</span> {reply.likes}
           </button>
           <button
             className="video-reply-btn"
