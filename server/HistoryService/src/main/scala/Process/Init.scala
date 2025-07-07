@@ -26,17 +26,19 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
-            /** 历史记录表，包含用户观看历史记录的信息
+      /** 历史记录表，包含用户观看历史记录的信息
+       * history_id: 历史记录ID
        * user_id: 浏览记录所属用户ID
        * video_id: 浏览过的视频ID
-       * timestamp: 浏览发生时间
+       * view_time: 浏览发生时间
        */
       _ <- writeDB(
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."history_record_table" (
-            user_id SERIAL NOT NULL PRIMARY KEY,
+            history_id SERIAL NOT NULL PRIMARY KEY,
+            user_id INT NOT NULL,
             video_id INT NOT NULL,
-            timestamp TIMESTAMP NOT NULL
+            view_time TIMESTAMP NOT NULL
         );
          
         """,

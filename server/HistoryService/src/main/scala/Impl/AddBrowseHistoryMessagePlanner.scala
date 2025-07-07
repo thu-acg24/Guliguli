@@ -48,7 +48,7 @@ case class AddBrowseHistoryMessagePlanner(
   }
 
   private def getVideoInfo(videoID: Int)(using PlanContext): IO[Video] = {
-    QueryVideoInfoMessage(None, videoID).send.flatTap { video =>
+    QueryVideoInfoMessage(Some(token), videoID).send.flatTap { video =>
       IO{logger.info(s"Retrieved video info: ${video}")}
       }
   }
@@ -98,7 +98,7 @@ case class AddBrowseHistoryMessagePlanner(
   private def insertNewHistoryRecord(userID: Int, videoID: Int, timestamp: DateTime)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |INSERT INTO ${schemaName}.history_record_table (user_id, video_id, timestamp)
+         |INSERT INTO ${schemaName}.history_record_table (user_id, video_id, view_time)
          |VALUES (?, ?, ?);
          """.stripMargin
     writeDB(sql, List(

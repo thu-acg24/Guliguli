@@ -19,12 +19,14 @@ import scala.util.Try
 /**
  * HistoryRecord
  * desc: 用户观看历史记录
+ * @param historyID: Int (历史记录ID)
  * @param userID: Int (用户的唯一ID)
  * @param videoID: Int (视频的唯一ID)
  * @param timestamp: DateTime (观看时间的时间戳)
  */
 
 case class HistoryRecord(
+  historyID: Int,
   userID: Int,
   videoID: Int,
   timestamp: DateTime

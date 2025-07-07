@@ -4,7 +4,8 @@ package Impl
 import APIs.UserService.GetUIDByTokenMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.APIException.InvalidInputException
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -12,27 +13,29 @@ import Common.ServiceUtils.schemaName
 import Objects.HistoryService.HistoryRecord
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import cats.implicits.*
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 /**
  * QueryHistoryMessagePlanner: 根据用户Token校验后，查询用户的观看历史记录。
- * 返回从新到旧第rangeL条到第rangeR条记录（均包含）。
+ * 返回按照 (lastTime, lastID) 开始降序排序至多 fetchLimit 条记录
  */
 
 case class QueryHistoryMessagePlanner(
                                        token: String,
-                                       rangeL: Int,
-                                       rangeR: Int,
+                                       lastTime: DateTime,
+                                       lastID: Int,
+                                       fetchLimit: Int = 10,
                                        override val planContext: PlanContext
                                      ) extends Planner[List[HistoryRecord]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[HistoryRecord]] = {
+    if (fetchLimit > 100) return IO.raiseError(InvalidInputException("至多查询100条记录"))
     for {
       // Step 1: 验证用户Token
       _ <- IO(logger.info(s"开始验证Token: ${token}"))
@@ -59,7 +62,7 @@ case class QueryHistoryMessagePlanner(
   private def queryHistoryByToken(userID: Int)(using PlanContext): IO[List[HistoryRecord]] = {
 
         IO(logger.info(s"用户合法，开始查询历史记录，用户ID: ${userID}")) >> 
-          queryUserHistory(userID, rangeL, rangeR)
+          queryUserHistory(userID)
       
   }
 
@@ -67,29 +70,26 @@ case class QueryHistoryMessagePlanner(
    * 使用用户ID和范围（rangeL, rangeR）从数据库查询用户的历史记录。
    * 按照timestamp从新到旧排序，分页读取。
    */
-  private def queryUserHistory(userID: Int, rangeL: Int, rangeR: Int)(using PlanContext): IO[List[HistoryRecord]] = {
-    IO(logger.info(s"开始创建查询用户历史记录的SQL，用户ID: ${userID}, 范围: [${rangeL}, ${rangeR}]")) >>
+  private def queryUserHistory(userID: Int)(using PlanContext): IO[List[HistoryRecord]] = {
+    IO(logger.info(s"开始创建查询用户历史记录的SQL，用户ID: ${userID}")) >>
       IO {
         val sql =
           s"""
-            SELECT user_id, video_id, timestamp
+            SELECT history_id, user_id, video_id, view_time
             FROM ${schemaName}.history_record_table
-            WHERE user_id = ?
-            ORDER BY timestamp DESC
-            OFFSET ? LIMIT ?;
+            WHERE user_id = ? AND (view_time < ? OR (view_time = ? AND history_id < ?))
+            ORDER BY view_time DESC, history_id DESC
+            LIMIT ?;
           """
         logger.info(s"SQL为: ${sql}")
-
-        // 计算Offset和Limit
-        val offset = rangeL - 1
-        val limit = rangeR - rangeL + 1
-        logger.info(s"Offset为: ${offset}, Limit为: ${limit}")
 
         // SQL参数列表
         val parameters = List(
           SqlParameter("Int", userID.toString),
-          SqlParameter("Int", offset.toString),
-          SqlParameter("Int", limit.toString)
+          SqlParameter("DateTime", lastTime.getMillis.toString),
+          SqlParameter("DateTime", lastTime.getMillis.toString),
+          SqlParameter("Int", lastID.toString),
+          SqlParameter("Int", fetchLimit.toString),
         )
 
         (sql, parameters)
@@ -100,9 +100,10 @@ case class QueryHistoryMessagePlanner(
           IO.pure(
             rows.map { row =>
               HistoryRecord(
+                historyID = decodeField[Int](row, "history_id"),
                 userID = decodeField[Int](row, "user_id"),
                 videoID = decodeField[Int](row, "video_id"),
-                timestamp = decodeField[DateTime](row, "timestamp")
+                timestamp = decodeField[DateTime](row, "view_time")
               )
             }
           )

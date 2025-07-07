@@ -21,17 +21,19 @@ import scala.util.Try
 
 /**
  * QueryHistoryMessage
- * desc: 根据用户Token校验后，查询用户的观看历史记录，返回从新到旧第rangeL条到第rangeR条，均包含。
+ * desc: 根据用户Token校验后，查询用户的观看历史记录，返回按照 (timestamp, ID) 开始降序排序至多 fetchLimit 条记录
  * @param token: String (用户身份令牌，用于校验身份)
- * @param rangeL: Int (分页查询的起始位置)
- * @param rangeR: Int (分页查询的结束位置)
- * @return history: HistoryRecord:1184 (返回用户观看历史记录的列表)
+ * @param lastTime: DateTime (上一次查询到历史记录的浏览时间)
+ * @param lastID: Int (上一次历史记录的ID)
+ * @param fetchLimit: Int (至多获取多少条记录，不超过 100)
+ * @return history: List[HistoryRecord] (返回用户观看历史记录的列表)
  */
 
 case class QueryHistoryMessage(
   token: String,
-  rangeL: Int,
-  rangeR: Int
+  lastTime: DateTime,
+  lastID: Int,
+  fetchLimit: Int
 ) extends API[List[HistoryRecord]](HistoryServiceCode)
 
 case object QueryHistoryMessage{

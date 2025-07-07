@@ -4,7 +4,8 @@ package Impl
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.APIException.InvalidInputException
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -14,10 +15,10 @@ import Objects.VideoService.VideoStatus
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.generic.auto.*
 import io.circe.parser.decode
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -33,6 +34,7 @@ case class QueryVideoCommentsMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[List[Comment]] = {
+    if (fetchLimit > 100) return IO.raiseError(InvalidInputException("至多查询100条评论"))
     for {
       // Step 1: Validate videoID
       _ <- IO(logger.info(s"Validating videoID: ${videoID}"))
@@ -113,7 +115,7 @@ case class QueryVideoCommentsMessagePlanner(
            |SELECT comment_id, content, video_id, author_id, reply_to_id, reply_to_user_id, likes, reply_count, time_stamp
            |FROM ${schemaName}.comment_table
            |WHERE video_id = ? AND root_id = ? AND (time_stamp > ? OR (time_stamp = ? AND comment_id > ?))
-           |ORDER BY time_stamp ASC, comment_id ASC LIMIT 20
+           |ORDER BY time_stamp ASC, comment_id ASC LIMIT ?
        """.stripMargin
       }
 
@@ -124,7 +126,8 @@ case class QueryVideoCommentsMessagePlanner(
           SqlParameter("Int", rootID.toString),
           SqlParameter("DateTime", lastTime.getMillis.toString),
           SqlParameter("DateTime", lastTime.getMillis.toString),
-          SqlParameter("Int", lastID.toString)
+          SqlParameter("Int", lastID.toString),
+          SqlParameter("Int", fetchLimit.toString),
         )
       )
     } yield rows
