@@ -36,7 +36,7 @@ const WhisperTab: React.FC = () => {
     if(userid){
       setSelectedUser(Number(userid));
       navigate(WhisperTabpath);
-    }  
+    } else setSelectedUser(null);
   },[userid]);
 
   useEffect(() => {
@@ -57,20 +57,17 @@ const WhisperTab: React.FC = () => {
       // 用户登出时清空所有消息相关状态
 
     }
-    return () => {
-      setConversations([]);
-      setMessages([]);
-      setSelectedUser(null);
-      setMessageInput('');
-    }
+    setConversations([]);
+    setMessages([]);
+    setSelectedUser(null);
+    setMessageInput('');
   }, [userToken]);
 
   useEffect(() => {
     if (selectedUser) {
       const loadData = async () => {
         if (selectedUser) {
-          await fetchMessages(selectedUser); // 等待完成
-          await fetchConversations();
+          await fetchMessages(selectedUser).then(()=>fetchConversations()); // 等待完成
         }
       };
       loadData();
@@ -203,16 +200,17 @@ const WhisperTab: React.FC = () => {
             <div className="message-header">
               <div className="message-user-info">
                 <div className="user-avatar" >
-                    <img src={whispertoUserinfo.avatarPath} alt="头像" />
+                    <img src={whispertoUserinfo.avatarPath} alt="头像" onClick={() => handleAvatarClick(whispertoUserinfo.userID)}/>
                 </div>
-                <div className="user-name">
-                  {whispertoUserinfo.username}
+                <div className="user-name" onClick={() => handleAvatarClick(whispertoUserinfo.userID)}>
+                  {whispertoUserinfo.username }
                   {whispertoUserinfo.isBanned && (
                     <span className="banned-tag">(已封禁)</span>
                   )}
                 </div>
               </div>
             </div>
+
 
             <div className="message-list">
               {messages.map(msg => {

@@ -78,7 +78,7 @@ case class QueryUserInContactMessagePlanner(
       s"""
          |SELECT COUNT(*) AS unread_count
          |FROM $schemaName.message_table
-         |WHERE sender_id = ?
+         |WHERE sender_id = ? AND receiver_id = ?
          |AND unread = True
       """.stripMargin
     val getLastSql =
@@ -91,14 +91,12 @@ case class QueryUserInContactMessagePlanner(
       """.stripMargin
     val parameter = List(
       SqlParameter("Int", userInfo.userID.toString),
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", userID.toString),
-      SqlParameter("Int", userInfo.userID.toString)
+      SqlParameter("Int", userID.toString)
     )
     for {
       _ <- IO(logger.info("查询信息数量Sql: $countSql"))
       count <- readDBInt(countSql, parameter)
-      json <- readDBJson(getLastSql, parameter.flatMap(x => List(x, x)))
+      json <- readDBJson(getLastSql, parameter ::: parameter)
       result <- IO(UserInfoWithMessage(
         userInfo = userInfo,
         unreadCount = count,

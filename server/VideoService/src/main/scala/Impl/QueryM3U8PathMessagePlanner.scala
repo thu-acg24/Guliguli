@@ -91,7 +91,7 @@ case class QueryM3U8PathMessagePlanner(
 
   // 生成形如 tsprefix_00000.ts 的 ts 文件名
   def generateTsKeys(tsprefix: String, sliceCount: Int): List[String] = {
-    (0 until sliceCount).map(i => f"$tsprefix_$i%05d.ts").toList
+    (0 until sliceCount).map(i => f"${tsprefix}_$i%05d.ts").toList
   }
 
   private val bucket = "video-server"
