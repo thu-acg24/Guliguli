@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
+import DefaultCover from "Images/DefaultCover.jpg";
 
 interface CoverUploadProps {
     videoID: number;
@@ -42,8 +43,8 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
             });
 
             const videoData = JSON.parse(response);
-            if (videoData.coverPath) {
-                setCoverUrl(videoData.coverPath);
+            if (videoData.cover) {
+                setCoverUrl(videoData.cover);
             }
         } catch (error) {
             console.warn("获取封面信息失败:", error);
@@ -117,7 +118,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
                     </div>
                 ) : (
                     <img
-                        src={coverUrl || "/default-cover.jpg"}
+                        src={coverUrl || DefaultCover}
                         alt="视频封面"
                         className="member-current-cover"
                     />

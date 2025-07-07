@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { useUserToken } from "Globals/GlobalStore";
-import expiredVideoCover from "Images/ExpiredVideo.jpg";
+import DefaultCover from "Images/DefaultCover.jpg";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
@@ -52,15 +52,14 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
                                     0,
                                     "视频已失效",
                                     "该视频已被删除或不存在",
-                                    0,
+                                    null,
+                                    null,
                                     [],
-                                    "",
-                                    expiredVideoCover,
                                     0,
                                     0,
                                     0,
                                     0,
-                                    VideoStatus.rejected,
+                                    VideoStatus.broken,
                                     null
                                 ))
                             }
@@ -120,7 +119,7 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
                 {videos.map(video => (
                     <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
                         <div className="home-video-cover-container">
-                            <img src={video.coverPath} alt="视频封面" className="home-video-cover" />
+                            <img src={video.cover || DefaultCover} alt="视频封面" className="home-video-cover" />
                         </div>
                         <div className="home-video-info">
                             <div className="home-video-title">{video.title}</div>

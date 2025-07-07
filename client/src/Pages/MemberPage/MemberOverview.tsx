@@ -7,6 +7,7 @@ import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
 import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { memberPagePath } from "./MemberPage";
 import { videoPagePath } from "Pages/VideoPage/VideoPage";
+import DefaultCover from "Images/DefaultCover.jpg";
 
 const MemberOverview: React.FC = () => {
     const navigate = useNavigate();
@@ -114,7 +115,7 @@ const MemberOverview: React.FC = () => {
                         <div key={video.videoID} className="member-video-item">
                             <div className="member-video-cover-container">
                                 <img
-                                    src={video.coverPath}
+                                    src={video.cover || DefaultCover}
                                     alt={video.title}
                                     className="member-video-cover"
                                 />
@@ -124,9 +125,10 @@ const MemberOverview: React.FC = () => {
                                 >
                                     {video.status}
                                 </div>
-                                <div className="member-video-duration">
-                                    {formatDuration(video.duration)}
-                                </div>
+                                {video.duration &&
+                                    <div className="member-video-duration">
+                                        {formatDuration(video.duration)}
+                                    </div>}
                             </div>
 
                             <div className="member-video-info">

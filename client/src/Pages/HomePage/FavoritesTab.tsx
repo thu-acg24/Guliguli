@@ -4,6 +4,7 @@ import { Video } from "Plugins/VideoService/Objects/Video";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { QueryFavoriteVideosMessage } from "Plugins/VideoService/APIs/QueryFavoriteVideosMessage";
 import { videoPagePath } from "Pages/VideoPage/VideoPage";
+import DefaultCover from "Images/DefaultCover.jpg";
 import "./HomePage.css";
 
 const FavoritesTab: React.FC<{ userID?: number }> = (props) => {
@@ -56,7 +57,7 @@ const FavoritesTab: React.FC<{ userID?: number }> = (props) => {
                     {videos.map(video => (
                         <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
                             <div className="home-video-cover-container">
-                                <img src={video.coverPath} alt="视频封面" className="home-video-cover" />
+                                <img src={video.cover || DefaultCover} alt="视频封面" className="home-video-cover" />
                             </div>
                             <div className="home-video-info">
                                 <div className="home-video-title">{video.title}</div>

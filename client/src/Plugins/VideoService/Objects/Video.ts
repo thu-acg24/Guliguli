@@ -18,6 +18,8 @@ import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 import { VideoStatus } from 'Plugins/VideoService/Objects/VideoStatus';
 
+import DefaultCover from "Images/DefaultCover.jpg";
+
 
 export class Video extends Serializable {
     constructor(
