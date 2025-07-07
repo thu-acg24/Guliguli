@@ -1,13 +1,46 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
+import { UploadPath } from "Plugins/VideoService/Objects/UploadPath";
+import { QueryUploadCoverPathMessage } from "Plugins/VideoService/APIs/QueryUploadCoverPathMessage";
+import { ValidateCoverMessage } from "Plugins/VideoService/APIs/ValidateCoverMessage";
 import DefaultCover from "Images/DefaultCover.jpg";
 
 interface CoverUploadProps {
     videoID: number;
+    refreshKey?: number;
 }
 
-const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
+export const sendCover = async (userToken: string, videoID: number, file: File): Promise<void> => {
+    const uploadPath = await new Promise<UploadPath>((resolve, reject) => {
+        new QueryUploadCoverPathMessage(userToken, videoID).send(
+            (info: string) => { resolve(JSON.parse(info) as UploadPath); },
+            (error) => { reject(new Error(error)); }
+        );
+    });
+    const uploadUrl = uploadPath.path[0];
+    const sessionToken = uploadPath.token;
+    const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+            'Content-Type': file.type,
+        },
+    });
+    if (!uploadResponse.ok) {
+        throw new Error('上传失败');
+    }
+    await new Promise<void>((resolve, reject) => {
+        new ValidateCoverMessage(sessionToken).send(
+            (info: string) => { resolve(); },
+            (error) => { reject(new Error(error)); }
+        );
+    });
+    await new Promise(resolve => setTimeout(resolve, 3000)); // 等待封面验证完成
+    console.log("sendCover Success")
+}
+
+const CoverUpload: React.FC<CoverUploadProps> = ({ videoID, refreshKey }) => {
     const userToken = useUserToken();
     const coverInputRef = useRef<HTMLInputElement>(null);
     const [coverUploading, setCoverUploading] = useState(false);
@@ -70,14 +103,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
         setMessage(""); // 清除之前的消息
 
         try {
-            // 实际上传封面逻辑
-            const formData = new FormData();
-            formData.append('cover', file);
-            formData.append('videoID', videoID.toString());
-
-            // 这里应该调用实际的封面上传 API
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
+            await sendCover(userToken, videoID, file);
             // 更新封面预览
             const newCoverUrl = URL.createObjectURL(file);
             setCoverUrl(newCoverUrl);
@@ -87,7 +113,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "封面上传失败";
             setErrorMessage(errorMessage);
-            throw error;
+            console.error("封面上传失败:", error);
         } finally {
             setCoverUploading(false);
         }
@@ -96,10 +122,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
     const handleCoverFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            uploadCover(file).catch(error => {
-                // 错误已经在 uploadCover 中处理了
-                console.error("封面上传失败:", error);
-            });
+            uploadCover(file)
         }
     };
 
@@ -123,6 +146,21 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
                         className="member-current-cover"
                     />
                 )}
+                <div className="member-short-message">
+                    {message && (
+                        isSuccess ? (
+                            <div className="member-success-message">
+                                <div className="member-success-icon">✓</div>
+                                <div className="member-message-text">{message}</div>
+                            </div>
+                        ) : (
+                            <div className="member-error-message">
+                                <div className="member-error-icon">!</div>
+                                <div className="member-message-text">{message}</div>
+                            </div>
+                        )
+                    )}
+                </div>
                 <div className="member-cover-upload">
                     <button
                         className="member-cover-upload-btn"
@@ -134,20 +172,6 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
                 </div>
             </div>
 
-            {message && (
-                isSuccess ? (
-                    <div className="member-success-message">
-                        <div className="member-success-icon">✓</div>
-                        <div className="member-message-text">{message}</div>
-                    </div>
-                ) : (
-                    <div className="member-error-message">
-                        <div className="member-error-icon">!</div>
-                        <div className="member-message-text">{message}</div>
-                    </div>
-                )
-            )}
-
             <input
                 ref={coverInputRef}
                 type="file"
@@ -156,7 +180,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID }) => {
                 onChange={handleCoverFileSelect}
                 multiple={false}
             />
-        </div>
+        </div >
     );
 };
 

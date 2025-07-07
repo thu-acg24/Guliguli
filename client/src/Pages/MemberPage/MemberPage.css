@@ -420,9 +420,16 @@
     display: block;
 }
 
+.member-short-message {
+    width: 320px;
+    margin: 0 auto;
+    text-align: center;
+}
+
 .member-cover-upload {
     display: flex;
     align-items: center;
+    margin-top: 20px;
     justify-content: center;
     gap: 20px;
 }
@@ -452,6 +459,7 @@
     font-size: 24px;
     font-weight: bold;
     color: #333;
+    margin-bottom: 20px;
 }
 
 .member-page-header {
