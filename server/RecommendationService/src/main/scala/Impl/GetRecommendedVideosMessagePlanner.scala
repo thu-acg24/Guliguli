@@ -55,24 +55,16 @@ case class GetRecommendedVideosMessagePlanner(
         _ <- videoID match {
           case Some(id) =>
             IO(logger.info(s"验证视频ID ${id} 是否有效"))
-              .flatMap(_ => validateVideoID(id))
+              .flatMap(_ => QueryVideoInfoMessage(None, id).send.void)
           case None => IO.unit
         }
         _ <- userID match {
           case Some(id) =>
             IO(logger.info(s"验证用户ID ${id} 是否有效"))
-              .flatMap(_ => validateUserID(id))
+              .flatMap(_ => QueryUserInfoMessage(id).send.void)
           case None => IO.unit
         }
       } yield ()
-  }
-
-  private def validateVideoID(id: Int)(using PlanContext): IO[Unit] = {
-    QueryVideoInfoMessage(None, id).send.void
-  }
-
-  private def validateUserID(id: Int)(using PlanContext): IO[Unit] = {
-    QueryUserInfoMessage(id).send.void
   }
 
   private def generateRecommendedVideoIDs(using PlanContext): IO[List[Int]] = {

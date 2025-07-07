@@ -5,6 +5,7 @@ import { UploadVideoMessage } from "Plugins/VideoService/APIs/UploadVideoMessage
 import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { memberPagePath } from "./MemberPage";
 import { VideoBasicInfo, VideoUpload, CoverUpload } from "./VideoEdit";
+import { set } from "lodash";
 
 const MemberUpload: React.FC = () => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const MemberUpload: React.FC = () => {
 
     const [step, setStep] = useState(1); // 1: 基本信息, 2: 上传视频, 3: 设置封面
     const [videoID, setVideoID] = useState<number | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0); // 用于强制刷新封面组件
     const [modalConfig, setModalConfig] = useState<{
         show: boolean;
         title: string;
@@ -57,6 +59,7 @@ const MemberUpload: React.FC = () => {
     };
 
     const handleVideoUploaded = () => {
+        setRefreshKey(prev => prev + 1); 
         setModalConfig({
             show: true,
             title: '视频上传成功！',
@@ -105,6 +108,7 @@ const MemberUpload: React.FC = () => {
         <div className="member-upload-step-content">
             <CoverUpload
                 videoID={videoID!}
+                refreshKey={refreshKey}
             />
             <div className="member-cover-upload" style={{ marginTop: '20px' }}>
                 <button

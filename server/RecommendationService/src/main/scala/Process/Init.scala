@@ -45,6 +45,19 @@ object Init {
         """,
         List()
       )
+      /** 包含用户喜好信息的表，支持RecommendationService的功能
+       * user_id: 对应用户的唯一ID，主键
+       * embedding: 用户对应向量
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."video_info_table" (
+            user_id INT NOT NULL PRIMARY KEY,
+            embedding VECTOR(384)
+        );
+        """,
+        List()
+      )
       /** 记录用户观看视频的详细信息
        * watch_id: 用户观看记录的唯一ID
        * user_id: 观看用户的ID

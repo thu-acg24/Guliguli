@@ -14,6 +14,7 @@ import Common.ServiceUtils.schemaName
 import Objects.RecommendationService.VideoInfo
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.PerferenceProcess.getInfo
 import cats.effect.IO
 import cats.implicits.*
 import cats.implicits.*
@@ -52,13 +53,14 @@ case class UpdateVideoInfoMessagePlanner(
     val sql =
       s"""
       UPDATE ${schemaName}.video_info_table
-      SET title = ?, visible = ?
+      SET title = ?, visible = ?, embedding = ?::vector
       WHERE video_id = ?;
       """.stripMargin
 
     val parameters = List(
-      SqlParameter("String", video.title),
+      SqlParameter("String", video.title + video.description),
       SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
+      SqlParameter("Vector", getInfo(video.tag).toString),
       SqlParameter("String", videoID.toString),
     )
 

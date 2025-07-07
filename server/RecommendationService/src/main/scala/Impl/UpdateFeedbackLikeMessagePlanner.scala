@@ -5,19 +5,20 @@ import APIs.UserService.GetUIDByTokenMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.PerferenceProcess.updateEmbedding
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import cats.implicits.*
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -50,15 +51,7 @@ case class UpdateFeedbackLikeMessagePlanner(
   }
 
   private def handleLikeAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    if (isLike) performLikeAction(userID, videoID)
-    else performUnlikeAction(userID, videoID)
-  }
-
-  private def performLikeAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    return IO.unit
-  }
-
-  private def performUnlikeAction(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    return IO.unit
+    if (isLike) updateEmbedding(userID, videoID, None, Some(0.1F))
+    else updateEmbedding(userID, videoID, None, Some(-0.07F))
   }
 }
