@@ -3,6 +3,7 @@ import CommentItem from "./CommentItem";
 import {CommentWithUserInfo} from './VideoPage'
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import {Video} from 'Plugins/VideoService/Objects/Video'
+import defaultavatar from "Images/DefaultAvatar.jpg"
 import "./VideoPage.css";
 
 interface CommentSectionProps {
@@ -57,7 +58,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
       <div className="video-comment-input-area" ref={commentInputRef}>
         <img
-          src={isLoggedIn ? (userInfo?.avatarPath || 'default.jpg') : 'default.jpg'}
+          src={isLoggedIn ? (userInfo?.avatarPath || defaultavatar) : defaultavatar}
           alt="用户头像"
           className="video-comment-avatar"
           onClick={() => isLoggedIn && navigateToUser(userInfo?.userID || 0)}
