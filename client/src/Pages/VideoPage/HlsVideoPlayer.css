@@ -1,107 +1,42 @@
-.video-player-wrapper {
-  position: relative;
+.video-container {
   width: 100%;
-  background-color: #000;
-  border-radius: 4px;
+  max-width: 800px;
+  margin: 20px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
   overflow: hidden;
+  background: #000;
 }
 
 .video-player {
   width: 100%;
   height: auto;
-  max-height: 80vh;
+  aspect-ratio: 16/9;
   display: block;
-  cursor: pointer;
-}
-
-.video-player-controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.video-player-wrapper:hover .video-player-controls {
-  opacity: 1;
-}
-
-.video-play-pause,
-.video-volume-btn,
-.video-fullscreen-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  margin: 0 5px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-seek-bar {
-  flex-grow: 1;
-  margin: 0 10px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
   outline: none;
-  -webkit-appearance: none;
 }
 
-.video-seek-bar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
+/* 加载状态指示器 */
+.video-container::before {
+  content: '加载中...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 16px;
+  z-index: 10;
+  display: none;
 }
 
-.video-volume-bar {
-  width: 80px;
-  margin: 0 10px;
+.video-container.loading::before {
+  display: block;
 }
 
-.video-time {
-  color: white;
-  font-size: 14px;
-  margin: 0 10px;
-  min-width: 100px;
-  white-space: nowrap;
-}
-
-.video-playback-rate select {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 5px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.video-player-error {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 20px;
-  text-align: center;
-  border-radius: 5px;
-}
-
-.video-player-error button {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  margin-top: 10px;
-  border-radius: 4px;
-  cursor: pointer;
+/* 响应式处理 */
+@media (max-width: 768px) {
+  .video-container {
+    margin: 10px auto;
+    border-radius: 4px;
+  }
 }

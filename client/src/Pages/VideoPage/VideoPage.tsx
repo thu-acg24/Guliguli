@@ -24,7 +24,7 @@ import {UserStat} from 'Plugins/UserService/Objects/UserStat'
 import {QueryUserStatMessage} from 'Plugins/UserService/APIs/QueryUserStatMessage'
 import {QueryFollowMessage} from 'Plugins/UserService/APIs/QueryFollowMessage'
 import {ChangeFollowStatusMessage} from 'Plugins/UserService/APIs/ChangeFollowStatusMessage'
-import VideoPlayer from "./HlsVideoPlayer";
+import HlsVideoPlayerWrapper from "./HlsVideoPlayerWrapper";
 import "./VideoPage.css";
 import { set } from "lodash";
 
@@ -67,7 +67,7 @@ const VideoPage: React.FC = () => {
   const [upstat, setUpstat] = useState<UserStat>();
   
   const getVideoUrl = () => {
-      return `/testid/video/index.m3u8`;
+      return `http://183.173.211.15:5004/browser/video-server/testid%2Fvideo%2Findex.m3u8`;
     };
   // Mock data
   const [videoData, setVideoData] = useState({
@@ -714,10 +714,8 @@ const VideoPage: React.FC = () => {
             </div>
 
             <div className="video-video-player-container">
-              <VideoPlayer
-                videoUrl={getVideoUrl()}
-                posterUrl="https://picsum.photos/800/450?random=100"
-              />
+              {/* 替换原有的 MinioVideoPlayer */}
+              <HlsVideoPlayerWrapper videoID={Number(video_id)} />
             </div>
 
             <div className="video-video-actions">
