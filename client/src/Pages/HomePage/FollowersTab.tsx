@@ -1,6 +1,6 @@
 // src/Pages/HomePage/FollowersTab.tsx
 import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { QueryFollowerListMessage } from "Plugins/UserService/APIs/QueryFollowerListMessage";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
@@ -22,7 +22,7 @@ const FollowersTab: React.FC = () => {
     const userID = outlet.userID;
     const refreshUserStat = outlet.refreshUserStat;
 
-
+    const navigate = useNavigate();
     const currentUserID = useUserIDValue();
     const userToken = useUserToken();
 
@@ -165,16 +165,23 @@ const FollowersTab: React.FC = () => {
         }
     };
 
+    // 处理用户点击跳转到主页
+    const handleUserClick = (userID: number) => {
+        navigate(`/home/${userID}`);
+    };
+
     return (
         <div className="home-followers-tab">
             <div className="home-user-list">
                 {followers.map((follower, index) => (
                     <div key={follower.userInfo.userID} className="home-user-item">
-                        <div className="home-user-avatar">
+                        <div className="home-user-avatar" onClick={() => handleUserClick(follower.userInfo.userID)}>
                             <img src={follower.userInfo.avatarPath} alt="用户头像" />
                         </div>
                         <div className="home-user-info">
-                            <div className="home-user-name">{follower.userInfo.username}</div>
+                            <div className="home-user-name" onClick={() => handleUserClick(follower.userInfo.userID)}>
+                                {follower.userInfo.username}
+                            </div>
                             <div className="home-user-bio">{follower.userInfo.bio}</div>
                         </div>
                         {/* 只有当前用户已登录且不是自己时才显示关注按钮 */}

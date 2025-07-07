@@ -6,6 +6,7 @@ import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { ModifyAvatarMessage } from "Plugins/UserService/APIs/ModifyAvatarMessage";
 import { ValidateAvatarMessage } from "Plugins/UserService/APIs/ValidateAvatarMessage";
 import { ModifyUserInfoMessage } from "Plugins/UserService/APIs/ModifyUserInfoMessage";
+import { validateUsername } from "Components/LoginModal/ValidateUserInfo";
 import "../HomePage.css";
 
 interface UserInfoFormProps {
@@ -137,29 +138,14 @@ const UserInfoForm: React.FC<UserInfoFormProps> = ({
 
         try {
             // 验证用户名
-            const trimmedUsername = formData.username.trim();
-            if (!trimmedUsername) {
-                setIsSuccess(false);
-                setMessage("请输入用户名");
-                return;
-            }
-            if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
-                setIsSuccess(false);
-                setMessage("用户名长度需为3-20个字符");
-                return;
-            }
+            const trimmedUsername = validateUsername(formData.username);
 
             // 如果有新上传的头像，先验证头像
             if (avatarSessionToken) {
                 await new Promise<void>((resolve, reject) => {
                     new ValidateAvatarMessage(avatarSessionToken).send(
-                        (info: string) => {
-                            // 验证成功，无需解析返回值
-                            resolve();
-                        },
-                        (error: string) => {
-                            reject(new Error(error));
-                        }
+                        (info: string) => { resolve();},
+                        (error: string) => { reject(new Error(error));}
                     );
                 });
                 // 验证成功后等待3秒钟

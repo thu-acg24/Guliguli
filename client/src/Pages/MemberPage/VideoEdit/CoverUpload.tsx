@@ -108,7 +108,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ videoID, refreshKey }) => {
             const newCoverUrl = URL.createObjectURL(file);
             setCoverUrl(newCoverUrl);
 
-            setSuccessMessage("封面上传成功");
+            setSuccessMessage("封面已上传，预估1分钟内更新完成");
             return newCoverUrl;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "封面上传失败";

@@ -1,7 +1,7 @@
 // src/Pages/HomePage/FollowingTab.tsx
 import React, { useState, useEffect } from "react";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { QueryFollowingListMessage } from "Plugins/UserService/APIs/QueryFollowingListMessage";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage";
@@ -22,6 +22,7 @@ const FollowingTab: React.FC = () => {
     const userID = outlet.userID;
     const refreshUserStat = outlet.refreshUserStat;
 
+    const navigate = useNavigate();
     const currentUserID = useUserIDValue();
     const userToken = useUserToken();
 
@@ -164,16 +165,23 @@ const FollowingTab: React.FC = () => {
         }
     };
 
+    // 处理用户点击跳转到主页
+    const handleUserClick = (userID: number) => {
+        navigate(`/home/${userID}`);
+    };
+
     return (
         <div className="home-following-tab">
             <div className="home-user-list">
                 {following.map((followingUser, index) => (
                     <div key={followingUser.userInfo.userID} className="home-user-item">
-                        <div className="home-user-avatar">
+                        <div className="home-user-avatar" onClick={() => handleUserClick(followingUser.userInfo.userID)}>
                             <img src={followingUser.userInfo.avatarPath} alt="用户头像" />
                         </div>
                         <div className="home-user-info">
-                            <div className="home-user-name">{followingUser.userInfo.username}</div>
+                            <div className="home-user-name" onClick={() => handleUserClick(followingUser.userInfo.userID)}>
+                                {followingUser.userInfo.username}
+                            </div>
                             <div className="home-user-bio">{followingUser.userInfo.bio}</div>
                         </div>
                         {/* 只有当前用户已登录且不是自己时才显示关注按钮 */}

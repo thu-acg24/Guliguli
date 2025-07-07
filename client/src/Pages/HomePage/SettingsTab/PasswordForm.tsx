@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useUserToken } from "Globals/GlobalStore";
 import { ModifyPasswordMessage } from "Plugins/UserService/APIs/ModifyPasswordMessage";
+import { validatePassword } from "Components/LoginModal/ValidateUserInfo";
 import "../HomePage.css";
 
 const PasswordForm: React.FC = ({ }) => {
@@ -37,26 +38,7 @@ const PasswordForm: React.FC = ({ }) => {
 
         try {
             // 验证密码
-            if (!passwordData.oldPassword) {
-                setIsPasswordSuccess(false);
-                setPasswordMessage("请输入旧密码");
-                return;
-            }
-            if (!passwordData.password) {
-                setIsPasswordSuccess(false);
-                setPasswordMessage("请输入新密码");
-                return;
-            }
-            if (passwordData.password !== passwordData.confirmPassword) {
-                setIsPasswordSuccess(false);
-                setPasswordMessage("两次输入的密码不一致");
-                return;
-            }
-            if (passwordData.password.length < 6) {
-                setIsPasswordSuccess(false);
-                setPasswordMessage("密码长度不能少于6个字符");
-                return;
-            }
+            validatePassword(passwordData.password, passwordData.confirmPassword);
 
             // 更新密码
             await new Promise<void>((resolve, reject) => {
