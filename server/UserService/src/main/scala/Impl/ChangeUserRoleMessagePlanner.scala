@@ -40,9 +40,9 @@ case class ChangeUserRoleMessagePlanner(
   private def getOperatorRole()(using PlanContext): IO[Unit] = {
     QueryUserRoleMessage(token).send.flatMap {
       case UserRole.Admin =>
-        IO(logger.info(s"Token=$token对应用户角色=${UserRole.Admin}")).void
+        IO(logger.info(s"Token=$token 对应用户角色=${UserRole.Admin}")).void
       case role =>
-        IO(logger.info(s"Token=$token对应用户角色=$role")) *>
+        IO(logger.info(s"Token=$token 对应用户角色=$role")) *>
         IO.raiseError(new InvalidInputException(s"操作人($role)权限不足"))
     }
   }

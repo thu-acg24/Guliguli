@@ -31,11 +31,11 @@ case class QueryUserInfoMessagePlanner(
   override def plan(using PlanContext): IO[UserInfo] = {
     for {
       // Step 1: Query the UserTable for the specific userID
-      _ <- IO(logger.info(s"[Step 1] 开始在UserTable查询userID为$userID的用户基本信息"))
+      _ <- IO(logger.info(s"[Step 1] 开始在UserTable查询userID为$userID 的用户基本信息"))
       userJson <- queryUserRecord(userID)
 
       // Step 2: Handle the query result and validate user's ban status
-      _ <- IO(logger.info(s"[Step 1.2] 成功查询到userID为$userID的用户信息，开始解析"))
+      _ <- IO(logger.info(s"[Step 1.2] 成功查询到userID为$userID 的用户信息，开始解析"))
       result <- validateAndWrapUserRecord(userJson)
     } yield result
   }

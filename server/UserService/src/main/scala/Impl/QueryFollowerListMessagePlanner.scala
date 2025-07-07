@@ -47,7 +47,7 @@ case class QueryFollowerListMessagePlanner(
         rangeL > 0 && rangeR <= 501 && rangeL <= rangeR
       }
       // Step 1: Query following based on userID
-      _ <- IO(logger.info(s"从关注关系表中查询UserID=$userID的粉丝"))
+      _ <- IO(logger.info(s"从关注关系表中查询UserID=$userID 的粉丝"))
       followerRecords <- readDBRows(sql, param)
 
       // Step 2: If followeeRecords is empty, return an empty list

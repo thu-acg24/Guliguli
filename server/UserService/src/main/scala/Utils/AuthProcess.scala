@@ -45,7 +45,7 @@ case object AuthProcess {
       """
     for {
       // Step 1: Attempt to retrieve the password hash from the database
-      _ <- IO(logger.info(s"开始从数据库获取用户ID为$userID的哈希密码"))
+      _ <- IO(logger.info(s"开始从数据库获取用户ID为$userID 的哈希密码"))
       resultOpt <- readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
       json <- resultOpt match {
         case None =>
@@ -82,7 +82,7 @@ case object AuthProcess {
       record <- readDBJsonOptional(querySQL, queryParams).flatMap {
           case Some(record) => IO(record)
           case None =>
-            IO(logger.info(s"查询的Token $token不存在")) *>
+            IO(logger.info(s"查询的Token $token 不存在")) *>
             IO.raiseError(new InvalidInputException(s"Token不存在"))
         }
       userID <- IO(decodeField[Int](record, "user_id"))
@@ -111,7 +111,7 @@ case object AuthProcess {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
     val expirationTime = new DateTime().plusHours(24)
     val randomPart = UUID.randomUUID().toString
-    val generatedToken = s"$randomPart_$userID"
+    val generatedToken = s"${randomPart}_$userID"
     val writeSQL = s"""
       |INSERT INTO $schemaName.token_table (token, user_id, expiration_time)
       |VALUES (?, ?, ?);

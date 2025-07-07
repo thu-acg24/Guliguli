@@ -36,7 +36,7 @@ case class LoginMessagePlanner(
       userJson <- getUserByUsernameOrEmail()
       userID <- IO(decodeField[Int](userJson, "user_id"))
       // Step 2: Validate the password
-      _ <- IO(logger.info(s"开始验证用户ID为$userID的密码"))
+      _ <- IO(logger.info(s"开始验证用户ID为$userID 的密码"))
       _ <- validatePassword(userID, password)
       _ <- IO(logger.info(s"检查用户是否被封禁，用户ID为$userID"))
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
