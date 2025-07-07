@@ -253,6 +253,14 @@ const HomePage: React.FC = () => {
         }
     };
 
+    // 处理私信按钮点击
+    const handleMessageClick = () => {
+        // TODO: 实现私信功能的API调用
+        console.log(`点击私信按钮，目标用户ID: ${user_id}`);
+        // 这里可以跳转到私信页面或打开私信对话框
+        // navigate(`/message/${user_id}`);
+    };
+
     // 通过路由获取当前激活tab
     const getActiveTab = () => {
         const pathParts = location.pathname.split("/");
@@ -309,6 +317,12 @@ const HomePage: React.FC = () => {
                 {/* 关注按钮 - 只有当前用户已登录且不是自己时才显示 */}
                 {currentUserID && !isCurrentUser && (
                     <div className="home-user-actions">
+                        <button
+                            className="home-message-btn"
+                            onClick={handleMessageClick}
+                        >
+                            私信
+                        </button>
                         <button
                             className={`home-follow-btn ${isFollowing ? 'following' : ''}`}
                             onClick={handleFollowToggle}

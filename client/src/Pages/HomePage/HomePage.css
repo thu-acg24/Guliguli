@@ -73,6 +73,25 @@
     transform: none;
 }
 
+.home-user-actions .home-message-btn {
+    padding: 8px 16px;
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 70px;
+    margin-right: 10px;
+}
+
+.home-user-actions .home-message-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
 .home-user-basic-info {
     display: flex;
     flex-direction: column;
