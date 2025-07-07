@@ -29,7 +29,8 @@ import scala.util.Try
 
 case class GetRecommendedVideosMessage(
   videoID: Option[Int] = None,
-  userID: Option[Int] = None
+  userID: Option[String] = None,
+  randomRatio: Float = 0.2F
 ) extends API[List[Video]](RecommendationServiceCode)
 
 case object GetRecommendedVideosMessage{

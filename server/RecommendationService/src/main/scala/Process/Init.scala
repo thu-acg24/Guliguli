@@ -11,6 +11,7 @@ import Common.ServiceUtils.schemaName
 import Global.DBConfig
 import Global.GlobalVariables
 import Global.ServerConfig
+import Objects.PGVector.defaultDim
 import Process.ProcessUtils.server2DB
 import cats.effect.IO
 import io.circe.generic.auto.*
@@ -38,9 +39,10 @@ object Init {
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."video_info_table" (
             video_id INT NOT NULL PRIMARY KEY,
+            view_count INT NOT NULL DEFAULT 0,
             title TEXT NOT NULL,
             visible BOOLEAN DEFAULT TRUE,
-            embedding VECTOR(384)
+            embedding VECTOR($defaultDim)
         );
         """,
         List()
@@ -51,9 +53,9 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."video_info_table" (
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."user_info_table" (
             user_id INT NOT NULL PRIMARY KEY,
-            embedding VECTOR(384)
+            embedding VECTOR($defaultDim)
         );
         """,
         List()

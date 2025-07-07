@@ -61,14 +61,17 @@ case class AddVideoInfoMessagePlanner(
       s"""
         INSERT INTO ${schemaName}.video_info_table
         (video_id, title, visible, embedding)
-        VALUES (?, ?, ?, ?::vector);
+        VALUES (?, ?, ?, ?);
       """
-    val parameters = List(
-      SqlParameter("Int", video.videoID.toString),
-      SqlParameter("String", video.title + video.description),
-      SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
-      SqlParameter("Vector", getInfo(video.tag).toString),
-    )
-    writeDB(sql, parameters).as(())
+    for {
+      infoVector <- getInfo(video.tag)
+      parameters <- IO.pure(List(
+        SqlParameter("Int", video.videoID.toString),
+        SqlParameter("String", video.title + video.description),
+        SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
+        SqlParameter("Vector", infoVector.toString),
+      ))
+      _ <- writeDB(sql, parameters)
+    } yield()
   }
 }

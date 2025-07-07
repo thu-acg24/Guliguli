@@ -19,7 +19,7 @@ import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, Days}
 import org.slf4j.LoggerFactory
 import Utils.PerferenceProcess.updateEmbedding
 
@@ -46,35 +46,51 @@ case class RecordWatchDataMessagePlanner(
       lastWatchOpt <- readDBJsonOptional(
         s"""
            |SELECT watch_id, created_at
+           |FROM ${schemaName}.video_record_table
            |WHERE user_id = ? AND video_id = ?;
            |""".stripMargin, List(
           SqlParameter("Int", userID.toString),
           SqlParameter("Int", videoID.toString)
         ))
-      createdAt <- IO(DateTime.now().getMillis.toString)
+      createdAt <- IO(DateTime.now())
       _ <- lastWatchOpt match {
         case Some(json) => writeDB(
           s"""
-             |UPDATE ${schemaName}.watch_detail_table
+             |UPDATE ${schemaName}.video_record_table
              |SET created_at = ?
              |WHERE watch_id = ?
              |""".stripMargin,List(
-            SqlParameter("DateTime", createdAt),
+            SqlParameter("DateTime", createdAt.getMillis.toString),
             SqlParameter("Int", decodeField[Int](json, "watch_id").toString)
-          )) >>
-          updateEmbedding(userID, videoID, Some(0.01F), Some(0.05F))
+          )) >> IO(
+            if (Days.daysBetween(decodeField[DateTime](json, "created_at"), createdAt).getDays >= 1) {
+              updateEmbedding(userID, videoID, None, Some(0.05F))
+              updateViewCount(videoID)
+            }
+        )
         case None => writeDB(
           s"""
-             |INSERT INTO ${schemaName}.watch_detail_table
+             |INSERT INTO ${schemaName}.video_record_table
              |(user_id, video_id, created_at)
              |VALUES (?, ?, ?)
              |""".stripMargin,List(
             SqlParameter("Int", userID.toString),
             SqlParameter("Int", videoID.toString),
-            SqlParameter("DateTime", createdAt)
+            SqlParameter("DateTime", createdAt.getMillis.toString)
           )) >>
-          updateEmbedding(userID, videoID, None, Some(0.05F))
+          updateEmbedding(userID, videoID, Some(0.01F), Some(0.05F)) >>
+          updateViewCount(videoID)
       }
     } yield()
+  }
+  private def updateViewCount(videoID: Int)(using PlanContext): IO[Unit] = {
+    writeDB(
+      s"""
+         |UPDATE ${schemaName}.video_info_table
+         |SET view_count = view_count + 1
+         |WHERE video_id = ?
+         |""".stripMargin, List(
+        SqlParameter("Int", videoID.toString)
+      )).void
   }
 }

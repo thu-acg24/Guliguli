@@ -30,31 +30,14 @@ case object PerferenceProcess {
   def updateEmbedding(userID: Int, videoID: Int, userRatio: Option[Float], videoRatio: Option[Float])(using PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info(s"开始获取视频和用户的embedding: userID=$userID, videoID=$videoID"))
-      videoVector <- readDBJson(
-        s"""
-           |SELECT embedding
-           |FROM ${schemaName}.video_info_table
-           |WHERE video_id = ?
-           |""".stripMargin, List(
-          SqlParameter("Int", videoID.toString)
-        )).map(json => decodeField[PGVector](json, "embedding"))
+      videoVector <- getVideoVector(videoID)
       _ <- IO(logger.info(s"视频videoID=$videoID 的embedding为${videoVector.toString}"))
-      userVector <- readDBJsonOptional(
-        s"""
-           |SELECT embedding
-           |FROM ${schemaName}.user_info_table
-           |WHERE user_id = ?
-           |""".stripMargin, List(
-          SqlParameter("Int", userID.toString)
-        )).flatMap {
-          case Some(json) => IO(decodeField[PGVector](json, "embedding"))
-          case None => initUserEmbedding(userID)
-        }
+      userVector <- getUserVector(userID)
       _ <- IO(logger.info(s"视频videoID=$userID 的embedding为${userVector.toString}"))
       _ <- userRatio.map(ratio => writeDB(
         s"""
            |UPDATE ${schemaName}.video_info_table
-           |SET embedding_vector = ?::vector
+           |SET embedding = ?
            |WHERE video_id = ?
            |""".stripMargin, List(
           SqlParameter("Vector", (videoVector + userVector * ratio).normalize.toString),
@@ -63,7 +46,7 @@ case object PerferenceProcess {
       _ <- videoRatio.map(ratio => writeDB(
         s"""
            |UPDATE ${schemaName}.user_info_table
-           |SET embedding_vector = ?::vector
+           |SET embedding = ?
            |WHERE user_id = ?
            |""".stripMargin, List(
           SqlParameter("Vector", (userVector + videoVector * ratio).normalize.toString),
@@ -71,6 +54,32 @@ case object PerferenceProcess {
         ))).getOrElse(IO.pure(""))
     } yield()
   }
+
+  def getVideoVector(videoID: Int)(using PlanContext): IO[PGVector] = {
+    readDBJson(
+      s"""
+         |SELECT embedding
+         |FROM ${schemaName}.video_info_table
+         |WHERE video_id = ?
+         |""".stripMargin, List(
+        SqlParameter("Int", videoID.toString)
+      )).map(json => decodeField[PGVector](json, "embedding"))
+  }
+
+  def getUserVector(userID: Int)(using PlanContext): IO[PGVector] = {
+    readDBJsonOptional(
+      s"""
+         |SELECT embedding
+         |FROM ${schemaName}.user_info_table
+         |WHERE user_id = ?
+         |""".stripMargin, List(
+        SqlParameter("Int", userID.toString)
+      )).flatMap {
+      case Some(json) => IO(decodeField[PGVector](json, "embedding"))
+      case None => initUserEmbedding(userID)
+    }
+  }
+
   private def initUserEmbedding(userID: Int)(using PlanContext): IO[PGVector] = {
     for {
       _ <- IO(logger.info(s"正在初始化用户userID=$userID 的Embedding"))

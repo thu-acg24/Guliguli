@@ -2,8 +2,10 @@ package Objects
 
 import cats.effect.IO
 import cats.effect.std.Random
-import cats.syntax.all._
-import io.circe.{Decoder, Encoder}
+
+import scala.util.Random as ScalaRandom
+import cats.syntax.all.*
+import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.syntax.*
 import io.circe.parser.*
 
@@ -42,13 +44,24 @@ case object PGVector {
 
   implicit val encoder: Encoder[PGVector] = Encoder.instance(v => v.values.asJson)
   implicit val decoder: Decoder[PGVector] = Decoder.instance { cursor =>
-    cursor.as[Vector[Float]].map(PGVector(_))
+    cursor.as[String].flatMap { str =>  // 先提取字符串
+      parse(str)                       // 解析字符串为JSON
+        .flatMap(_.as[Vector[Float]])  // 解码Vector[Float]
+        .map(PGVector(_))              // 构造PGVector
+        .leftMap(err =>                // 统一错误处理
+          DecodingFailure(
+            s"Failed to parse vector from string '$str': ${err.getMessage}",
+            cursor.history
+          )
+        )
+    }
   }
 
 
   private val DEFAULT_SALT = "mySecureSalt123!@#"
+  val defaultDim: Int = 384
 
-  def fromString(str: String, salt: String = DEFAULT_SALT, dim: Int = 384): IO[PGVector] = {
+  def fromString(str: String, salt: String = DEFAULT_SALT, dim: Int = defaultDim): IO[PGVector] = {
     require(dim > 0, "Dimension must be positive")
     // 创建确定性种子
     val seed = {
@@ -61,7 +74,10 @@ case object PGVector {
     // 使用种子创建随机向量
     for {
       random <- Random.scalaUtilRandomSeedLong[IO](seed)
-      values <- Vector.fill(dim)(random.nextFloat).sequence
-    } yield PGVector(values)
+      values <- IO.delay {
+          val random = new ScalaRandom(seed)
+          PGVector(Vector.fill(dim)(random.nextGaussian().toFloat))
+        }
+    } yield values
   }
 }

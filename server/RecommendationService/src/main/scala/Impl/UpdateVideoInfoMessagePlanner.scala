@@ -49,21 +49,23 @@ case class UpdateVideoInfoMessagePlanner(
 
 
   // Sub-step 3.1: Update video information in the database
-  private def updateVideoMetadata(video: Video)(using PlanContext): IO[String] = {
+  private def updateVideoMetadata(video: Video)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
       UPDATE ${schemaName}.video_info_table
-      SET title = ?, visible = ?, embedding = ?::vector
+      SET title = ?, visible = ?, embedding = ?
       WHERE video_id = ?;
       """.stripMargin
 
-    val parameters = List(
-      SqlParameter("String", video.title + video.description),
-      SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
-      SqlParameter("Vector", getInfo(video.tag).toString),
-      SqlParameter("String", videoID.toString),
-    )
-
-    writeDB(sql, parameters)
+    for {
+      infoVector <- getInfo(video.tag)
+      parameters <- IO.pure(List(
+        SqlParameter("String", video.title + video.description),
+        SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
+        SqlParameter("Vector", infoVector.toString),
+        SqlParameter("Int", video.videoID.toString),
+      ))
+      _ <- writeDB(sql, parameters)
+    } yield ()
   }
 }
