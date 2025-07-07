@@ -40,10 +40,12 @@ object Init {
             video_id INT NOT NULL,
             view_time TIMESTAMP NOT NULL
         );
-         
         """,
         List()
       )
+      _ <- writeDB(
+        s"""CREATE INDEX IF NOT EXISTS idx_history_view_time ON "${schemaName}"."comment_table"(view_time);
+           |""".stripMargin, List())
     } yield ()
 
     program.handleErrorWith(err => IO {

@@ -42,9 +42,11 @@ case class DeleteCommentMessagePlanner(
       _ <- checkUserPermission(userID, authorID, videoID)
       // Step 4: 从CommentTable中删除记录
       _ <- deleteComment(commentID)
-      // Step 5: 减少回复数
+      // Step 5: 减少回复数或直接删除所有二级评论
       _ <- rootID match {
-        case None => IO.unit
+        case None =>
+          writeDB(s"DELETE FROM ${schemaName}.comment_table WHERE root_id = ?",
+            List(SqlParameter("Int", commentID.toString)))
         case Some(commentID) =>
           writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count - 1 WHERE comment_id = ?",
             List(SqlParameter("Int", commentID.toString)))

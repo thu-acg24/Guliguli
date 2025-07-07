@@ -54,6 +54,15 @@ object Init {
         """,
         List()
       )
+      _ <- writeDB(
+        s"""CREATE INDEX IF NOT EXISTS idx_comment_timestamp ON "${schemaName}"."comment_table"(time_stamp);
+           |""".stripMargin, List())
+      _ <- writeDB(
+        s"""CREATE INDEX IF NOT EXISTS idx_comment_root_id ON "${schemaName}"."comment_table"(root_id);
+           |""".stripMargin, List())
+      _ <- writeDB(
+        s"""CREATE INDEX IF NOT EXISTS idx_comment_video_id ON "${schemaName}"."comment_table"(video_id);
+           |""".stripMargin, List())
       /** 点赞评论记录表，保存用户对评论的点赞情况
        * user_id: 点赞用户的ID
        * comment_id: 点赞评论的ID

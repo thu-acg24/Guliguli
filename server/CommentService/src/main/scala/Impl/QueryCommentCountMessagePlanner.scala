@@ -25,9 +25,9 @@ case class QueryCommentCountMessagePlanner(
   override def plan(using PlanContext): IO[Int] = {
     val sql =
       s"""
-         |SELECT SUM(reply_count)
+         |SELECT COUNT(*)
          |FROM ${schemaName}.comment_table
-         |WHERE video_id = ? AND reply_to_id IS NULL;
+         |WHERE video_id = ?
        """.stripMargin
     readDBInt(sql, List(SqlParameter("Int", videoID.toString)))
   }
