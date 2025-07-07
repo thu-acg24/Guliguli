@@ -35,26 +35,26 @@ case class DeleteVideoMessagePlanner(
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = for {
-    _ <- IO(logger.info(s"开始执行DeleteVideoMessagePlanner, token=${token}, videoID=${videoID}"))
+    _ <- IO(logger.info(s"开始执行DeleteVideoMessagePlanner, token=$token, videoID=$videoID"))
     userID <- GetUIDByTokenMessage(token).send
 
     // Step 2: Validate video existence and fetch uploader ID
-    _ <- IO(logger.info(s"开始校验视频ID是否合法, videoID=${videoID}"))
+    _ <- IO(logger.info(s"开始校验视频ID是否合法, videoID=$videoID"))
     uploaderID <- fetchUploaderID(videoID)
-    _ <- IO(logger.info(s"获取到视频的上传者ID: ${uploaderID}"))
+    _ <- IO(logger.info(s"获取到视频的上传者ID: $uploaderID"))
 
     // Step 3: Check user permissions
-    _ <- IO(logger.info(s"开始校验用户是否有权限删除该视频, userID=${userID}, uploaderID=${uploaderID}"))
+    _ <- IO(logger.info(s"开始校验用户是否有权限删除该视频, userID=$userID, uploaderID=$uploaderID"))
     hasPermission <- checkPermissions(userID, uploaderID)
-    _ <- IO(logger.info(s"权限校验结果: ${hasPermission}"))
+    _ <- IO(logger.info(s"权限校验结果: $hasPermission"))
     _ <- IO.raiseUnless(hasPermission)(InvalidInputException("Permission Denied"))
 
     // Step 4: Notify RecommendationService before deletion
-    _ <- IO(logger.info(s"通知 RecommendationService 删除视频信息, videoID=${videoID}"))
+    _ <- IO(logger.info(s"通知 RecommendationService 删除视频信息, videoID=$videoID"))
     _ <- notifyRecommendationService(videoID)
 
     // Step 5: Delete the video
-    _ <- IO(logger.info(s"开始删除视频记录, videoID=${videoID}"))
+    _ <- IO(logger.info(s"开始删除视频记录, videoID=$videoID"))
     _ <- deleteVideo(videoID)
 
   } yield ()
@@ -67,7 +67,7 @@ case class DeleteVideoMessagePlanner(
     val sql =
       s"""
         SELECT uploader_id
-        FROM ${schemaName}.video_table
+        FROM $schemaName.video_table
         WHERE video_id = ?;
       """
     readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
@@ -99,7 +99,7 @@ case class DeleteVideoMessagePlanner(
   private def deleteVideo(videoID: Int)(using PlanContext): IO[String] = {
     val sql =
       s"""
-        DELETE FROM ${schemaName}.video_table
+        DELETE FROM $schemaName.video_table
         WHERE video_id = ?;
       """
     writeDB(sql, List(SqlParameter("Int", videoID.toString)))
@@ -109,7 +109,7 @@ case class DeleteVideoMessagePlanner(
    * 通知 RecommendationService 删除视频信息
    */
   private def notifyRecommendationService(videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video deletion: videoID=${videoID}")) >> {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video deletion: videoID=$videoID")) >> {
       DeleteVideoInfoMessage(token, videoID).send.handleErrorWith { error =>
         IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
       }

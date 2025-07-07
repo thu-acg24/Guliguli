@@ -38,11 +38,11 @@ case class QueryDanmakuByIDMessagePlanner(
     val sql =
       s"""
          |SELECT danmaku_id, content, video_id, author_id, danmaku_color, time_in_video
-         |FROM ${schemaName}.danmaku_table
+         |FROM $schemaName.danmaku_table
          |WHERE danmaku_id = ?;
        """.stripMargin
 
-    IO(logger.info(s"查询danmaku记录的SQL指令为: ${sql}")) >>
+    IO(logger.info(s"查询danmaku记录的SQL指令为: $sql")) >>
     readDBJsonOptional(sql, List(SqlParameter("Int", danmakuID.toString)))
       .flatMap {
         case Some(json) =>
@@ -55,7 +55,7 @@ case class QueryDanmakuByIDMessagePlanner(
             timeInVideo = decodeField[Float](json, "time_in_video")
           ))
         case None =>
-          IO(logger.error(s"未找到danmaku记录，ID: ${danmakuID}")) >>
+          IO(logger.error(s"未找到danmaku记录，ID: $danmakuID")) >>
           IO.raiseError(InvalidInputException(s"No danmaku found with ID: $danmakuID"))
       }
   }

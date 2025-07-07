@@ -37,7 +37,7 @@ case class QueryAuditorsMessagePlanner(
 
       result <- userRole match {
         case role if role != UserRole.Admin =>
-          IO(logger.warn(s"[Step 1.2] 用户角色无权限，当前角色：${role}")) *>
+          IO(logger.warn(s"[Step 1.2] 用户角色无权限，当前角色：$role")) *>
             IO.raiseError(InvalidInputException("不具有管理员权限")) // 返回None表示非Admin无权限
         case _ =>
           // Step 2: 查询审核员列表
@@ -53,7 +53,7 @@ case class QueryAuditorsMessagePlanner(
    * @return Option[UserRole] - 如果Token无效，返回None；否则返回对应的用户角色
    */
   private def validateUserRole(token: String)(using PlanContext): IO[UserRole] = {
-    IO(logger.info(s"调用权限校验API: QueryUserRoleMessage(token=${token})")) *>
+    IO(logger.info(s"调用权限校验API: QueryUserRoleMessage(token=$token)")) *>
       QueryUserRoleMessage(token).send
   }
 
@@ -65,13 +65,13 @@ case class QueryAuditorsMessagePlanner(
     val sql =
       s"""
          SELECT user_id, username, avatar_path, bio, is_banned
-         FROM ${schemaName}.user_table
+         FROM $schemaName.user_table
          WHERE user_role = ?
        """
     val params = List(SqlParameter("String", UserRole.Auditor.toString))
 
     for {
-      _ <- IO(logger.info(s"[Step 2.1] SQL查询命令生成完成，准备执行。SQL: ${sql}, 参数: ${params}"))
+      _ <- IO(logger.info(s"[Step 2.1] SQL查询命令生成完成，准备执行。SQL: $sql, 参数: $params"))
       rows <- readDBRows(sql, params)
 
       // 将数据库行转为UserInfo对象

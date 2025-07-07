@@ -44,7 +44,7 @@ object SqlParameter {
       case "array[string]"=> SqlParameter("Array[String]", value)
       case "array[object]" => SqlParameter("Array[Object]", value)
       case "array[long]"  => SqlParameter("Array[Long]", value)
-      case s              => throw new Exception(s"Unsupported data type ${s}")
+      case s              => throw new Exception(s"Unsupported data type $s")
     }
   }
 

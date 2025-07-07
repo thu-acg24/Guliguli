@@ -27,9 +27,9 @@ case class SendReplyNoticeMessagePlanner(
   override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: 验证调用者Token的合法性
-      _ <- IO(logger.info(s"开始验证调用者Token: ${token}"))
+      _ <- IO(logger.info(s"开始验证调用者Token: $token"))
       userID <- GetUIDByTokenMessage(token).send
-      _ <- IO(logger.info(s"验证成功，用户: ${userID}"))
+      _ <- IO(logger.info(s"验证成功，用户: $userID"))
       // Step 2: 检查Comment是否存在
       comment <- QueryCommentByIDMessage(commentID).send
       replyID <- IO {
@@ -55,7 +55,7 @@ case class SendReplyNoticeMessagePlanner(
                           (using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         INSERT INTO ${schemaName}.reply_notice_table
+         INSERT INTO $schemaName.reply_notice_table
          (sender_id, receiver_id, content, comment_id, original_content, original_comment_id, video_id, send_time)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?);
        """

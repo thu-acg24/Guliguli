@@ -26,7 +26,7 @@ case class QueryCommentCountMessagePlanner(
     val sql =
       s"""
          |SELECT COUNT(*)
-         |FROM ${schemaName}.comment_table
+         |FROM $schemaName.comment_table
          |WHERE video_id = ?
        """.stripMargin
     readDBInt(sql, List(SqlParameter("Int", videoID.toString)))

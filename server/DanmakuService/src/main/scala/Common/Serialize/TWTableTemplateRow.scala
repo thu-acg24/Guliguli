@@ -28,5 +28,5 @@ trait TWTableTemplateRow extends CirceSerializable {
    * 表全名
    * @return
    */
-  def fullTableName: String = s"${schemaName}.${tableName}"
+  def fullTableName: String = s"$schemaName.$tableName"
 }

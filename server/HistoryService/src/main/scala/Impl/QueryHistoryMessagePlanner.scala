@@ -38,10 +38,10 @@ case class QueryHistoryMessagePlanner(
     if (fetchLimit > 100) return IO.raiseError(InvalidInputException("至多查询100条记录"))
     for {
       // Step 1: 验证用户Token
-      _ <- IO(logger.info(s"开始验证Token: ${token}"))
+      _ <- IO(logger.info(s"开始验证Token: $token"))
       userID <- validateToken(token)
       // Step 2: 查询并分页提取用户的历史记录
-      _ <- IO(logger.info(s"Token验证结果: ${userID}"))
+      _ <- IO(logger.info(s"Token验证结果: $userID"))
       historyRecords <- queryHistoryByToken(userID)
     } yield historyRecords
   }
@@ -51,7 +51,7 @@ case class QueryHistoryMessagePlanner(
    * 调用公共方法GetUIDByTokenMessage验证Token是否有效。
    */
   private def validateToken(token: String)(using PlanContext): IO[Int] = {
-    IO(logger.info(s"调用API获取用户ID，参数Token: ${token}"))>>
+    IO(logger.info(s"调用API获取用户ID，参数Token: $token"))>>
     GetUIDByTokenMessage(token).send
   }
 
@@ -61,7 +61,7 @@ case class QueryHistoryMessagePlanner(
    */
   private def queryHistoryByToken(userID: Int)(using PlanContext): IO[List[HistoryRecord]] = {
 
-        IO(logger.info(s"用户合法，开始查询历史记录，用户ID: ${userID}")) >> 
+        IO(logger.info(s"用户合法，开始查询历史记录，用户ID: $userID")) >> 
           queryUserHistory(userID)
       
   }
@@ -71,17 +71,17 @@ case class QueryHistoryMessagePlanner(
    * 按照timestamp从新到旧排序，分页读取。
    */
   private def queryUserHistory(userID: Int)(using PlanContext): IO[List[HistoryRecord]] = {
-    IO(logger.info(s"开始创建查询用户历史记录的SQL，用户ID: ${userID}")) >>
+    IO(logger.info(s"开始创建查询用户历史记录的SQL，用户ID: $userID")) >>
       IO {
         val sql =
           s"""
             SELECT history_id, user_id, video_id, view_time
-            FROM ${schemaName}.history_record_table
+            FROM $schemaName.history_record_table
             WHERE user_id = ? AND (view_time < ? OR (view_time = ? AND history_id < ?))
             ORDER BY view_time DESC, history_id DESC
             LIMIT ?;
           """
-        logger.info(s"SQL为: ${sql}")
+        logger.info(s"SQL为: $sql")
 
         // SQL参数列表
         val parameters = List(

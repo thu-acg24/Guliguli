@@ -18,7 +18,7 @@ case class InitSchemaMessagePlanner(schemaName: String) extends DBPlanner[String
       // Since we cannot use PreparedStatement for CREATE SCHEMA, validate input strictly
       val sql = s"CREATE SCHEMA IF NOT EXISTS $schemaName;"
       schemaStmt.executeUpdate(sql)
-      s"Schema created $schemaName: SQL = ${sql}"
+      s"Schema created $schemaName: SQL = $sql"
     }  catch {
       case e: SQLException =>
         println(s"SQL exception occurred: ${e.getMessage}")

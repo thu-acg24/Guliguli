@@ -33,7 +33,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."like_record_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."like_record_table" (
             user_id SERIAL NOT NULL PRIMARY KEY,
             video_id INT NOT NULL,
             timestamp TIMESTAMP NOT NULL
@@ -49,7 +49,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."favorite_record_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."favorite_record_table" (
             user_id SERIAL NOT NULL PRIMARY KEY,
             video_id INT NOT NULL,
             timestamp TIMESTAMP NOT NULL
@@ -77,7 +77,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."video_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."video_table" (
             video_id SERIAL NOT NULL PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT,

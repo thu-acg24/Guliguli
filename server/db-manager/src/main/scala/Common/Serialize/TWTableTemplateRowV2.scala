@@ -29,7 +29,7 @@ trait TWTableTemplateRowV2 extends CirceSerializable {
    * - user_account 是 schemaName
    * - user_info 是表名
    */
-  def fullTableName: String = s""" "${schemaName}"."${tableName}" """
+  def fullTableName: String = s""" "$schemaName"."$tableName" """
 
   /**
    * 表初始化的 SQL 语句

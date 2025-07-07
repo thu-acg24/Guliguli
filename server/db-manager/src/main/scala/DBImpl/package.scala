@@ -36,7 +36,7 @@ package object DBImpl {
 
   def callDBAPI[T](planner: DBPlanner[T])(using planContext: PlanContext): IO[T] = {
     // 日志输出: 确保打印出 API 名称，planContext 上下文引用，且确保 planner 的完整信息一行展示, 且没有过多的空格、换行符干扰阅读
-    IO.println(s"${DateTime.now().toString(dbDateFmt)} INFO DBOperation: ${planContext}, info = ${planner.toString.replaceAll(" {4,}", "   ").replaceAll("[\\n\\r]+", " ")}") >> {
+    IO.println(s"${DateTime.now().toString(dbDateFmt)} INFO DBOperation: $planContext, info = ${planner.toString.replaceAll(" {4,}", "   ").replaceAll("[\\n\\r]+", " ")}") >> {
       /** 只有是在transaction的情况下，我们才需要保存connection，否则是不需要的！ */
       if (planContext.transactionLevel > 0)
         connectionMap.get.flatMap { map =>

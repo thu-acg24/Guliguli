@@ -38,7 +38,7 @@ case class QueryVideoDanmakuMessagePlanner(videoID: Int, token: Option[String], 
     val sql =
       s"""
          |SELECT danmaku_id, content, video_id, author_id, danmaku_color, time_in_video
-         |FROM ${schemaName}.danmaku_table
+         |FROM $schemaName.danmaku_table
          |WHERE video_id = ?
          |ORDER BY time_in_video ASC;
        """.stripMargin

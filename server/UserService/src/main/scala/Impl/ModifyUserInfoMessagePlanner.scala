@@ -59,7 +59,7 @@ case class ModifyUserInfoMessagePlanner(
   private def updateUserInfoInDB(userID: Int, newField: UserInfo)(using PlanContext): IO[String] = {
     val querySQL =
       s"""
-         UPDATE ${schemaName}.user_table
+         UPDATE $schemaName.user_table
          SET username = ?, bio = ?, updated_at = ?
          WHERE user_id = ?
        """.stripMargin

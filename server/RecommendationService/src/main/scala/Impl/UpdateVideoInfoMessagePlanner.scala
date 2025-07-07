@@ -35,11 +35,11 @@ case class UpdateVideoInfoMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       // Step 1. Validate the token and retrieve the user ID
-      _ <- IO(logger.info(s"Starting token validation for token=${token}"))
+      _ <- IO(logger.info(s"Starting token validation for token=$token"))
       userID <- GetUIDByTokenMessage(token).send
 
       // Step 2. Fetch video
-      _ <- IO(logger.info(s"Starting ownership validation for videoID=${videoID}"))
+      _ <- IO(logger.info(s"Starting ownership validation for videoID=$videoID"))
       video <- QueryVideoInfoMessage(Some(token), videoID).send
 
       // Step 3. Update the video metadata in VideoInfoTable according to the video
@@ -52,7 +52,7 @@ case class UpdateVideoInfoMessagePlanner(
   private def updateVideoMetadata(video: Video)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-      UPDATE ${schemaName}.video_info_table
+      UPDATE $schemaName.video_info_table
       SET title = ?, visible = ?, embedding = ?
       WHERE video_id = ?;
       """.stripMargin

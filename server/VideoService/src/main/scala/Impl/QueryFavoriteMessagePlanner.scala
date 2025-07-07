@@ -26,14 +26,14 @@ case class QueryFavoriteMessagePlanner(
     for {
       // Step 1: Validate Token
       userID <- validateToken()
-      _ <- IO(logger.info(s"UserID: ${userID}"))
+      _ <- IO(logger.info(s"UserID: $userID"))
 
       // Step 2: Validate videoID existence
       _ <- validateVideoExistence(videoID)
       
       // Step 3: Check if user favorites this video
       isFavorited <- checkFavoriteStatus(userID, videoID)
-      _ <- IO(logger.info(s"[QueryFavorite] UserID ${userID} favorites videoID ${videoID}: ${isFavorited}"))
+      _ <- IO(logger.info(s"[QueryFavorite] UserID $userID favorites videoID $videoID: $isFavorited"))
     } yield isFavorited
   }
 
@@ -45,7 +45,7 @@ case class QueryFavoriteMessagePlanner(
   private def validateVideoExistence(videoID: Int)(using PlanContext): IO[Unit] = {
     IO(logger.info("[validateVideoExistence] Validating videoID existence")) >>
     {
-      val sql = s"SELECT video_id FROM ${schemaName}.video_table WHERE video_id = ? AND status = 'Approved';"
+      val sql = s"SELECT video_id FROM $schemaName.video_table WHERE video_id = ? AND status = 'Approved';"
       readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
         case Some(_) => ()
         case None => throw InvalidInputException("找不到视频")
@@ -54,7 +54,7 @@ case class QueryFavoriteMessagePlanner(
   }
 
   private def checkFavoriteStatus(userID: Int, videoID: Int)(using PlanContext): IO[Boolean] = {
-    val sql = s"SELECT * FROM ${schemaName}.favorite_record_table WHERE user_id = ? AND video_id = ?;"
+    val sql = s"SELECT * FROM $schemaName.favorite_record_table WHERE user_id = ? AND video_id = ?;"
     readDBJsonOptional(sql, List(
       SqlParameter("Int", userID.toString),
       SqlParameter("Int", videoID.toString)

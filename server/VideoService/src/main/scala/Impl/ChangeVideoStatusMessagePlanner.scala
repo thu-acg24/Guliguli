@@ -53,7 +53,7 @@ case class ChangeVideoStatusMessagePlanner(
       // Step 2: 验证视频ID的存在性和状态
       _ <- IO(logger.info("[validateVideoStatus] Validating videoID existence and status"))
       _ <- {
-          val sql = s"SELECT uploader_id FROM ${schemaName}.video_table WHERE video_id = ?;"
+          val sql = s"SELECT uploader_id FROM $schemaName.video_table WHERE video_id = ?;"
           readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
             case Some(json) =>
               if (decodeField[Int](json, "uploader_id") != userID) then
@@ -68,15 +68,15 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- updateVideoStatus(videoID, status)
 
       // Step 4: 通知 RecommendationService 更新视频可见性
-      _ <- IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService: videoID=${videoID}"))
+      _ <- IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService: videoID=$videoID"))
       _ <- UpdateVideoInfoMessage(token, videoID).send
 
     } yield ()
   }
 
   private def updateVideoStatus(videoID: Int, status: VideoStatus)(using PlanContext): IO[String] = {
-    IO(logger.info(s"[updateVideoStatus] Updating video status for videoID=${videoID} to status=${status}")) >> {
-      val updateSql = s"UPDATE ${schemaName}.video_table SET status = ? WHERE video_id = ?;"
+    IO(logger.info(s"[updateVideoStatus] Updating video status for videoID=$videoID to status=$status")) >> {
+      val updateSql = s"UPDATE $schemaName.video_table SET status = ? WHERE video_id = ?;"
       writeDB(updateSql, List(
         SqlParameter("String", status.toString),
         SqlParameter("Int", videoID.toString)

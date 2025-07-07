@@ -45,7 +45,7 @@ case class PublishDanmakuMessagePlanner(
 
       _ <- IO(logger.info("Step 3: 校验弹幕颜色合法性"))
       colorValid <- validateDanmakuColor(danmakuColor)
-      _ <- IO(logger.info(s"danmakuColor合法性: ${colorValid}"))
+      _ <- IO(logger.info(s"danmakuColor合法性: $colorValid"))
 
       _ <- if (!colorValid) {
         IO.raiseError(InvalidInputException("Color invalid"))
@@ -56,17 +56,17 @@ case class PublishDanmakuMessagePlanner(
   }
 
   private def validateToken(token: String)(using PlanContext): IO[Int] = {
-    IO(logger.info(s"调用getUIDByTokenMessage校验token: ${token}")) >>
+    IO(logger.info(s"调用getUIDByTokenMessage校验token: $token")) >>
       GetUIDByTokenMessage(token).send
   }
 
   private def validateVideoID(videoID: Int)(using PlanContext): IO[Video] = {
-    IO(logger.info(s"调用QueryVideoInfoMessage校验videoID: ${videoID}")) >>
+    IO(logger.info(s"调用QueryVideoInfoMessage校验videoID: $videoID")) >>
       QueryVideoInfoMessage(None, videoID).send
   }
 
   private def validateDanmakuColor(color: String)(using PlanContext): IO[Boolean] = {
-    IO(logger.info(s"校验弹幕颜色: ${color}")) >>
+    IO(logger.info(s"校验弹幕颜色: $color")) >>
       IO(color.matches("^#[0-9a-fA-F]{6}$"))
   }
 

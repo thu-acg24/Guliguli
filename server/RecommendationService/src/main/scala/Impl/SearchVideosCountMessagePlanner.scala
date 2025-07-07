@@ -25,7 +25,7 @@ case class SearchVideosCountMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Option[Int]] = {
     for {
       // Step 1: Log the start of the process
-      _ <- IO(logger.info(s"开始查询符合标题条件的视频总数: 搜索关键词为 '${searchString}'"))
+      _ <- IO(logger.info(s"开始查询符合标题条件的视频总数: 搜索关键词为 '$searchString'"))
 
       // Step 2: Attempt to fetch the count of matching videos
       count <- getVideosCount
@@ -39,7 +39,7 @@ case class SearchVideosCountMessagePlanner(
     val sql =
       s"""
         SELECT COUNT(*)
-        FROM ${schemaName}.video_info_table
+        FROM $schemaName.video_info_table
         WHERE title ILIKE ?;
       """
     for {
@@ -49,7 +49,7 @@ case class SearchVideosCountMessagePlanner(
       // Execute the query and map the results
       queryResult <- readDBJsonOptional(
         sql,
-        List(SqlParameter("String", s"%${searchString}%"))
+        List(SqlParameter("String", s"%$searchString%"))
       )
       videoCount <- IO {
         queryResult.map(json => decodeField[Int](json, "count"))

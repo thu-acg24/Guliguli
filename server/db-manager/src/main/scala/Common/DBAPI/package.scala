@@ -52,7 +52,7 @@ package object DBAPI {
 
       _ <- result match
         case Left(err) => IO { println(s"${ctx.traceID.id}, ${ctx.transactionLevel} finish, error = "); err.printStackTrace() }
-        case Right(value) => IO.println(s"${ctx.traceID.id}, ${ctx.transactionLevel} finish, result = ${value}")
+        case Right(value) => IO.println(s"${ctx.traceID.id}, ${ctx.transactionLevel} finish, result = $value")
 
       finalResult <- commitOrRollbackAction(result)
     } yield finalResult

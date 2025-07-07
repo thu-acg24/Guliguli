@@ -51,9 +51,9 @@ case class DeleteHistoryMessagePlanner(
    */
   private def validateUserIdentity(token: String)(using PlanContext): IO[Int] = {
     for {
-      _ <- IO(logger.info(s"Calling GetUIDByTokenMessage with token: ${token}"))
+      _ <- IO(logger.info(s"Calling GetUIDByTokenMessage with token: $token"))
       userID <- GetUIDByTokenMessage(token).send
-      _ <- IO(logger.info(s"Validation result for token ${token}"))
+      _ <- IO(logger.info(s"Validation result for token $token"))
     } yield userID
   }
 
@@ -68,7 +68,7 @@ case class DeleteHistoryMessagePlanner(
     val sqlQuery =
       s"""
          |SELECT COUNT(*)
-         |FROM ${schemaName}.history_record_table
+         |FROM $schemaName.history_record_table
          |WHERE user_id = ? AND video_id = ?;
          """.stripMargin
     val parameters = List(
@@ -77,10 +77,10 @@ case class DeleteHistoryMessagePlanner(
     )
 
     for {
-      _ <- IO(logger.info(s"Checking if history record exists for userID: ${userID}, videoID: ${videoID}"))
+      _ <- IO(logger.info(s"Checking if history record exists for userID: $userID, videoID: $videoID"))
       count <- readDBInt(sqlQuery, parameters)
       exists <- IO(count > 0)
-      _ <- IO(logger.info(s"History record existence check result for userID=${userID}, videoID=${videoID}: exists=${exists}"))
+      _ <- IO(logger.info(s"History record existence check result for userID=$userID, videoID=$videoID: exists=$exists"))
     } yield exists
   }
 
@@ -95,12 +95,12 @@ case class DeleteHistoryMessagePlanner(
     for {
       exists <- checkHistoryRecordExistence(userID, videoID)
       _ <- if (!exists) {
-        IO(logger.info(s"No history record found for userID: ${userID}, videoID: ${videoID}"))*>
+        IO(logger.info(s"No history record found for userID: $userID, videoID: $videoID"))*>
         IO.raiseError(InvalidInputException("Video not found"))
       } else {
         val sqlQuery =
           s"""
-             |DELETE FROM ${schemaName}.history_record_table
+             |DELETE FROM $schemaName.history_record_table
              |WHERE user_id = ? AND video_id = ?;
              """.stripMargin
         val parameters = List(
@@ -108,9 +108,9 @@ case class DeleteHistoryMessagePlanner(
           SqlParameter("Int", videoID.toString)
         )
         for {
-          _ <- IO(logger.info(s"Deleting history record for userID: ${userID}, videoID: ${videoID}"))
+          _ <- IO(logger.info(s"Deleting history record for userID: $userID, videoID: $videoID"))
           _ <- writeDB(sqlQuery, parameters)
-          _ <- IO(logger.info(s"Successfully deleted history record for userID: ${userID}, videoID: ${videoID}"))
+          _ <- IO(logger.info(s"Successfully deleted history record for userID: $userID, videoID: $videoID"))
         } yield () // Operation successful
       }
     } yield ()

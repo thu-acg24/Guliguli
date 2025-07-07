@@ -33,7 +33,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."follow_relation_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."follow_relation_table" (
             follow_relation_id SERIAL NOT NULL PRIMARY KEY,
             follower_id INT NOT NULL,
             followee_id INT NOT NULL,
@@ -45,7 +45,7 @@ object Init {
       _ <- writeDB(
         s"""
         CREATE INDEX IF NOT EXISTS idx_follow_relation_timestamp
-          ON "${schemaName}"."follow_relation_table" (timestamp);
+          ON "$schemaName"."follow_relation_table" (timestamp);
         """,
         List()
       )
@@ -64,7 +64,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."user_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."user_table" (
             user_id SERIAL NOT NULL PRIMARY KEY,
             username TEXT NOT NULL,
             email TEXT NOT NULL,
@@ -88,7 +88,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."token_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."token_table" (
             token VARCHAR NOT NULL PRIMARY KEY,
             user_id INT NOT NULL,
             expiration_time TIMESTAMP NOT NULL

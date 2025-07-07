@@ -29,9 +29,9 @@ case class QueryCommentByIDMessagePlanner(
   override def plan(using PlanContext): IO[Comment] = {
     for {
       // Step 1: Check if the commentID exists
-      _ <- IO(logger.info(s"[QueryCommentByID] 校验 commentID=${commentID} 是否存在，并获取评论详细信息"))
+      _ <- IO(logger.info(s"[QueryCommentByID] 校验 commentID=$commentID 是否存在，并获取评论详细信息"))
       maybeComment <- fetchCommentDetails(commentID)
-      comment <- maybeComment.liftTo[IO](InvalidInputException("commentID=${commentID} 不存在"))
+      comment <- maybeComment.liftTo[IO](InvalidInputException("commentID=$commentID 不存在"))
       // Step 3: Wrap result and return
       _ <- IO(logger.info(s"[QueryCommentByID] 封装返回结果完成"))
     } yield comment
@@ -46,10 +46,10 @@ case class QueryCommentByIDMessagePlanner(
     val sql =
       s"""
          |SELECT *
-         |FROM ${schemaName}.comment_table
+         |FROM $schemaName.comment_table
          |WHERE comment_id = ?;
        """.stripMargin
-    IO(logger.info(s"[QueryCommentByID] 获取 commentID=${commentID} 详细信息的SQL: ${sql}"))
+    IO(logger.info(s"[QueryCommentByID] 获取 commentID=$commentID 详细信息的SQL: $sql"))
     readDBJsonOptional(sql, List(SqlParameter("Int", commentID.toString))).map { jsonOpt =>
       jsonOpt.map { json =>
         Comment(

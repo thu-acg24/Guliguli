@@ -76,7 +76,7 @@ case class GetRecommendedVideosMessagePlanner(
       s"""
          |WITH nearest_candidates AS (
          |  SELECT video_id, view_count, embedding <#> ? AS dot_product
-         |  FROM ${schemaName}.video_info_table
+         |  FROM $schemaName.video_info_table
          |  ORDER BY embedding <#> ? DESC
          |  LIMIT 200
          |)
@@ -110,7 +110,7 @@ case class GetRecommendedVideosMessagePlanner(
 
   private def generateRecommendationsFromTags(tags: List[String]): IO[List[Int]] = {
     val dummyRecommendations = tags.flatMap(tag => List(tag.hashCode.abs % 100)) // 简化示例
-    IO(logger.info(s"基于标签生成的推荐视频ID：${dummyRecommendations}")).map(_ => dummyRecommendations)
+    IO(logger.info(s"基于标签生成的推荐视频ID：$dummyRecommendations")).map(_ => dummyRecommendations)
   }
 
   private def fetchVideoDetails(videoIDs: List[Int])(using PlanContext): IO[List[Video]] = {

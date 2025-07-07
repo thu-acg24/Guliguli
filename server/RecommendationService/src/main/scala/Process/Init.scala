@@ -37,7 +37,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."video_info_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."video_info_table" (
             video_id INT NOT NULL PRIMARY KEY,
             view_count INT NOT NULL DEFAULT 0,
             title TEXT NOT NULL,
@@ -53,7 +53,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."user_info_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."user_info_table" (
             user_id INT NOT NULL PRIMARY KEY,
             embedding VECTOR($defaultDim)
         );
@@ -68,7 +68,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."video_record_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."video_record_table" (
             watch_id SERIAL NOT NULL PRIMARY KEY,
             user_id INT NOT NULL,
             video_id INT NOT NULL,

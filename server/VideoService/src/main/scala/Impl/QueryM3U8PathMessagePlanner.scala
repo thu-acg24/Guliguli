@@ -71,7 +71,7 @@ case class QueryM3U8PathMessagePlanner(
       videoQueryResult <- readDBJsonOptional(
         s"""
           SELECT m3u8_name, ts_prefix, slice_count
-          FROM ${schemaName}.video_table
+          FROM $schemaName.video_table
           WHERE video_id = ?;
         """.stripMargin,
         List(SqlParameter("Int", videoID.toString))
@@ -91,7 +91,7 @@ case class QueryM3U8PathMessagePlanner(
 
   // 生成形如 tsprefix_00000.ts 的 ts 文件名
   def generateTsKeys(tsprefix: String, sliceCount: Int): List[String] = {
-    (0 until sliceCount).map(i => f"${tsprefix}_$i%05d.ts").toList
+    (0 until sliceCount).map(i => f"$tsprefix_$i%05d.ts").toList
   }
 
   private val bucket = "video-server"

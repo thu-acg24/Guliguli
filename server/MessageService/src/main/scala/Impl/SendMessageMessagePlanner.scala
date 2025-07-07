@@ -33,10 +33,10 @@ case class SendMessageMessagePlanner(
   override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: 验证调用者Token的合法性
-      _ <- IO(logger.info(s"开始验证调用者Token: ${token}"))
+      _ <- IO(logger.info(s"开始验证调用者Token: $token"))
       userID <- GetUIDByTokenMessage(token).send
-      _ <- IO(logger.info(s"验证成功，用户: ${userID}"))
-      _ <- IO(logger.info(s"验证接收方ID: ${receiverID}是否存在"))
+      _ <- IO(logger.info(s"验证成功，用户: $userID"))
+      _ <- IO(logger.info(s"验证接收方ID: $receiverID是否存在"))
       _ <- QueryUserInfoMessage(receiverID).send
       _ <- IO(logger.info(s"接收方有效"))
       _ <- IO(logger.info("开始插入数据库"))
@@ -47,7 +47,7 @@ case class SendMessageMessagePlanner(
   private def insertMessageRecord(senderID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         INSERT INTO ${schemaName}.message_table
+         INSERT INTO $schemaName.message_table
          (sender_id, receiver_id, content, send_time)
          VALUES (?, ?, ?, ?);
        """

@@ -35,18 +35,18 @@ case class DeleteDanmakuMessagePlanner(
       _ <- IO(logger.info(s"开始验证Token并获取用户ID"))
       userID <- verifyToken(token)
 
-      _ <- IO(logger.info(s"验证弹幕记录是否存在，弹幕ID：${danmakuID}"))
+      _ <- IO(logger.info(s"验证弹幕记录是否存在，弹幕ID：$danmakuID"))
       (videoID, senderID) <- checkDanmakuExistence(danmakuID)
 
       _ <- IO(logger.info(s"校验用户删除权限"))
       hasPermission <- checkDeletionPermission(userID, videoID, senderID, token)
 
       _ <- if (!hasPermission) {
-        IO(logger.info(s"用户无删除权限，用户ID：${userID}, 弹幕ID：${danmakuID}"))
+        IO(logger.info(s"用户无删除权限，用户ID：$userID, 弹幕ID：$danmakuID"))
         IO.raiseError(InvalidInputException("Unauthorized Action"))
       } else IO.unit
 
-      _ <- IO(logger.info(s"开始删除弹幕记录，弹幕ID：${danmakuID}"))
+      _ <- IO(logger.info(s"开始删除弹幕记录，弹幕ID：$danmakuID"))
       _ <- deleteDanmakuRecord(danmakuID)
     } yield ()
   }
@@ -59,7 +59,7 @@ case class DeleteDanmakuMessagePlanner(
     val sql =
       s"""
          |SELECT video_id, author_id
-         |FROM ${schemaName}.danmaku_table
+         |FROM $schemaName.danmaku_table
          |WHERE danmaku_id = ?;
          |""".stripMargin
     readDBJsonOptional(sql, List(SqlParameter("Int", danmakuID.toString))).map {
@@ -78,13 +78,13 @@ case class DeleteDanmakuMessagePlanner(
       isVideoUploader <- QueryVideoInfoMessage(Some(token), videoID).send.flatMap {
         case video => IO(video.uploaderID == userID)
         case _ =>
-          IO(logger.error(s"未找到视频信息，视频ID：${videoID}")) >> IO(false)
+          IO(logger.error(s"未找到视频信息，视频ID：$videoID")) >> IO(false)
       }
 
       isAuditor <- QueryUserRoleMessage(token).send.flatMap {
         case role => IO(role == UserRole.Auditor)
         case _ =>
-          IO(logger.error(s"无法验证用户角色，用户ID：${userID}")) >> IO(false)
+          IO(logger.error(s"无法验证用户角色，用户ID：$userID")) >> IO(false)
       }
     } yield isDanmakuAuthor || isVideoUploader || isAuditor
   }
@@ -92,7 +92,7 @@ case class DeleteDanmakuMessagePlanner(
   private def deleteDanmakuRecord(danmakuID: Int)(using PlanContext): IO[String] = {
     val sql =
       s"""
-         |DELETE FROM ${schemaName}.danmaku_table
+         |DELETE FROM $schemaName.danmaku_table
          |WHERE danmaku_id = ?;
          |""".stripMargin
     writeDB(sql, List(SqlParameter("Int", danmakuID.toString)))

@@ -64,8 +64,8 @@ case object JacksonSerializeUtils {
   def serializeToJson(o: AnyRef): Json = {
     parser.parse(JacksonSerializeUtils.serialize(o)) match {
       case Left(value: ParsingFailure) =>
-        log.error(s"serializeToJson failed, object = ${o}, err = ", value)
-        throw new IllegalStateException(s"serializeToJson failed, object = ${o}")
+        log.error(s"serializeToJson failed, object = $o, err = ", value)
+        throw new IllegalStateException(s"serializeToJson failed, object = $o")
 
       case Right(value) => value
     }

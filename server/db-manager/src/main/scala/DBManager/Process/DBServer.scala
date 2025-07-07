@@ -36,7 +36,7 @@ object DBServer{
       connectionMap <- Resource.eval(Ref.of[IO, Map[String, Connection]](Map.empty))
       dataSourceRef <- Resource.eval(Ref.of[IO, Option[HikariDataSource]](None))
       dbConfig <-Resource.eval(Utils.readConfig("db_config.json"))
-      _ = println(s"setDBServer - dbConfig = ${dbConfig}")
+      _ = println(s"setDBServer - dbConfig = $dbConfig")
 
       _ <- Resource.eval {
         for {
@@ -79,7 +79,7 @@ object DBServer{
       port = Port.fromInt(dbPort).getOrElse(
         throw new IllegalArgumentException("Invalid port for db server: 10002")
       )
-      _ = println(s"setDBServer - host = ${host}, port = ${port}")
+      _ = println(s"setDBServer - host = $host, port = $port")
 
       server <- EmberServerBuilder.default[IO]
         .withHost(host)

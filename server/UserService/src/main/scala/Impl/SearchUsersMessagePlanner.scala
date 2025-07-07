@@ -31,7 +31,7 @@ case class SearchUsersMessagePlanner(
   override def plan(using PlanContext): IO[List[UserInfo]] = {
     for {
       // Step 1: Query the UserTable for users whose username contains the search string
-      _ <- IO(logger.info(s"[Step 1] 开始在UserTable中搜索用户名包含'${searchString}'的用户，限制前50个结果"))
+      _ <- IO(logger.info(s"[Step 1] 开始在UserTable中搜索用户名包含'$searchString'的用户，限制前50个结果"))
       usersJson <- queryUsersWithSearchString(searchString)
 
       // Step 2: Parse the query results and convert to UserInfo objects
@@ -47,15 +47,15 @@ case class SearchUsersMessagePlanner(
       sql <- IO {
         s"""
            |SELECT user_id, username, avatar_path, is_banned
-           |FROM ${schemaName}.user_table
+           |FROM $schemaName.user_table
            |WHERE username LIKE ?
            |ORDER BY username ASC
            |LIMIT 50;
          """.stripMargin
       }
-      _ <- IO(logger.info(s"[Step 1.2] 数据库指令为: ${sql}"))
+      _ <- IO(logger.info(s"[Step 1.2] 数据库指令为: $sql"))
       // Use LIKE pattern with % wildcards for substring search
-      searchPattern <- IO(s"%${searchString}%")
+      searchPattern <- IO(s"%$searchString%")
       parameters <- IO(List(SqlParameter("String", searchPattern)))
       usersJson <- readDBJson(sql, parameters)
     } yield usersJson

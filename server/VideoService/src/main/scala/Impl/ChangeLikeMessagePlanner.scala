@@ -32,11 +32,11 @@ case class ChangeLikeMessagePlanner(
     for {
       // Step 1: Validate Token
       userID <- validateToken()
-      _ <- IO(logger.info(s"UserID: ${userID}"))
+      _ <- IO(logger.info(s"UserID: $userID"))
 
       // Step 2: Validate videoID existence and status
       videoStatus <- validateVideoStatus(videoID)
-      _ <- IO(logger.info(s"VideoStatus: ${videoStatus}"))
+      _ <- IO(logger.info(s"VideoStatus: $videoStatus"))
 
       // Step 3: Update like record
       result <- updateLikeRecord(userID, videoID, isLike)
@@ -54,7 +54,7 @@ case class ChangeLikeMessagePlanner(
   private def validateVideoStatus(videoID: Int)(using PlanContext): IO[Json] = {
     IO(logger.info("[validateVideoStatus] Validating videoID existence and status")) >>
     {
-      val sql = s"SELECT status FROM ${schemaName}.video_table WHERE video_id = ?;"
+      val sql = s"SELECT status FROM $schemaName.video_table WHERE video_id = ?;"
       readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
         case Some(json) =>
           val status = decodeField[String](json, "status")
@@ -73,16 +73,16 @@ case class ChangeLikeMessagePlanner(
   }
 
   private def addLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[addLikeRecord] Adding like record for userID=${userID}, videoID=${videoID}")) >> {
-      val checkSql = s"SELECT * FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?;"
+    IO(logger.info(s"[addLikeRecord] Adding like record for userID=$userID, videoID=$videoID")) >> {
+      val checkSql = s"SELECT * FROM $schemaName.like_record_table WHERE user_id = ? AND video_id = ?;"
       readDBJsonOptional(checkSql, List(
         SqlParameter("Int", userID.toString),
         SqlParameter("Int", videoID.toString)
       )).flatMap {
         case Some(_) => IO(logger.info("Already Liked")) >> IO.unit
         case None =>
-          val insertSql = s"INSERT INTO ${schemaName}.like_record_table (user_id, video_id, timestamp) VALUES (?, ?, ?);"
-          val updateSql = s"UPDATE ${schemaName}.video_table SET likes = likes + 1 WHERE video_id = ?;"
+          val insertSql = s"INSERT INTO $schemaName.like_record_table (user_id, video_id, timestamp) VALUES (?, ?, ?);"
+          val updateSql = s"UPDATE $schemaName.video_table SET likes = likes + 1 WHERE video_id = ?;"
           for {
             timestamp <- IO(DateTime.now().getMillis.toString)
             _ <- writeDB(insertSql, List(
@@ -97,16 +97,16 @@ case class ChangeLikeMessagePlanner(
   }
 
   private def removeLikeRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[removeLikeRecord] Removing like record for userID=${userID}, videoID=${videoID}")) >> {
-      val checkSql = s"SELECT * FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?;"
+    IO(logger.info(s"[removeLikeRecord] Removing like record for userID=$userID, videoID=$videoID")) >> {
+      val checkSql = s"SELECT * FROM $schemaName.like_record_table WHERE user_id = ? AND video_id = ?;"
       readDBJsonOptional(checkSql, List(
         SqlParameter("Int", userID.toString),
         SqlParameter("Int", videoID.toString)
       )).flatMap {
         case None => IO(logger.info("Not Liked Yet")) >> IO.unit
         case Some(_) =>
-          val deleteSql = s"DELETE FROM ${schemaName}.like_record_table WHERE user_id = ? AND video_id = ?;"
-          val updateSql = s"UPDATE ${schemaName}.video_table SET likes = likes - 1 WHERE video_id = ?;"
+          val deleteSql = s"DELETE FROM $schemaName.like_record_table WHERE user_id = ? AND video_id = ?;"
+          val updateSql = s"UPDATE $schemaName.video_table SET likes = likes - 1 WHERE video_id = ?;"
           for {
             _ <- writeDB(deleteSql, List(
               SqlParameter("Int", userID.toString),
@@ -119,7 +119,7 @@ case class ChangeLikeMessagePlanner(
   }
 
   private def notifyRecommendationService(userID: Int, videoID: Int, isLike: Boolean)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about like change: userID=${userID}, videoID=${videoID}, isLike=${isLike}")) >> {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about like change: userID=$userID, videoID=$videoID, isLike=$isLike")) >> {
       UpdateFeedbackLikeMessage(token, videoID, isLike).send.handleErrorWith { error =>
         IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
       }

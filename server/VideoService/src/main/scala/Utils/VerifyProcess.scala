@@ -101,7 +101,7 @@ case object VerifyProcess {
   def checkVideoStatus(videoID: Int)(using PlanContext): IO[String] = {
     val querySQL =
       s"""
-         |UPDATE ${schemaName}.video_table
+         |UPDATE $schemaName.video_table
          |SET status = 'Pending'
          |WHERE video_id = ?
          |  AND m3u8_name IS NOT NULL

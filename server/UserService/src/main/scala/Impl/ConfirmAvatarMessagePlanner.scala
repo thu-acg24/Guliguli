@@ -57,7 +57,7 @@ case class ConfirmAvatarMessagePlanner(
   private def updateAvatarLinkInDB(userID: Int, objectName: String)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
-           UPDATE ${schemaName}.user_table
+           UPDATE $schemaName.user_table
            SET avatar_path = ?
            WHERE user_id = ?
          """.stripMargin

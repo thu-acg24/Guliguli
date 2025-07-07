@@ -37,11 +37,11 @@ case class QueryVideoCommentsMessagePlanner(
     if (fetchLimit > 100) return IO.raiseError(InvalidInputException("至多查询100条评论"))
     for {
       // Step 1: Validate videoID
-      _ <- IO(logger.info(s"Validating videoID: ${videoID}"))
+      _ <- IO(logger.info(s"Validating videoID: $videoID"))
       _ <- validateVideoExists(videoID)
 
       // Step 2: Query paginated comments directly from CommentTable using SQL
-      _ <- IO(logger.info(s"Querying paginated comments for videoID=${videoID}"))
+      _ <- IO(logger.info(s"Querying paginated comments for videoID=$videoID"))
       rows <- rootID match {
         case None => queryRootPaginatedComments()
         case Some(actualRootID) => queryPaginatedComments(actualRootID)
@@ -72,7 +72,7 @@ case class QueryVideoCommentsMessagePlanner(
    */
   private def validateVideoExists(videoID: Int)(using PlanContext): IO[Unit] = {
     QueryVideoInfoMessage(None, videoID).send.flatMap { video =>
-        IO(logger.info(s"Video with videoID=${videoID} exists. Title: '${video.title}'")) >> IO.unit
+        IO(logger.info(s"Video with videoID=$videoID exists. Title: '${video.title}'")) >> IO.unit
     }
   }
 
@@ -85,7 +85,7 @@ case class QueryVideoCommentsMessagePlanner(
       sql <- IO {
         s"""
            |SELECT comment_id, content, video_id, author_id, reply_to_id, likes, reply_count, time_stamp
-           |FROM ${schemaName}.comment_table
+           |FROM $schemaName.comment_table
            |WHERE video_id = ? AND root_id IS NULL AND (time_stamp < ? OR (time_stamp = ? AND comment_id < ?))
            |ORDER BY time_stamp DESC, comment_id DESC LIMIT ?
        """.stripMargin
@@ -113,7 +113,7 @@ case class QueryVideoCommentsMessagePlanner(
       sql <- IO {
         s"""
            |SELECT comment_id, content, video_id, author_id, reply_to_id, reply_to_user_id, likes, reply_count, time_stamp
-           |FROM ${schemaName}.comment_table
+           |FROM $schemaName.comment_table
            |WHERE video_id = ? AND root_id = ? AND (time_stamp > ? OR (time_stamp = ? AND comment_id > ?))
            |ORDER BY time_stamp ASC, comment_id ASC LIMIT ?
        """.stripMargin

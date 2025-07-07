@@ -53,7 +53,7 @@ case class QueryPendingVideosMessagePlanner(
       s"""
         SELECT video_id, title, description, duration, cover,
              uploader_id, views, likes, favorites, status, upload_time
-        FROM ${schemaName}.video_table
+        FROM $schemaName.video_table
         WHERE status = ?
         ORDER BY upload_time DESC;
       """

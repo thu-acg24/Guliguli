@@ -36,7 +36,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."danmaku_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."danmaku_table" (
             danmaku_id SERIAL NOT NULL PRIMARY KEY,
             content TEXT NOT NULL,
             video_id INT NOT NULL,

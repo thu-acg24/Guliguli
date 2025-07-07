@@ -32,7 +32,7 @@ case class ModifyPasswordMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate token and get userID
-      _ <- IO(logger.info(s"开始校验Token: ${token}"))
+      _ <- IO(logger.info(s"开始校验Token: $token"))
       userID <- validateToken(token)
       _ <- handlePasswordUpdate(userID)
     } yield ()
@@ -48,13 +48,13 @@ case class ModifyPasswordMessagePlanner(
   }
 
   private def validateOldPassword(userID: Int)(using PlanContext): IO[Unit] = {
-      IO(logger.info(s"开始验证用户ID为 ${userID} 的旧密码是否正确")) >>
+      IO(logger.info(s"开始验证用户ID为 $userID 的旧密码是否正确")) >>
       validatePassword(userID, oldPassword)
   }
 
   private def updatePasswordHash(userID: Int, newPasswordHash: String)(using PlanContext): IO[String] = {
     val sql = s"""
-          UPDATE ${schemaName}.user_table
+          UPDATE $schemaName.user_table
           SET password_hash = ?, updated_at = NOW()
           WHERE user_id = ?;
         """
@@ -64,7 +64,7 @@ case class ModifyPasswordMessagePlanner(
         SqlParameter("Int", userID.toString)
       )
     for {
-      _ <- IO(logger.info(s"开始更新用户ID ${userID} 的密码哈希值"))
+      _ <- IO(logger.info(s"开始更新用户ID $userID 的密码哈希值"))
       updateResult <- writeDB(sql, params)
     } yield updateResult
   }

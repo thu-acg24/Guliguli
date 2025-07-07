@@ -36,11 +36,11 @@ case class PublishCommentMessagePlanner(
   override def plan(using PlanContext): IO[Comment] = {
     for {
       // Step 1: 校验token是否有效并获取用户ID
-      _ <- IO(logger.info(s"校验token是否有效: token=${token}"))
+      _ <- IO(logger.info(s"校验token是否有效: token=$token"))
       userID <- GetUIDByTokenMessage(token).send
 
       // Step 2: 校验视频是否存在
-      _ <- IO(logger.info(s"校验视频是否存在: videoID=${videoID}"))
+      _ <- IO(logger.info(s"校验视频是否存在: videoID=$videoID"))
       _ <- QueryVideoInfoMessage(None, videoID).send
 
       // Step 3: 检查评论内容是否符合要求
@@ -48,7 +48,7 @@ case class PublishCommentMessagePlanner(
       _ <- validateCommentContent(commentContent)
 
       // Step 4: 校验回复的目标评论是否存在（如果存在replyToCommentID 并提取 rootID）
-      _ <- IO(logger.info(s"校验目标评论是否存在: replyToCommentID=${replyToCommentID}"))
+      _ <- IO(logger.info(s"校验目标评论是否存在: replyToCommentID=$replyToCommentID"))
       _ <- replyToCommentID match {
         case Some(id) => checkCommentExists(id)
         case None => IO.unit
@@ -59,12 +59,12 @@ case class PublishCommentMessagePlanner(
       _ <- IO(logger.info("组装数据并插入到数据库"))
       (timeStamp, curID) <- insertComment(userID, videoID, commentContent, replyToCommentID, replyToUserID, rootID)
 
-      _ <- IO(logger.info(s"新插入的commentID=${curID}"))
+      _ <- IO(logger.info(s"新插入的commentID=$curID"))
       // Step 6: 如果是回复，发送通知并增加所属楼层回复数
       _ <- rootID match {
         case None => IO.unit
         case Some(rootID) =>
-          writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
+          writeDB(s"UPDATE $schemaName.comment_table SET reply_count = reply_count + 1 WHERE comment_id = ?",
             List(SqlParameter("Int", rootID.toString))) >> SendReplyNoticeMessage(token, curID).send
       }
     } yield Comment(curID, commentContent, videoID, userID, replyToCommentID, replyToUserID, 0, 0, timeStamp)
@@ -78,7 +78,7 @@ case class PublishCommentMessagePlanner(
   private def checkCommentExists(commentID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |SELECT COUNT(*) FROM ${schemaName}.comment_table
+         |SELECT COUNT(*) FROM $schemaName.comment_table
          |WHERE comment_id = ?;
        """.stripMargin
     readDBBoolean(sql, List(SqlParameter("Int", commentID.toString)))
@@ -87,7 +87,7 @@ case class PublishCommentMessagePlanner(
 
   private def validateTargetComment(replyToCommentID: Option[Int])(using PlanContext): IO[(Option[Int],Option[Int])] = {
     val sql = s"""
-         |SELECT author_id, root_id FROM ${schemaName}.comment_table
+         |SELECT author_id, root_id FROM $schemaName.comment_table
          |WHERE comment_id = ?;
          |""".stripMargin
     replyToCommentID match {
@@ -104,7 +104,7 @@ case class PublishCommentMessagePlanner(
   private def validateCommentContent(commentContent: String)(using PlanContext): IO[Unit] = {
     if (commentContent.isEmpty || commentContent.length > 500) {
       IO {
-        logger.error(s"无效的评论内容: commentContent='${commentContent}' 长度=${commentContent.length}")
+        logger.error(s"无效的评论内容: commentContent='$commentContent' 长度=${commentContent.length}")
       } >> IO.raiseError(InvalidInputException("Invalid Comment Content"))
     } else {
       IO.unit
@@ -125,7 +125,7 @@ case class PublishCommentMessagePlanner(
         case (Some(replyToCommentID), Some(replyToUserID), Some(rootID)) =>
           readDBInt(
             s"""
-               |INSERT INTO ${schemaName}.comment_table
+               |INSERT INTO $schemaName.comment_table
                |  (content, video_id, author_id, reply_to_id, reply_to_user_id, root_id, likes, time_stamp)
                |VALUES (?, ?, ?, ?, ?, ?, 0, ?)
                |RETURNING comment_id;
@@ -142,7 +142,7 @@ case class PublishCommentMessagePlanner(
         case (None, None, None) =>
           readDBInt(
             s"""
-               |INSERT INTO ${schemaName}.comment_table
+               |INSERT INTO $schemaName.comment_table
                |  (content, video_id, author_id, likes, time_stamp)
                |VALUES (?, ?, ?, 0, ?)
                |RETURNING comment_id;

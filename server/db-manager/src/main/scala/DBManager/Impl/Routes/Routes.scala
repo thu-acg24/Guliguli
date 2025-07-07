@@ -59,7 +59,7 @@ object Routes:
 
   private def executePlan(messageType: String, str: String, dataSourceRef: Ref[IO, Option[HikariDataSource]], connectionMap: Ref[IO, Map[String, Connection]]): IO[String] = {
     // Check the current state of dataSourceRef
-    IO.println(s"messageType = ${messageType}, str = ${str}")
+    IO.println(s"messageType = $messageType, str = $str")
 
     dataSourceRef.get.flatMap {
       case None =>

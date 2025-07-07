@@ -61,7 +61,7 @@ import org.joda.time.format.ISODateTimeFormat
       _ <- result match
         case Left(value:InvalidInputException) => IO.unit
         case Left(value) => IO.pure(value.printStackTrace())
-        case Right(value) => IO.println(s"result = ${result}")
+        case Right(value) => IO.println(s"result = $result")
 
       finalResult <- commitOrRollbackAction(result)
     } yield finalResult

@@ -31,11 +31,11 @@ case class QueryUserInfoMessagePlanner(
   override def plan(using PlanContext): IO[UserInfo] = {
     for {
       // Step 1: Query the UserTable for the specific userID
-      _ <- IO(logger.info(s"[Step 1] 开始在UserTable查询userID为${userID}的用户基本信息"))
+      _ <- IO(logger.info(s"[Step 1] 开始在UserTable查询userID为$userID的用户基本信息"))
       userJson <- queryUserRecord(userID)
 
       // Step 2: Handle the query result and validate user's ban status
-      _ <- IO(logger.info(s"[Step 1.2] 成功查询到userID为${userID}的用户信息，开始解析"))
+      _ <- IO(logger.info(s"[Step 1.2] 成功查询到userID为$userID的用户信息，开始解析"))
       result <- validateAndWrapUserRecord(userJson)
     } yield result
   }
@@ -47,11 +47,11 @@ case class QueryUserInfoMessagePlanner(
       sql <- IO {
         s"""
            |SELECT user_id, username, avatar_path, is_banned, bio
-           |FROM ${schemaName}.user_table
+           |FROM $schemaName.user_table
            |WHERE user_id = ?;
          """.stripMargin
       }
-      _ <- IO(logger.info(s"[Step 1.1.2] 数据库指令为: ${sql}"))
+      _ <- IO(logger.info(s"[Step 1.1.2] 数据库指令为: $sql"))
       parameters <- IO(List(SqlParameter("Int", userID.toString)))
       userJson <- readDBJson(sql, parameters)
     } yield userJson
@@ -88,7 +88,7 @@ case class QueryUserInfoMessagePlanner(
           bio = bio,
           isBanned = isBanned
         )
-        logger.info(s"[Step 2.3] 封装成UserInfo对象: ${userInfo}")
+        logger.info(s"[Step 2.3] 封装成UserInfo对象: $userInfo")
         userInfo
       }
     } yield userInfo

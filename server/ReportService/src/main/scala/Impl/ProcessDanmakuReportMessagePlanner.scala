@@ -49,10 +49,10 @@ case class ProcessDanmakuReportMessagePlanner(
       _ <- updateReportStatus(reportID, status)
       _ <- deleteDanmakuIfNeeded(danmakuID)
       _ <- SendNotificationMessage(token, reporterID,
-        s"您在视频 ${videoTitle} 下举报的弹幕 ${danmakuContent} 已被处理").send
+        s"您在视频 $videoTitle 下举报的弹幕 $danmakuContent 已被处理").send
       _ <- status match {
         case ReportStatus.Resolved => SendNotificationMessage(token, danmakuAuthorID,
-          s"您在视频 ${videoTitle} 下的弹幕 ${danmakuContent} 被举报并已被审核员删除").send
+          s"您在视频 $videoTitle 下的弹幕 $danmakuContent 被举报并已被审核员删除").send
         case _ => IO.unit
       }
     } yield ()
@@ -62,9 +62,9 @@ case class ProcessDanmakuReportMessagePlanner(
                                    reportID: Int
                                  )(using PlanContext): IO[(Int, Int)] = {
     for {
-      _ <- IO(logger.info(s"校验 reportID [${reportID}] 是否存在"))
+      _ <- IO(logger.info(s"校验 reportID [$reportID] 是否存在"))
       result <- readDBJsonOptional(
-        s"SELECT reporter_id, comment_id, status FROM ${schemaName}.report_danmaku_table WHERE report_id = ?;",
+        s"SELECT reporter_id, comment_id, status FROM $schemaName.report_danmaku_table WHERE report_id = ?;",
         List(SqlParameter("Int", reportID.toString))
       )
     } yield result match {
@@ -85,7 +85,7 @@ case class ProcessDanmakuReportMessagePlanner(
                                        commentID: Int
                                      )(using PlanContext): IO[(String, Int, String, Int)] = {
     for {
-      _ <- IO(logger.info(s"校验评论 [${commentID}] 和其所属视频是否存在"))
+      _ <- IO(logger.info(s"校验评论 [$commentID] 和其所属视频是否存在"))
       comment <- QueryDanmakuByIDMessage(commentID).send
       videoID = comment.videoID
       video <- QueryVideoInfoMessage(Some(token), videoID).send
@@ -104,9 +104,9 @@ case class ProcessDanmakuReportMessagePlanner(
                                                                       PlanContext
   ): IO[String] = {
     for {
-      _ <- IO(logger.info(s"更新举报记录状态为 ${status}"))
+      _ <- IO(logger.info(s"更新举报记录状态为 $status"))
       writeResult <- writeDB(
-        s"UPDATE ${schemaName}.report_danmaku_table SET status = ? WHERE report_id = ?;",
+        s"UPDATE $schemaName.report_danmaku_table SET status = ? WHERE report_id = ?;",
         List(
           SqlParameter("String", status.toString),
           SqlParameter("Int", reportID.toString)

@@ -36,7 +36,7 @@ case object PerferenceProcess {
       _ <- IO(logger.info(s"视频videoID=$userID 的embedding为${userVector.toString}"))
       _ <- userRatio.map(ratio => writeDB(
         s"""
-           |UPDATE ${schemaName}.video_info_table
+           |UPDATE $schemaName.video_info_table
            |SET embedding = ?
            |WHERE video_id = ?
            |""".stripMargin, List(
@@ -45,7 +45,7 @@ case object PerferenceProcess {
         ))).getOrElse(IO.pure(""))
       _ <- videoRatio.map(ratio => writeDB(
         s"""
-           |UPDATE ${schemaName}.user_info_table
+           |UPDATE $schemaName.user_info_table
            |SET embedding = ?
            |WHERE user_id = ?
            |""".stripMargin, List(
@@ -59,7 +59,7 @@ case object PerferenceProcess {
     readDBJson(
       s"""
          |SELECT embedding
-         |FROM ${schemaName}.video_info_table
+         |FROM $schemaName.video_info_table
          |WHERE video_id = ?
          |""".stripMargin, List(
         SqlParameter("Int", videoID.toString)
@@ -70,7 +70,7 @@ case object PerferenceProcess {
     readDBJsonOptional(
       s"""
          |SELECT embedding
-         |FROM ${schemaName}.user_info_table
+         |FROM $schemaName.user_info_table
          |WHERE user_id = ?
          |""".stripMargin, List(
         SqlParameter("Int", userID.toString)
@@ -86,7 +86,7 @@ case object PerferenceProcess {
       initVector <- PGVector.fromString(UUID.randomUUID().toString)
       _ <- writeDB(
         s"""
-           |INSERT INTO ${schemaName}.user_info_table
+           |INSERT INTO $schemaName.user_info_table
            |(user_id, embedding)
            |VALUES (?, ?)
            |""".stripMargin, List(

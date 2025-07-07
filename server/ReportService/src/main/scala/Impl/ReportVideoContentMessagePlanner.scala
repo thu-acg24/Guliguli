@@ -33,16 +33,16 @@ case class ReportVideoContentMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       // Step 1: 校验 token 是否有效并获取 userID
-      _ <- IO(logger.info(s"Validating token: ${token}"))
+      _ <- IO(logger.info(s"Validating token: $token"))
       userID <- GetUIDByTokenMessage(token).send
       // Step 2: 检测弹幕是否存在
       _ <- QueryVideoInfoMessage(Some(token), videoID).send
       // Step 3: 检查重复举报
-      _ <- IO(logger.info(s"Checking for duplicate pending reports for videoID: ${videoID} and userID: ${userID}"))
+      _ <- IO(logger.info(s"Checking for duplicate pending reports for videoID: $videoID and userID: $userID"))
       alreadyExists <- checkDuplicateReport(videoID, userID)
       _ <- if alreadyExists then IO.raiseError(InvalidInputException("已经举报过该视频")) else IO.unit
       // Step 4: 插入举报记录
-      _ <- IO(logger.info(s"Inserting new report for videoID: ${videoID}, userID: ${userID}, reason: ${reason}"))
+      _ <- IO(logger.info(s"Inserting new report for videoID: $videoID, userID: $userID, reason: $reason"))
       _ <- insertReportRecord(userID, videoID, reason)
     } yield ()
   }
@@ -51,7 +51,7 @@ case class ReportVideoContentMessagePlanner(
     val sql =
       s"""
          SELECT COUNT(1)
-         FROM ${schemaName}.report_video_table
+         FROM $schemaName.report_video_table
          WHERE video_id = ? AND reporter_id = ? AND status = 'Pending';
        """
     readDBInt(
@@ -66,7 +66,7 @@ case class ReportVideoContentMessagePlanner(
   private def insertReportRecord(userID: Int, videoID: Int, reason: String)(using PlanContext): IO[String] = {
     val sql =
       s"""
-         INSERT INTO ${schemaName}.report_video_table
+         INSERT INTO $schemaName.report_video_table
          (video_id, reporter_id, reason, status, timestamp)
          VALUES (?, ?, ?, 'Pending', ?)
        """

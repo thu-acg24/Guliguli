@@ -34,8 +34,8 @@ case class QueryFavoriteVideosMessagePlanner(
     val sql = s"""
       SELECT v.video_id, v.title, v.description, v.duration, v.cover,
              v.uploader_id, v.views, v.likes, v.favorites, v.status, v.upload_time
-      FROM ${schemaName}.video_table v
-      INNER JOIN ${schemaName}.favorite_record_table f ON v.video_id = f.video_id
+      FROM $schemaName.video_table v
+      INNER JOIN $schemaName.favorite_record_table f ON v.video_id = f.video_id
       WHERE f.user_id = ? AND v.status = 'Approved'
       ORDER BY f.timestamp DESC;
     """

@@ -36,27 +36,27 @@ case class ModifyVideoMessagePlanner(
 
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
-      _ <- IO(logger.info(s"Start ModifyVideoMessagePlanner with token: ${token}, videoID: ${videoID}"))
+      _ <- IO(logger.info(s"Start ModifyVideoMessagePlanner with token: $token, videoID: $videoID"))
 
       // Step 1: Validate token
       userID <- GetUIDByTokenMessage(token).send
 
       // Step 2: Validate video existence and fetch uploader ID
-      _ <- IO(logger.info(s"开始校验视频ID是否合法, videoID=${videoID}"))
+      _ <- IO(logger.info(s"开始校验视频ID是否合法, videoID=$videoID"))
       (uploaderID, status) <- fetchUploaderIDAndStatus(videoID)
-      _ <- IO(logger.info(s"获取到视频的上传者ID: ${uploaderID} 状态: ${status}"))
+      _ <- IO(logger.info(s"获取到视频的上传者ID: $uploaderID 状态: $status"))
 
       // Step 3: Check user permissions
-      _ <- IO(logger.info(s"开始校验用户是否有权限修改该视频, userID=${userID}, uploaderID=${uploaderID}"))
+      _ <- IO(logger.info(s"开始校验用户是否有权限修改该视频, userID=$userID, uploaderID=$uploaderID"))
       hasPermission <- IO(userID == uploaderID)
-      _ <- IO(logger.info(s"权限校验结果: ${hasPermission}"))
+      _ <- IO(logger.info(s"权限校验结果: $hasPermission"))
       _ <- IO.raiseUnless(hasPermission)(InvalidInputException("Permission Denied"))
 
       // Step 4: Update video fields
       _ <- updateVideo(videoID, title, description, tag, status)
 
       // Step 5: Notify RecommendationService about video update
-      _ <- IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video update: videoID=${videoID}"))
+      _ <- IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video update: videoID=$videoID"))
       _ <- UpdateVideoInfoMessage(token, videoID).send
     } yield ()
   }
@@ -68,7 +68,7 @@ case class ModifyVideoMessagePlanner(
     val sql =
       s"""
         SELECT uploader_id, status
-        FROM ${schemaName}.video_table
+        FROM $schemaName.video_table
         WHERE video_id = ?;
       """
     readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
@@ -98,12 +98,12 @@ case class ModifyVideoMessagePlanner(
       }
       
       result <- if (updates.isEmpty) {
-        IO(logger.info(s"No fields to update for videoID: ${videoID}")).as("")
+        IO(logger.info(s"No fields to update for videoID: $videoID")).as("")
       } else {
         val (setClause, sqlParams) = updates.unzip
         val sql =
           s"""
-             UPDATE ${schemaName}.video_table
+             UPDATE $schemaName.video_table
              SET ${setClause.mkString(", ")}
              WHERE video_id = ?;
            """

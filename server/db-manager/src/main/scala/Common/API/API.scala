@@ -79,7 +79,7 @@ object API {
 
   def send[T: Decoder, A <: API[T] : Encoder](message: A)(using context: PlanContext): IO[T] =
     for {
-      _ <- logger.info(s"Preparing to send message ${message}")
+      _ <- logger.info(s"Preparing to send message $message")
       uri <- message.getURIWithAPIMessageName
       modifiedJson = JacksonSerializeUtils.serializeToJson(message)
         .mapObject { jsonObj => jsonObj.add("planContext", Json.obj("traceID" -> context.traceID.asJson, "transactionLevel" -> Json.fromInt(context.transactionLevel)))

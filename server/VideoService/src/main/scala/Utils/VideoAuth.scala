@@ -53,7 +53,7 @@ case object VideoAuth {
       videoQueryResult <- readDBJsonOptional(
         s"""
           SELECT uploader_id, status
-          FROM ${schemaName}.video_table
+          FROM $schemaName.video_table
           WHERE video_id = ?;
         """.stripMargin,
         List(SqlParameter("Int", videoID.toString))

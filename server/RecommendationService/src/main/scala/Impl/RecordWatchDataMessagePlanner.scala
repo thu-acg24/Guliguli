@@ -46,7 +46,7 @@ case class RecordWatchDataMessagePlanner(
       lastWatchOpt <- readDBJsonOptional(
         s"""
            |SELECT watch_id, created_at
-           |FROM ${schemaName}.video_record_table
+           |FROM $schemaName.video_record_table
            |WHERE user_id = ? AND video_id = ?;
            |""".stripMargin, List(
           SqlParameter("Int", userID.toString),
@@ -56,7 +56,7 @@ case class RecordWatchDataMessagePlanner(
       _ <- lastWatchOpt match {
         case Some(json) => writeDB(
           s"""
-             |UPDATE ${schemaName}.video_record_table
+             |UPDATE $schemaName.video_record_table
              |SET created_at = ?
              |WHERE watch_id = ?
              |""".stripMargin,List(
@@ -70,7 +70,7 @@ case class RecordWatchDataMessagePlanner(
         )
         case None => writeDB(
           s"""
-             |INSERT INTO ${schemaName}.video_record_table
+             |INSERT INTO $schemaName.video_record_table
              |(user_id, video_id, created_at)
              |VALUES (?, ?, ?)
              |""".stripMargin,List(
@@ -86,7 +86,7 @@ case class RecordWatchDataMessagePlanner(
   private def updateViewCount(videoID: Int)(using PlanContext): IO[Unit] = {
     writeDB(
       s"""
-         |UPDATE ${schemaName}.video_info_table
+         |UPDATE $schemaName.video_info_table
          |SET view_count = view_count + 1
          |WHERE video_id = ?
          |""".stripMargin, List(

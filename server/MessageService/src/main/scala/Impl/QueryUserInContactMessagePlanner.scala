@@ -32,10 +32,10 @@ case class QueryUserInContactMessagePlanner(
       // Step 1: Validate token and retrieve userID
       _ <- IO(logger.info(s"验证Token获取用户ID"))
       userID <- validateAndRetrieveUserID()
-      _ <- IO(logger.info(s"Token验证成功, userID=${userID}"))
+      _ <- IO(logger.info(s"Token验证成功, userID=$userID"))
       // Step 2: Retrieve contact user IDs
       contactUserIDs <- retrieveContactUserIDs(userID)
-      _ <- IO(logger.info(s"与当前用户有联系的用户ID列表: ${contactUserIDs}"))
+      _ <- IO(logger.info(s"与当前用户有联系的用户ID列表: $contactUserIDs"))
       // Step 3: Query contact user information
       userInfo <- retrieveContactUserInfo(contactUserIDs)
       userWithMessage <- userInfo.traverse(combineInformation)
@@ -53,11 +53,11 @@ case class QueryUserInContactMessagePlanner(
           |WHEN sender_id = ? THEN receiver_id
           |WHEN receiver_id = ? THEN sender_id
           |END AS contact_user_id
-          |FROM ${schemaName}.message_table
+          |FROM $schemaName.message_table
           |WHERE (sender_id = ? OR receiver_id = ?)
       """.stripMargin
     IO(logger.info("开始创建获取联系人ID的数据库指令"))*>
-    IO(logger.info(s"指令为${sql}")) *>
+    IO(logger.info(s"指令为$sql")) *>
     readDBRows(sql, List.fill(4)(SqlParameter("Int", userID.toString))).map {
       rows => rows.map(json => decodeField[Int](json, "contact_user_id"))
     }
@@ -67,7 +67,7 @@ case class QueryUserInContactMessagePlanner(
     IO(logger.info("开始根据联系人ID获取用户信息"))
     contactUserIDs.traverse { id =>
       QueryUserInfoMessage(id).send.map { userInfo =>
-        logger.info(s"成功获取用户信息: ${userInfo}")
+        logger.info(s"成功获取用户信息: $userInfo")
         userInfo
       }
     }

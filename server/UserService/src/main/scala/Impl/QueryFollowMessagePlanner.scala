@@ -32,7 +32,7 @@ case class QueryFollowMessagePlanner(
       
       // Step 2: Check if userA follows userB
       isFollowing <- checkFollowStatus(userA, userB)
-      _ <- IO(logger.info(s"[QueryFollow] UserA ${userA} follows UserB ${userB}: ${isFollowing}"))
+      _ <- IO(logger.info(s"[QueryFollow] UserA $userA follows UserB $userB: $isFollowing"))
     } yield isFollowing
   }
 
@@ -43,15 +43,15 @@ case class QueryFollowMessagePlanner(
   }
 
   private def validateUserExists(userID: Int, userType: String)(using PlanContext): IO[Unit] = {
-    val sql = s"SELECT user_id FROM ${schemaName}.user_table WHERE user_id = ?;"
+    val sql = s"SELECT user_id FROM $schemaName.user_table WHERE user_id = ?;"
     readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString))).map {
       case Some(_) => ()
-      case None => throw InvalidInputException(s"User ${userType} (ID: ${userID}) does not exist")
+      case None => throw InvalidInputException(s"User $userType (ID: $userID) does not exist")
     }
   }
 
   private def checkFollowStatus(userA: Int, userB: Int)(using PlanContext): IO[Boolean] = {
-    val sql = s"SELECT * FROM ${schemaName}.follow_relation_table WHERE follower_id = ? AND followee_id = ?;"
+    val sql = s"SELECT * FROM $schemaName.follow_relation_table WHERE follower_id = ? AND followee_id = ?;"
     readDBJsonOptional(sql, List(
       SqlParameter("Int", userA.toString),
       SqlParameter("Int", userB.toString)

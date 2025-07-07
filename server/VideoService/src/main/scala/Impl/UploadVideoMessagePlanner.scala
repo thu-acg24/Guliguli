@@ -79,7 +79,7 @@ case class UploadVideoMessagePlanner(
 
   private def storeVideoInfo(userID: Int)(using PlanContext): IO[Int] = {
     val sql =
-      s"INSERT INTO ${schemaName}.video_table (title, description, tag, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?) RETURNING video_id;"
+      s"INSERT INTO $schemaName.video_table (title, description, tag, uploader_id, upload_time) VALUES (?, ?, ?, ?, ?) RETURNING video_id;"
     for {
       timestamp <- IO(DateTime.now().getMillis.toString)
       parameters = List(

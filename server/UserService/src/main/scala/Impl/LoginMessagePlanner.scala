@@ -32,11 +32,11 @@ case class LoginMessagePlanner(
   override def plan(using PlanContext): IO[String] = {
     for {
       // Step 1: Query user information from UserTable
-      _ <- IO(logger.info(s"查询用户信息，输入的usernameOrEmail为：${usernameOrEmail}"))
+      _ <- IO(logger.info(s"查询用户信息，输入的usernameOrEmail为：$usernameOrEmail"))
       userJson <- getUserByUsernameOrEmail()
       userID <- IO(decodeField[Int](userJson, "user_id"))
       // Step 2: Validate the password
-      _ <- IO(logger.info(s"开始验证用户ID为${userID}的密码"))
+      _ <- IO(logger.info(s"开始验证用户ID为$userID的密码"))
       _ <- validatePassword(userID, password)
       _ <- IO(logger.info(s"检查用户是否被封禁，用户ID为$userID"))
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
@@ -53,7 +53,7 @@ case class LoginMessagePlanner(
     val sql =
       s"""
         SELECT user_id, password_hash, is_banned
-        FROM ${schemaName}.user_table
+        FROM $schemaName.user_table
         WHERE username = ? OR email = ?;
       """
     val params = List(
@@ -73,9 +73,9 @@ case class LoginMessagePlanner(
 
   private def generateTokenResponse(userID: Int)(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"为用户ID ${userID} 生成Token"))
+      _ <- IO(logger.info(s"为用户ID $userID 生成Token"))
       token <- generateToken(userID)
-      response <- IO(logger.info(s"Token生成成功, Token为：${token}")).as(token)
+      response <- IO(logger.info(s"Token生成成功, Token为：$token")).as(token)
     } yield response
   }
 }

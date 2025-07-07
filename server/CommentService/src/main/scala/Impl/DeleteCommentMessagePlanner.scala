@@ -45,21 +45,21 @@ case class DeleteCommentMessagePlanner(
       // Step 5: 减少回复数或直接删除所有二级评论
       _ <- rootID match {
         case None =>
-          writeDB(s"DELETE FROM ${schemaName}.comment_table WHERE root_id = ?",
+          writeDB(s"DELETE FROM $schemaName.comment_table WHERE root_id = ?",
             List(SqlParameter("Int", commentID.toString)))
         case Some(commentID) =>
-          writeDB(s"UPDATE ${schemaName}.comment_table SET reply_count = reply_count - 1 WHERE comment_id = ?",
+          writeDB(s"UPDATE $schemaName.comment_table SET reply_count = reply_count - 1 WHERE comment_id = ?",
             List(SqlParameter("Int", commentID.toString)))
       }
     } yield ()
   }
 
   private def validateCommentExistsAndFetchAuthor(commentID: Int)(using PlanContext): IO[(Int, Int, Option[Int])] = {
-    logger.info(s"验证评论是否存在并获取作者ID和对应视频ID, commentID: ${commentID}")
+    logger.info(s"验证评论是否存在并获取作者ID和对应视频ID, commentID: $commentID")
     val sql =
       s"""
 SELECT author_id, video_id, root_id
-FROM ${schemaName}.comment_table
+FROM $schemaName.comment_table
 WHERE comment_id = ?;
 """.stripMargin
 
@@ -74,7 +74,7 @@ WHERE comment_id = ?;
   }
 
   private def checkUserPermission(userID: Int, authorID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    logger.info(s"检查用户[userID: ${userID}]的删除权限")
+    logger.info(s"检查用户[userID: $userID]的删除权限")
     if (userID == authorID) {
       // 用户是评论的作者
       IO(logger.info("用户是评论的作者，允许删除")).void
@@ -113,10 +113,10 @@ WHERE comment_id = ?;
   }
 
   private def deleteComment(commentID: Int)(using PlanContext): IO[String] = {
-    logger.info(s"从CommentTable中删除记录, commentID: ${commentID}")
+    logger.info(s"从CommentTable中删除记录, commentID: $commentID")
     val sql =
       s"""
-DELETE FROM ${schemaName}.comment_table
+DELETE FROM $schemaName.comment_table
 WHERE comment_id = ?;
 """.stripMargin
 

@@ -43,7 +43,7 @@ case class ChangeBanStatusMessagePlanner(
     val sql =
       s"""
     SELECT 1
-    FROM ${schemaName}.user_table
+    FROM $schemaName.user_table
     WHERE user_id = ?
            """.stripMargin
 
@@ -51,7 +51,7 @@ case class ChangeBanStatusMessagePlanner(
       .flatMap {
         case Some(_) => IO.unit // 查询到目标用户
         case None =>
-            IO(logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=${userID})")) *>
+            IO(logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
             IO.raiseError(new InvalidInputException(s"未在数据库中找到目标用户"))
       }
   }
@@ -70,7 +70,7 @@ case class ChangeBanStatusMessagePlanner(
   private def updateBanStatus()(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-UPDATE ${schemaName}.user_table
+UPDATE $schemaName.user_table
 SET is_banned = ?, updated_at = ?
 WHERE user_id = ?
        """.stripMargin
@@ -84,7 +84,7 @@ WHERE user_id = ?
         SqlParameter("Int", userID.toString)
       )
     ).map(_ =>
-      logger.info(s"[ChangeBanStatus] 成功更新用户(userID=${userID})封禁状态为: ${isBan}")
+      logger.info(s"[ChangeBanStatus] 成功更新用户(userID=$userID)封禁状态为: $isBan")
     )
   }
 }

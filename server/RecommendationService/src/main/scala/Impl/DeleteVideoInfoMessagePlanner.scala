@@ -31,14 +31,14 @@ case class DeleteVideoInfoMessagePlanner(
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
       // Step 1: Validate user token
-      _ <- IO(logger.info(s"Validating token: ${token}"))
+      _ <- IO(logger.info(s"Validating token: $token"))
       userID <- GetUIDByTokenMessage(token).send
       // Step 2: Verify if the user is the uploader of the video
-      _ <- IO(logger.info(s"Checking if user ${userID} is the uploader of video ID: ${videoID}"))
+      _ <- IO(logger.info(s"Checking if user $userID is the uploader of video ID: $videoID"))
       video <- QueryVideoInfoMessage(Some(token), videoID).send
       _ <- IO.raiseUnless(video.uploaderID == userID)(InvalidInputException("用户不是视频上传者"))
       // Step 3: Delete video metadata
-      _ <- IO(logger.info(s"Deleting video metadata for video ID: ${videoID}"))
+      _ <- IO(logger.info(s"Deleting video metadata for video ID: $videoID"))
       - <- deleteVideoMetadata
     } yield ()
   }
@@ -46,11 +46,11 @@ case class DeleteVideoInfoMessagePlanner(
   private def deleteVideoMetadata(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |DELETE FROM ${schemaName}.video_info_table
+         |DELETE FROM $schemaName.video_info_table
          |WHERE video_id = ?;
        """.stripMargin
 
-    IO(logger.info(s"Executing SQL to delete video metadata: ${sql}"))>>
+    IO(logger.info(s"Executing SQL to delete video metadata: $sql"))>>
     writeDB(sql, List(SqlParameter("Int", videoID.toString))).as(())
   }
 }

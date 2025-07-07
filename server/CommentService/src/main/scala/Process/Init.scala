@@ -39,7 +39,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."comment_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."comment_table" (
             comment_id SERIAL NOT NULL PRIMARY KEY,
             content TEXT NOT NULL,
             video_id INT NOT NULL,
@@ -55,13 +55,13 @@ object Init {
         List()
       )
       _ <- writeDB(
-        s"""CREATE INDEX IF NOT EXISTS idx_comment_timestamp ON "${schemaName}"."comment_table"(time_stamp);
+        s"""CREATE INDEX IF NOT EXISTS idx_comment_timestamp ON "$schemaName"."comment_table"(time_stamp);
            |""".stripMargin, List())
       _ <- writeDB(
-        s"""CREATE INDEX IF NOT EXISTS idx_comment_root_id ON "${schemaName}"."comment_table"(root_id);
+        s"""CREATE INDEX IF NOT EXISTS idx_comment_root_id ON "$schemaName"."comment_table"(root_id);
            |""".stripMargin, List())
       _ <- writeDB(
-        s"""CREATE INDEX IF NOT EXISTS idx_comment_video_id ON "${schemaName}"."comment_table"(video_id);
+        s"""CREATE INDEX IF NOT EXISTS idx_comment_video_id ON "$schemaName"."comment_table"(video_id);
            |""".stripMargin, List())
       /** 点赞评论记录表，保存用户对评论的点赞情况
        * user_id: 点赞用户的ID
@@ -70,7 +70,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."like_comment_record_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."like_comment_record_table" (
             like_record_id SERIAL NOT NULL PRIMARY KEY,
             user_id INT NOT NULL,
             comment_id INT NOT NULL,

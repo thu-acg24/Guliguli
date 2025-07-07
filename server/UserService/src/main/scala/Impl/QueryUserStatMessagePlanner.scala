@@ -35,19 +35,19 @@ case class QueryUserStatMessagePlanner(
     val sqlFollowers =
       s"""
          |SELECT COUNT(*) AS count
-         |FROM ${schemaName}.follow_relation_table
+         |FROM $schemaName.follow_relation_table
          |WHERE followee_id = ?;
            """.stripMargin
     val sqlFollowings =
       s"""
          |SELECT COUNT(*) AS count
-         |FROM ${schemaName}.follow_relation_table
+         |FROM $schemaName.follow_relation_table
          |WHERE follower_id = ?;
            """.stripMargin
     val queryParams = List(SqlParameter("Int", userID.toString)) // SQL参数
     for {
       // Step 1: Validate userID and log the operation
-      _ <- IO(logger.info(s"开始查询数据库: ${userID}"))
+      _ <- IO(logger.info(s"开始查询数据库: $userID"))
       resultFollower <- readDBInt(sqlFollowers, queryParams)
       resultFollowing <- readDBInt(sqlFollowings, queryParams)
     } yield UserStat(resultFollower, resultFollowing)

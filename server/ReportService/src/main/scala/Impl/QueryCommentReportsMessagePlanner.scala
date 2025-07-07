@@ -41,13 +41,13 @@ case class QueryCommentReportsMessagePlanner(
     val query =
       s"""
          |SELECT report_id, comment_id, reporter_id, reason, status, timestamp
-         |FROM ${schemaName}.report_comment_table
+         |FROM $schemaName.report_comment_table
          |WHERE status = ?
          |ORDER BY timestamp ASC;
          """.stripMargin
 
     val params = List(SqlParameter("String", ReportStatus.Pending.toString))
-    logger.info(s"查询待处理举报评论记录的SQL：${query}，参数：${params}")
+    logger.info(s"查询待处理举报评论记录的SQL：$query，参数：$params")
 
     readDBRows(query, params).map(_.map(parseReportComment))
   }

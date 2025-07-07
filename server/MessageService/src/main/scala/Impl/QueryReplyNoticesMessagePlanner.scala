@@ -86,7 +86,7 @@ case class QueryReplyNoticesMessagePlanner(
   private def readReplyNotices(userID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |UPDATE ${schemaName}.reply_notice_table
+         |UPDATE $schemaName.reply_notice_table
          |SET unread = FALSE
          |WHERE
          |    (receiver_id = ?)

@@ -96,7 +96,7 @@ case class QueryMessagesMessagePlanner(
   private def readMessageBetweenUsers(userID: Int, targetID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |UPDATE ${schemaName}.message_table
+         |UPDATE $schemaName.message_table
          |SET unread = FALSE
          |WHERE
          |(receiver_id = ? AND sender_id = ?)

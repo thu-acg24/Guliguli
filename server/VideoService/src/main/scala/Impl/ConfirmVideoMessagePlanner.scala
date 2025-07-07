@@ -53,7 +53,7 @@ case class ConfirmVideoMessagePlanner(
   private def updateVideoInDB(videoID: Int, sliceCount: Int)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
-           UPDATE ${schemaName}.video_table
+           UPDATE $schemaName.video_table
            SET m3u8_name = ?, ts_prefix = ?, slice_count = ?, duration = ?
            WHERE video_id = ?
          """.stripMargin
@@ -76,7 +76,7 @@ case class ConfirmVideoMessagePlanner(
   private def failureControl(videoID: Int)(using PlanContext): IO[Unit] = {
     val querySQL =
         s"""
-         |UPDATE ${schemaName}.video_table
+         |UPDATE $schemaName.video_table
          |SET m3u8_name = ?, ts_prefix = ?, slice_count = ?, duration = ?, status = ?
          |WHERE video_id = ?
          """.stripMargin

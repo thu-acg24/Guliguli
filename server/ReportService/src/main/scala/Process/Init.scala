@@ -37,7 +37,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."report_danmaku_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."report_danmaku_table" (
             report_id SERIAL NOT NULL PRIMARY KEY,
             danmaku_id INT NOT NULL,
             reporter_id INT NOT NULL,
@@ -60,7 +60,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."report_video_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."report_video_table" (
             report_id SERIAL NOT NULL PRIMARY KEY,
             video_id INT NOT NULL,
             reporter_id INT NOT NULL,
@@ -82,7 +82,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."report_comment_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."report_comment_table" (
             report_id SERIAL NOT NULL PRIMARY KEY,
             comment_id INT NOT NULL,
             reporter_id INT NOT NULL,

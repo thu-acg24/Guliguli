@@ -45,21 +45,21 @@ case object AuthProcess {
       """
     for {
       // Step 1: Attempt to retrieve the password hash from the database
-      _ <- IO(logger.info(s"开始从数据库获取用户ID为${userID}的哈希密码"))
+      _ <- IO(logger.info(s"开始从数据库获取用户ID为$userID的哈希密码"))
       resultOpt <- readDBJsonOptional(sql, List(SqlParameter("Int", userID.toString)))
       json <- resultOpt match {
         case None =>
-          IO(logger.info(s"用户ID ${userID} 不存在")) *>
+          IO(logger.info(s"用户ID $userID 不存在")) *>
           IO.raiseError(new InvalidInputException("用户不存在？"))
         case Some(json) => IO(json)
       }
       storedHash <- IO(decodeField[String](json, "password_hash"))
-      _ <- IO(logger.info(s"成功获取用户 ${userID} 的哈希密码，开始验证密码"))
+      _ <- IO(logger.info(s"成功获取用户 $userID 的哈希密码，开始验证密码"))
       isMatch <- IO(BCrypt.checkpw(inputPassword, storedHash))
       _ <- if (isMatch) {
-        IO(logger.info(s"用户ID ${userID} 的密码匹配成功"))
+        IO(logger.info(s"用户ID $userID 的密码匹配成功"))
       } else {
-        IO(logger.info(s"用户ID ${userID} 的密码验证失败")) *>
+        IO(logger.info(s"用户ID $userID 的密码验证失败")) *>
         IO.raiseError(new InvalidInputException(s"用户密码验证失败"))
       }
     } yield()
@@ -77,28 +77,28 @@ case object AuthProcess {
     val queryParams = List(SqlParameter("String", token))
     // 日志信息，记录token校验开始
     for {
-      _ <- IO(logger.info(s"开始校验Token: ${token}"))
-      _ <- IO(logger.info(s"[Step 1] 执行查询Token的用户信息与过期时间，SQL: ${querySQL}"))
+      _ <- IO(logger.info(s"开始校验Token: $token"))
+      _ <- IO(logger.info(s"[Step 1] 执行查询Token的用户信息与过期时间，SQL: $querySQL"))
       record <- readDBJsonOptional(querySQL, queryParams).flatMap {
           case Some(record) => IO(record)
           case None =>
-            IO(logger.info(s"查询的Token ${token}不存在")) *>
+            IO(logger.info(s"查询的Token $token不存在")) *>
             IO.raiseError(new InvalidInputException(s"Token不存在"))
         }
       userID <- IO(decodeField[Int](record, "user_id"))
       expirationTime <- IO(new DateTime(decodeField[Long](record, "expiration_time")))
       now <- IO(DateTime.now())
       result <- if (now.isBefore(expirationTime)) {
-          IO(logger.info(s"Token有效，返回用户ID: ${userID}")).as(userID)
+          IO(logger.info(s"Token有效，返回用户ID: $userID")).as(userID)
         } else {
           val deleteTokenSQL = s"DELETE FROM $schemaName.token_table WHERE token = ?"
           val deleteTokenParams = List(SqlParameter("String", token))
-          IO(logger.info(s"Token已过期，过期时间: ${expirationTime}, 当前时间: ${now}")) *>
+          IO(logger.info(s"Token已过期，过期时间: $expirationTime, 当前时间: $now")) *>
           writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
             case Right(_) =>
-              IO(logger.info(s"Outdated token '${token}' successfully removed from TokenTable."))
+              IO(logger.info(s"Outdated token '$token' successfully removed from TokenTable."))
             case Left(e) =>
-              val errorMessage = s"Failed to delete outdated token '${token}' from TokenTable: ${e.getMessage}"
+              val errorMessage = s"Failed to delete outdated token '$token' from TokenTable: ${e.getMessage}"
               IO(logger.error(errorMessage))
           } *>
           IO.raiseError(new InvalidInputException(s"Token已过期，请重新登录"))
@@ -111,7 +111,7 @@ case object AuthProcess {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
     val expirationTime = new DateTime().plusHours(24)
     val randomPart = UUID.randomUUID().toString
-    val generatedToken = s"${randomPart}_${userID}"
+    val generatedToken = s"$randomPart_$userID"
     val writeSQL = s"""
       |INSERT INTO $schemaName.token_table (token, user_id, expiration_time)
       |VALUES (?, ?, ?);
@@ -122,8 +122,8 @@ case object AuthProcess {
       SqlParameter("DateTime", expirationTime.getMillis.toString)
     )
     for {
-      _ <- IO(logger.info(s"开始生成Token，输入的userID为：${userID}"))
-      _ <- IO(logger.info(s"生成的Token为：${generatedToken}"))
+      _ <- IO(logger.info(s"开始生成Token，输入的userID为：$userID"))
+      _ <- IO(logger.info(s"生成的Token为：$generatedToken"))
       _ <- IO(logger.info(s"设置的Token过期时间为：$expirationTime"))
       _ <- IO(logger.info(s"准备将生成的Token保存到数据库中，SQL为：$writeSQL"))
       _ <- writeDB(writeSQL, writeParams)

@@ -50,7 +50,7 @@ case class ConfirmCoverMessagePlanner(
   private def updateCoverLinkInDB(videoID: Int, objectName: String)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
-           UPDATE ${schemaName}.video_table
+           UPDATE $schemaName.video_table
            SET cover = ?
            WHERE video_id = ?
          """.stripMargin
@@ -69,7 +69,7 @@ case class ConfirmCoverMessagePlanner(
   private def failureControl(videoID: Int)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
-               UPDATE ${schemaName}.video_table
+               UPDATE $schemaName.video_table
                SET cover = ?, status = ?
                WHERE video_id = ?
              """.stripMargin

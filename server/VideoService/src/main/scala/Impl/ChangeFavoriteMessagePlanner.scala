@@ -33,11 +33,11 @@ case class ChangeFavoriteMessagePlanner(
     for {
       // Step 1: Validate Token
       userID <- validateToken()
-      _ <- IO(logger.info(s"UserID: ${userID}"))
+      _ <- IO(logger.info(s"UserID: $userID"))
 
       // Step 2: Validate videoID existence and status
       videoStatus <- validateVideoStatus(videoID)
-      _ <- IO(logger.info(s"VideoStatus: ${videoStatus}"))
+      _ <- IO(logger.info(s"VideoStatus: $videoStatus"))
 
       // Step 3: Update favorite record
       result <- updateFavoriteRecord(userID, videoID, isFav)
@@ -55,7 +55,7 @@ case class ChangeFavoriteMessagePlanner(
   private def validateVideoStatus(videoID: Int)(using PlanContext): IO[Json] = {
     IO(logger.info("[validateVideoStatus] Validating videoID existence and status")) >>
     {
-      val sql = s"SELECT status FROM ${schemaName}.video_table WHERE video_id = ?;"
+      val sql = s"SELECT status FROM $schemaName.video_table WHERE video_id = ?;"
       readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
         case Some(json) =>
           val status = decodeField[String](json, "status")
@@ -74,16 +74,16 @@ case class ChangeFavoriteMessagePlanner(
   }
 
   private def addFavoriteRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[addFavoriteRecord] Adding favorite record for userID=${userID}, videoID=${videoID}")) >> {
-      val checkSql = s"SELECT * FROM ${schemaName}.favorite_record_table WHERE user_id = ? AND video_id = ?;"
+    IO(logger.info(s"[addFavoriteRecord] Adding favorite record for userID=$userID, videoID=$videoID")) >> {
+      val checkSql = s"SELECT * FROM $schemaName.favorite_record_table WHERE user_id = ? AND video_id = ?;"
       readDBJsonOptional(checkSql, List(
         SqlParameter("Int", userID.toString),
         SqlParameter("Int", videoID.toString)
       )).flatMap {
         case Some(_) => IO(logger.info("Already Favorited")) >> IO.unit
         case None =>
-          val insertSql = s"INSERT INTO ${schemaName}.favorite_record_table (user_id, video_id, timestamp) VALUES (?, ?, ?);"
-          val updateSql = s"UPDATE ${schemaName}.video_table SET favorites = favorites + 1 WHERE video_id = ?;"
+          val insertSql = s"INSERT INTO $schemaName.favorite_record_table (user_id, video_id, timestamp) VALUES (?, ?, ?);"
+          val updateSql = s"UPDATE $schemaName.video_table SET favorites = favorites + 1 WHERE video_id = ?;"
           for {
             timestamp <- IO(DateTime.now().getMillis.toString)
             _ <- writeDB(insertSql, List(
@@ -98,16 +98,16 @@ case class ChangeFavoriteMessagePlanner(
   }
 
   private def removeFavoriteRecord(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[removeFavoriteRecord] Removing favorite record for userID=${userID}, videoID=${videoID}")) >> {
-      val checkSql = s"SELECT * FROM ${schemaName}.favorite_record_table WHERE user_id = ? AND video_id = ?;"
+    IO(logger.info(s"[removeFavoriteRecord] Removing favorite record for userID=$userID, videoID=$videoID")) >> {
+      val checkSql = s"SELECT * FROM $schemaName.favorite_record_table WHERE user_id = ? AND video_id = ?;"
       readDBJsonOptional(checkSql, List(
         SqlParameter("Int", userID.toString),
         SqlParameter("Int", videoID.toString)
       )).flatMap {
         case None => IO(logger.info("Not Favorited Yet")) >> IO.unit
         case Some(_) =>
-          val deleteSql = s"DELETE FROM ${schemaName}.favorite_record_table WHERE user_id = ? AND video_id = ?;"
-          val updateSql = s"UPDATE ${schemaName}.video_table SET favorites = favorites - 1 WHERE video_id = ?;"
+          val deleteSql = s"DELETE FROM $schemaName.favorite_record_table WHERE user_id = ? AND video_id = ?;"
+          val updateSql = s"UPDATE $schemaName.video_table SET favorites = favorites - 1 WHERE video_id = ?;"
           for {
             _ <- writeDB(deleteSql, List(
               SqlParameter("Int", userID.toString),
@@ -120,7 +120,7 @@ case class ChangeFavoriteMessagePlanner(
   }
 
   private def notifyRecommendationService(userID: Int, videoID: Int, isFav: Boolean)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about favorite change: userID=${userID}, videoID=${videoID}, isFav=${isFav}")) >> {
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about favorite change: userID=$userID, videoID=$videoID, isFav=$isFav")) >> {
       UpdateFeedbackFavoriteMessage(token, videoID, isFav).send.handleErrorWith { error =>
         IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
       }

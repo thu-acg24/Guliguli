@@ -36,7 +36,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."message_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."message_table" (
             message_id SERIAL NOT NULL PRIMARY KEY,
             sender_id INT NOT NULL,
             receiver_id INT NOT NULL,
@@ -56,7 +56,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."notification_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."notification_table" (
             notification_id SERIAL NOT NULL PRIMARY KEY,
             receiver_id INT NOT NULL,
             title TEXT NOT NULL,
@@ -81,7 +81,7 @@ object Init {
        */
       _ <- writeDB(
         s"""
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."reply_notice_table" (
+        CREATE TABLE IF NOT EXISTS "$schemaName"."reply_notice_table" (
             notice_id SERIAL NOT NULL PRIMARY KEY,
             sender_id INT NOT NULL,
             receiver_id INT NOT NULL,

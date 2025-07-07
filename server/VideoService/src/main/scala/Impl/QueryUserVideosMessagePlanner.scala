@@ -82,7 +82,7 @@ case class QueryUserVideosMessagePlanner(
       s"""
         SELECT video_id, title, description, duration, tag, cover,
              uploader_id, views, likes, favorites, status, upload_time
-        FROM ${schemaName}.video_table
+        FROM $schemaName.video_table
         $whereClause
         ORDER BY upload_time DESC;
       """

@@ -47,10 +47,10 @@ case class ProcessVideoReportMessagePlanner(
       (videoTitle, uploaderID) <- validateVideo(videoID)
       _ <- updateReportStatus(reportID, status)
       _ <- privatizeVideoIfNeeded(videoID)
-      _ <- SendNotificationMessage(token, reporterID, s"您举报的视频 ${videoTitle} 已被处理").send
+      _ <- SendNotificationMessage(token, reporterID, s"您举报的视频 $videoTitle 已被处理").send
       _ <- status match {
         case ReportStatus.Resolved => SendNotificationMessage(token, uploaderID,
-          s"您的视频 ${videoTitle} 被举报并已被审核员下架").send
+          s"您的视频 $videoTitle 被举报并已被审核员下架").send
         case _ => IO.unit
       }
     } yield ()
@@ -60,9 +60,9 @@ case class ProcessVideoReportMessagePlanner(
                                 reportID: Int
                               )(using PlanContext): IO[(Int, Int)] = {
     for {
-      _ <- IO(logger.info(s"校验 reportID [${reportID}] 是否存在"))
+      _ <- IO(logger.info(s"校验 reportID [$reportID] 是否存在"))
       result <- readDBJsonOptional(
-        s"SELECT reporter_id, comment_id, status FROM ${schemaName}.report_video_table WHERE report_id = ?;",
+        s"SELECT reporter_id, comment_id, status FROM $schemaName.report_video_table WHERE report_id = ?;",
         List(SqlParameter("Int", reportID.toString))
       )
     } yield result match {
@@ -88,7 +88,7 @@ case class ProcessVideoReportMessagePlanner(
 
   private def privatizeVideoIfNeeded(videoID: Int)(using PlanContext): IO[Unit] = {
     if (status == ReportStatus.Resolved) {
-      logger.info(s"Privatizing video with ID: ${videoID}")
+      logger.info(s"Privatizing video with ID: $videoID")
       ChangeVideoStatusMessage(token, videoID, VideoStatus.Rejected).send
     } else IO.unit
   }
@@ -97,9 +97,9 @@ case class ProcessVideoReportMessagePlanner(
                                                                       PlanContext
   ): IO[String] = {
     for {
-      _ <- IO(logger.info(s"更新举报记录状态为 ${status}"))
+      _ <- IO(logger.info(s"更新举报记录状态为 $status"))
       writeResult <- writeDB(
-        s"UPDATE ${schemaName}.report_danmaku_table SET status = ? WHERE report_id = ?;",
+        s"UPDATE $schemaName.report_danmaku_table SET status = ? WHERE report_id = ?;",
         List(
           SqlParameter("String", status.toString),
           SqlParameter("Int", reportID.toString)

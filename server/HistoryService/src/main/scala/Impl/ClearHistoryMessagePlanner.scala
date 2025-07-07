@@ -26,13 +26,13 @@ case class ClearHistoryMessagePlanner(
 
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
-      _ <- IO(logger.info(s"开始处理清空历史记录请求，用户Token为：${token}"))
+      _ <- IO(logger.info(s"开始处理清空历史记录请求，用户Token为：$token"))
 
       // 验证用户Token并获取对应的用户ID
       userID <- validateTokenAndFetchUserID(token)
-      _ <- IO(logger.info(s"Token解析成功，用户ID为：${userID}"))
+      _ <- IO(logger.info(s"Token解析成功，用户ID为：$userID"))
       clearResult <- clearUserHistory(userID)
-      _ <- IO(logger.info(s"历史记录清空结果：${clearResult}"))
+      _ <- IO(logger.info(s"历史记录清空结果：$clearResult"))
       // 根据用户ID进行相应的操作
     } yield ()
   }
@@ -48,14 +48,14 @@ case class ClearHistoryMessagePlanner(
   // 删除用户的观看历史记录
   private def clearUserHistory(userID: Int)(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"准备清空用户[${userID}]的观看历史记录"))
+      _ <- IO(logger.info(s"准备清空用户[$userID]的观看历史记录"))
       sql <- IO {
         s"""
-           DELETE FROM ${schemaName}.history_record_table
+           DELETE FROM $schemaName.history_record_table
            WHERE user_id = ?;
          """
       }
-      _ <- IO(logger.info(s"执行清空历史记录的SQL指令：${sql}"))
+      _ <- IO(logger.info(s"执行清空历史记录的SQL指令：$sql"))
       result <- writeDB(sql, List(SqlParameter("Int", userID.toString)))
     } yield result
   }

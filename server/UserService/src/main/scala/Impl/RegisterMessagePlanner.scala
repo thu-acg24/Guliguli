@@ -67,13 +67,13 @@ case class RegisterMessagePlanner(
 
   // Validate username format
   private def validateUsernameFormat(username: String): IO[Boolean] = IO {
-    logger.info(s"校验用户名格式: ${username}")
+    logger.info(s"校验用户名格式: $username")
     username.nonEmpty && username.length >= 3 && username.length <= 20
   }
 
   // Validate email format
   private def validateEmailFormat(email: String): IO[Boolean] = IO {
-    logger.info(s"校验邮箱格式: ${email}")
+    logger.info(s"校验邮箱格式: $email")
     email.nonEmpty && email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
   }
 
@@ -82,7 +82,7 @@ case class RegisterMessagePlanner(
     val query =
       s"""
         SELECT 1
-        FROM ${schemaName}.user_table
+        FROM $schemaName.user_table
         WHERE username = ? OR email = ?;
       """
     readDBJsonOptional(query, List(
@@ -96,7 +96,7 @@ case class RegisterMessagePlanner(
     val now = DateTime.now()
     val query =
       s"""
-        INSERT INTO ${schemaName}.user_table (username, email, password_hash, user_role, created_at, updated_at)
+        INSERT INTO $schemaName.user_table (username, email, password_hash, user_role, created_at, updated_at)
         VALUES (?, ?, ?, 'Normal', ?, ?);
       """
     writeDB(query, List(

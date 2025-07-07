@@ -27,7 +27,7 @@ object SqlParameter {
         case "array[int]" => SqlParameter("Array[Int]", value) // Add case for Array[Int]
         case "array[string]" => SqlParameter("Array[String]", value) // Add case for Array[Int]
         // Add more type cases as needed
-        case s => throw new Exception(s"Unsupported data type ${s}")
+        case s => throw new Exception(s"Unsupported data type $s")
       }
     }
   }

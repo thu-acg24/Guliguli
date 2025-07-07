@@ -32,7 +32,7 @@ case object MediaProcess {
 
 
   def validateVideo(videoID: Int)(using PlanContext): IO[Int] = {
-    val sql = s"SELECT uploader_id FROM ${schemaName}.video_table WHERE video_id = ?;"
+    val sql = s"SELECT uploader_id FROM $schemaName.video_table WHERE video_id = ?;"
     val param = List(SqlParameter("Int", videoID.toString))
     readDBJsonOptional(sql, param).map {
       case None => throw InvalidInputException("视频不存在")
@@ -41,8 +41,8 @@ case object MediaProcess {
   }
 
   def updateVideoStatus(videoID: Int)(using PlanContext): IO[String] = {
-    IO(logger.info(s"[updateVideoStatus] Updating video status for videoID=${videoID} to status=Uploading")) >> {
-      val updateSql = s"UPDATE ${schemaName}.video_table SET status = 'Uploading' WHERE video_id = ?;"
+    IO(logger.info(s"[updateVideoStatus] Updating video status for videoID=$videoID to status=Uploading")) >> {
+      val updateSql = s"UPDATE $schemaName.video_table SET status = 'Uploading' WHERE video_id = ?;"
       writeDB(updateSql, List(
         SqlParameter("Int", videoID.toString)
       ))

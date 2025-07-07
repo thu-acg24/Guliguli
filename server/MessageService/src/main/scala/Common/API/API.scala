@@ -80,7 +80,7 @@ object API {
 
   def send[T: Decoder, A <: API[T] : Encoder](message: A)(using context: PlanContext): IO[T] =
     for {
-      _ <- logger.info(s"Preparing to send message ${message}")
+      _ <- logger.info(s"Preparing to send message $message")
       uri <- message.getURIWithAPIMessageName
       modifiedJson = message.asJson.mapObject { jsonObj =>
         val planContext = Json.obj(

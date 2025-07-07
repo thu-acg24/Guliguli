@@ -50,7 +50,7 @@ case class QueryVideoInfoMessagePlanner(
         s"""
           SELECT video_id, title, description, duration, tag, cover,
                  uploader_id, views, likes, favorites, status, upload_time
-          FROM ${schemaName}.video_table
+          FROM $schemaName.video_table
           WHERE video_id = ?;
         """.stripMargin,
         List(SqlParameter("Int", videoID.toString))

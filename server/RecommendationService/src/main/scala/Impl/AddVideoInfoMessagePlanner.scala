@@ -39,7 +39,7 @@ case class AddVideoInfoMessagePlanner(
   override def plan(using PlanContext): IO[Unit] = {
     for {
       // Step 1: 校验Token是否合法并获取用户的userID
-      _ <- IO(logger.info(s"[Step 1] 校验Token是否合法并获取用户的userID: ${token}"))
+      _ <- IO(logger.info(s"[Step 1] 校验Token是否合法并获取用户的userID: $token"))
       userID <- GetUIDByTokenMessage(token).send
 
       // Step 2: 获取视频
@@ -59,7 +59,7 @@ case class AddVideoInfoMessagePlanner(
   private def insertVideoInfo(video: Video)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-        INSERT INTO ${schemaName}.video_info_table
+        INSERT INTO $schemaName.video_info_table
         (video_id, title, visible, embedding)
         VALUES (?, ?, ?, ?);
       """
