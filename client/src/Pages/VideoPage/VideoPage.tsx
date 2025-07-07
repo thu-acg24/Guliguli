@@ -27,6 +27,7 @@ import { ChangeFollowStatusMessage } from 'Plugins/UserService/APIs/ChangeFollow
 import VideoPlayerSection from "./VideoPlayerSection";
 import CommentSection from "./CommentSection";
 import SidebarSection from "./SidebarSection";
+import { getRecommendedVideos, SimpleVideo } from "Components/RecommendVideoService";
 import "./VideoPage.css";
 
 export const videoPagePath = "/video/:video_id";
@@ -57,7 +58,6 @@ const VideoPage: React.FC = () => {
   const [noMoreComments, setNoMoreComments] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ id: number, username: string, content: string } | null>(null);
   const [showReplyModal, setShowReplyModal] = useState(false);
-  const commentsSectionRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLDivElement>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -66,44 +66,15 @@ const VideoPage: React.FC = () => {
   const [followisprocessing, setFollowisprocessing] = useState(false);
   const [favoriteisprocessing, setFavoriteisprocessing] = useState(false);
   const [videoinfo, setVideoinfo] = useState<Video>(null);
+  const [recommendvideosInfo, setRecommendvideosInfo] = useState<SimpleVideo[]>([]);
+  const [videosisloading, setVideosisloading] = useState(true);
   const [upstat, setUpstat] = useState<UserStat>();
-  
-  const [recommendedVideos, setRecommendedVideos] = useState([
-    {
-      id: "101",
-      title: "推荐视频1",
-      author: "UP主1",
-      views: "10.2万",
-      danmaku: "1.1万",
-      cover: "https://picsum.photos/160/90?random=5"
-    },
-    {
-      id: "102",
-      title: "推荐视频2",
-      author: "UP主2",
-      views: "8.7万",
-      danmaku: "0.9万",
-      cover: "https://picsum.photos/160/90?random=6"
-    },
-    {
-      id: "103",
-      title: "推荐视频3",
-      author: "UP主3",
-      views: "15.3万",
-      danmaku: "2.4万",
-      cover: "https://picsum.photos/160/90?random=7"
-    },
-    {
-      id: "104",
-      title: "推荐视频4",
-      author: "UP主4",
-      views: "5.6万",
-      danmaku: "0.5万",
-      cover: "https://picsum.photos/160/90?random=8"
-    }
-  ]);
 
   
+  useEffect(() => {
+      setVideosisloading(true);
+      getRecommendedVideos(userToken?userToken:null,Number(video_id),4).then(setRecommendvideosInfo).then(()=>{setVideosisloading(false)});
+  }, [userToken]);
   useLayoutEffect(() => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
@@ -620,7 +591,7 @@ const VideoPage: React.FC = () => {
     
   };
 
-  if (videoinfoisloading) {
+  if (videoinfoisloading||videosisloading) {
     return // 骨架屏或加载动画
   }
 
@@ -670,7 +641,7 @@ const VideoPage: React.FC = () => {
           upstat={upstat}
           followUp={followUp}
           navigateToUser={navigateToUser}
-          recommendedVideos={recommendedVideos}
+          recommendedVideos={recommendvideosInfo}
         />
       </div>
 

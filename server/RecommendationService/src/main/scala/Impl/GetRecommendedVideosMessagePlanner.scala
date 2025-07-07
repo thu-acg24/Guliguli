@@ -28,6 +28,7 @@ case class GetRecommendedVideosMessagePlanner(
     videoID: Option[Int],
     userToken: Option[String],
     randomRatio: Float,
+    fetchLimit: Int = 20,
     override val planContext: PlanContext
 ) extends Planner[List[Video]] {
 
@@ -52,9 +53,9 @@ case class GetRecommendedVideosMessagePlanner(
   }
 
   private def validateInputParams(userID: Option[Int], videoID: Option[Int])(using PlanContext): IO[Unit] = {
-    if (videoID.isEmpty && userID.isEmpty)
-      IO.raiseError(InvalidInputException("videoID 和 userID 至少需要一个有效值"))
-    else
+    //if (videoID.isEmpty && userID.isEmpty)
+    //  IO.raiseError(InvalidInputException("videoID 和 userID 至少需要一个有效值"))
+    //else
       for {
         _ <- videoID match {
           case Some(id) =>
@@ -77,6 +78,7 @@ case class GetRecommendedVideosMessagePlanner(
          |WITH nearest_candidates AS (
          |  SELECT video_id, view_count, embedding <#> ? AS dot_product
          |  FROM $schemaName.video_info_table
+         |  WHERE visible = true
          |  ORDER BY embedding <#> ? DESC
          |  LIMIT 200
          |)
@@ -84,7 +86,7 @@ case class GetRecommendedVideosMessagePlanner(
          |       dot_product + (0.2 * log(10, GREATEST(view_count, 1))) AS combined_score
          |FROM nearest_candidates
          |ORDER BY combined_score DESC
-         |LIMIT 20;
+         |LIMIT $fetchLimit;
          |""".stripMargin
     for {
       videoVector <- videoID match {

@@ -37,20 +37,27 @@ object Routes:
 
   private def executePlan(messageType: String, str: String): IO[String] =
     messageType match {
+      case "AddVideoInfoMessage" =>
+        IO(
+          decode[AddVideoInfoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for addVideoInfoMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
       case "DeleteVideoInfoMessage" =>
         IO(
           decode[DeleteVideoInfoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for deleteVideoInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
-      case "UpdateFeedbackFavoriteMessage" =>
+
+      case "GetRecommendedVideosMessage" =>
         IO(
-          decode[UpdateFeedbackFavoriteMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for UpdateFeedbackFavoriteMessage[${err.getMessage}]")
+          decode[GetRecommendedVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetRecommendedVideosMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
+
       case "RecordWatchDataMessage" =>
         IO(
           decode[RecordWatchDataMessagePlanner](str) match
@@ -65,20 +72,6 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "ApdateVideoInfoMessage" =>
-        IO(
-          decode[UpdateVideoInfoMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for updateVideoInfoMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "GetRecommendedVideosMessage" =>
-        IO(
-          decode[GetRecommendedVideosMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetRecommendedVideosMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
       case "SearchVideosCountMessage" =>
         IO(
           decode[SearchVideosCountMessagePlanner](str) match
@@ -86,17 +79,24 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "AddVideoInfoMessage" =>
-        IO(
-          decode[AddVideoInfoMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for addVideoInfoMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
       case "UpdateFeedbackLikeMessage" =>
         IO(
           decode[UpdateFeedbackLikeMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for UpdateFeedbackLikeMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "UpdateFeedbackFavoriteMessage" =>
+        IO(
+          decode[UpdateFeedbackFavoriteMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for UpdateFeedbackFavoriteMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "UpdateVideoInfoMessage" =>
+        IO(
+          decode[UpdateVideoInfoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for updateVideoInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

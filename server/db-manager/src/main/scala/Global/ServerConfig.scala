@@ -34,7 +34,7 @@ case class ModelServiceInfo(
                            ) {
   // 优先从环境变量中获取，如果没有则使用配置文件中的值
   lazy val _key: String = {
-    val envKey = s"$model_KEY"
+    val envKey = s"${model}_KEY"
     val keyS = sys.env.getOrElse(envKey, "")
     if (keyS.isEmpty) { key } 
     else { keyS }

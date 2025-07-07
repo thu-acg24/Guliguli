@@ -22,3 +22,14 @@ export const formatTime = (timestamp: string|number,isAbbreviation=true) => {
     // For previous years
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 };
+export const dateformatTime = (timestamp: string|number) => {
+    const now = new Date();
+    const date = new Date(timestamp);
+    
+    // Check if it's the current year
+    if (now.getFullYear() === date.getFullYear()) {
+        return `${date.getMonth() + 1}-${date.getDate()}`;
+    }
+    // For previous years
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+};
