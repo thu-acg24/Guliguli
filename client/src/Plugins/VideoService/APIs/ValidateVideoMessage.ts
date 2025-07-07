@@ -1,5 +1,5 @@
 /**
- * ValidateFileMessage
+ * ValidateVideoMessage
  * desc: 通知服务器视频或封面已经上传完毕
  * @param sessionToken: String (会话Token)
  */
@@ -8,7 +8,7 @@ import { ServerAddr } from '../../../server-config';
 
 
 
-export class ValidateFileMessage extends TongWenMessage {
+export class ValidateVideoMessage extends TongWenMessage {
     constructor(
         public  sessionToken: string
     ) {
@@ -18,4 +18,3 @@ export class ValidateFileMessage extends TongWenMessage {
         return ServerAddr["Video"]
     }
 }
-

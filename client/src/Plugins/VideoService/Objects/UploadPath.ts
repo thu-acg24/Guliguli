@@ -1,10 +1,8 @@
 /**
  * UploadPath
- * desc: 视频收藏记录，记录用户收藏视频的相关信息
- * @param coverPath: String (封面上传链接)
- * @param coverToken: String (封面上传会话Token)
- * @param videoPath: String (视频上传链接)
- * @param videoToken: String (视频上传会话Token)
+ * desc: 上传文件的相关信息
+ * @param path: List[String] (上传文件的minio自签名链接)
+ * @param token: String (上传会话Token)
  */
 import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
@@ -13,10 +11,8 @@ import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 export class UploadPath extends Serializable {
     constructor(
-        public  coverPath: string,
-        public  coverToken: string,
-        public  videoPath: string,
-        public  videoToken: string,
+        public  path: string[],
+        public  token: string,
     ) {
         super()
     }

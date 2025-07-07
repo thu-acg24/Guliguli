@@ -18,12 +18,10 @@ import scala.util.Try
  * ValidateVideoMessage
  * desc: 通知服务器视频或封面已经上传完毕
  * @param sessionToken: String (会话Token)
- * @param isVideo: Boolean (是否为视频)
  */
 
 case class ValidateVideoMessage(
-  sessionToken: String,
-  isVideo: Boolean
+  sessionToken: String
 ) extends API[Unit](VideoServiceCode)
 
 case object ValidateVideoMessage{
