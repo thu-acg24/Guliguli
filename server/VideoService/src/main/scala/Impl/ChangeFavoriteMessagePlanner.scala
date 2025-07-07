@@ -120,10 +120,7 @@ case class ChangeFavoriteMessagePlanner(
   }
 
   private def notifyRecommendationService(userID: Int, videoID: Int, isFav: Boolean)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about favorite change: userID=$userID, videoID=$videoID, isFav=$isFav")) >> {
-      UpdateFeedbackFavoriteMessage(token, videoID, isFav).send.handleErrorWith { error =>
-        IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
-      }
-    }
+    IO(logger.info(s"[notifyRecommendationService] Notifying about favorite change: userID=$userID, videoID=$videoID, isFav=$isFav")) >>
+      UpdateFeedbackFavoriteMessage(token, videoID, isFav).send
   }
 }

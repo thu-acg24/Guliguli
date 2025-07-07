@@ -27,19 +27,19 @@ case class RecordWatchDataMessagePlanner(
   token: String,
   videoID: Int,
   override val planContext: PlanContext
-) extends Planner[Unit] {
+) extends Planner[Boolean] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Unit] = {
+  override def plan(using PlanContext): IO[Boolean] = {
     for {
       // Step 1: Validate token and get user ID
       userID <- GetUIDByTokenMessage(token).send
       _ <- QueryVideoInfoMessage(Some(token), videoID).send
-      _ <- recordWatchData(userID, videoID)
-    } yield ()
+      result <- recordWatchData(userID, videoID)
+    } yield result
   }
 
-  private def recordWatchData(userID: Int, videoID: Int)(using PlanContext): IO[Unit] = {
+  private def recordWatchData(userID: Int, videoID: Int)(using PlanContext): IO[Boolean] = {
     for {
       _ <- IO(logger.info(s"开始记录观看数据: userID=$userID, videoID=$videoID"))
       _ <- IO(logger.info(s"开始查找用户的观看记录"))
@@ -53,7 +53,7 @@ case class RecordWatchDataMessagePlanner(
           SqlParameter("Int", videoID.toString)
         ))
       createdAt <- IO(DateTime.now())
-      _ <- lastWatchOpt match {
+      result <- lastWatchOpt match {
         case Some(json) => writeDB(
           s"""
              |UPDATE $schemaName.video_record_table
@@ -62,12 +62,13 @@ case class RecordWatchDataMessagePlanner(
              |""".stripMargin,List(
             SqlParameter("DateTime", createdAt.getMillis.toString),
             SqlParameter("Int", decodeField[Int](json, "watch_id").toString)
-          )) >> IO(
+          )) >> IO.pure(
             if (Days.daysBetween(decodeField[DateTime](json, "created_at"), createdAt).getDays >= 1) {
               updateEmbedding(userID, videoID, None, Some(0.05F))
               updateViewCount(videoID)
-            }
-        )
+              true
+            } else false
+          )
         case None => writeDB(
           s"""
              |INSERT INTO $schemaName.video_record_table
@@ -79,9 +80,10 @@ case class RecordWatchDataMessagePlanner(
             SqlParameter("DateTime", createdAt.getMillis.toString)
           )) >>
           updateEmbedding(userID, videoID, Some(0.01F), Some(0.05F)) >>
-          updateViewCount(videoID)
+          updateViewCount(videoID) >>
+          IO.pure(true)
       }
-    } yield()
+    } yield result
   }
   private def updateViewCount(videoID: Int)(using PlanContext): IO[Unit] = {
     writeDB(

@@ -1,5 +1,6 @@
 package Impl
 
+import APIs.RecommendationService.RecordWatchDataMessage
 import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
@@ -7,7 +8,7 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Global.GlobalVariables.{minioClient, sessions, readLines, m3u8Cache}
+import Global.GlobalVariables.{m3u8Cache, minioClient, readLines, sessions}
 import Objects.UploadSession
 import Objects.VideoService.UploadPath
 import Utils.VideoAuth.{validateToken, validateVideoID}
@@ -62,6 +63,7 @@ case class QueryM3U8PathMessagePlanner(
             _ <- IO.blocking(m3u8Cache.put(m3u8Name, finalUrl))
           } yield finalUrl
       }
+      _ <- token.map(updateViewInfo(_, videoID)).getOrElse(IO.unit)
     } yield finalUrl
   }
 
@@ -147,5 +149,19 @@ case class QueryM3U8PathMessagePlanner(
         .expiry(7 * 24 * 60 * 60)
         .build()
     )
+  }
+
+  def updateViewInfo(token: String, videoID: Int)(using PlanContext): IO[Unit] = {
+    for {
+      recordable <- RecordWatchDataMessage(token, videoID).send
+      _ <- if (recordable) writeDB(
+        s"""
+           |UPDATE $schemaName.video_table
+           |SET views = views + 1
+           |WHERE video_id = ?
+           |""".stripMargin, List(
+          SqlParameter("Int", videoID.toString)
+        )).void else IO.unit
+    } yield ()
   }
 }

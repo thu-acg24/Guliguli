@@ -1,12 +1,13 @@
 package Impl
 
 
+import APIs.RecommendationService.AddVideoInfoMessage
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.APIException.InvalidInputException
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
@@ -18,11 +19,12 @@ import Objects.VideoService.UploadPath
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.implicits.*
-import cats.implicits._
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import cats.implicits.*
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import io.minio.http.Method
+
 import java.util.concurrent.TimeUnit
 import java.util.UUID
 import org.joda.time.DateTime
@@ -55,6 +57,7 @@ case class UploadVideoMessagePlanner(
       // Step 4: Store video information in the database
       _ <- IO(logger.info("Step 4: 添加视频到数据库"))
       videoID <- storeVideoInfo(userID)
+      _ <- AddVideoInfoMessage(token, videoID).send
     } yield videoID
   }
 

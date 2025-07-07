@@ -119,10 +119,7 @@ case class ChangeLikeMessagePlanner(
   }
 
   private def notifyRecommendationService(userID: Int, videoID: Int, isLike: Boolean)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about like change: userID=$userID, videoID=$videoID, isLike=$isLike")) >> {
-      UpdateFeedbackLikeMessage(token, videoID, isLike).send.handleErrorWith { error =>
-        IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
-      }
-    }
+    IO(logger.info(s"[notifyRecommendationService] Notifying about like change: userID=$userID, videoID=$videoID, isLike=$isLike")) >>
+      UpdateFeedbackLikeMessage(token, videoID, isLike).send
   }
 }
