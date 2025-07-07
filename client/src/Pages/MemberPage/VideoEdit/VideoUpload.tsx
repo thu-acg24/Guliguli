@@ -4,6 +4,8 @@ import { useUserToken } from "Globals/GlobalStore";
 import { UploadPath } from "Plugins/VideoService/Objects/UploadPath";
 import { QueryUploadVideoPathMessage } from "Plugins/VideoService/APIs/QueryUploadVideoPathMessage";
 import { ValidateVideoMessage } from "Plugins/VideoService/APIs/ValidateVideoMessage";
+import { sendCover } from "./CoverUpload";
+import { extractFirstFrameFromVideo } from "./VideoFrameExtractor";
 
 interface VideoUploadProps {
     isCreating: boolean;
@@ -96,7 +98,17 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
             });
 
             if (isCreating) {
-                // 设置默认封面
+                // 自动从视频第一帧生成封面
+                try {
+                    console.log('开始自动生成封面');
+                    setUploadProgress(95);
+                    const frameFile = await extractFirstFrameFromVideo(file);
+                    console.log("封面文件生成完成");
+                    await sendCover(userToken, videoID, frameFile);
+                } catch (coverError) {
+                    console.warn("自动生成封面失败:", coverError);
+                    // 封面生成失败不影响视频上传成功
+                }
             }
 
             setUploadProgress(100);
