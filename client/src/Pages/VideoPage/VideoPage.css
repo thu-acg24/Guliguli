@@ -159,12 +159,13 @@
 }
 
 .video-video-player-container {
-    width: 100%;
-    position: relative;
-    padding-bottom: 56.25%;
-    /* 16:9 aspect ratio */
-    background-color: #000;
-    margin-bottom: 15px;
+  width: 100%;
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 比例 */
+  background-color: #000;
+  margin-bottom: 15px;
+  border-radius: 6px; /* 可选：圆角 */
+  overflow: hidden; /* 确保视频不溢出圆角 */
 }
 
 .video-video-player {

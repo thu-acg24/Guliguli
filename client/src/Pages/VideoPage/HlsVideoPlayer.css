@@ -1,17 +1,15 @@
 .video-container {
   width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  overflow: hidden;
+  height: 100%; /* 填满父容器 */
+  position: absolute; /* 适应父容器的绝对定位 */
+  top: 0;
+  left: 0;
   background: #000;
 }
 
 .video-player {
   width: 100%;
-  height: auto;
-  aspect-ratio: 16/9;
+  height: 100%;
   display: block;
   outline: none;
 }

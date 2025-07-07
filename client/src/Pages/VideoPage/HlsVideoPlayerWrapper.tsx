@@ -20,7 +20,7 @@ const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID }
         setError(null);
         
         const uploadPath = await new Promise<string>((resolve, reject) => {
-          new QueryM3U8PathMessage(userToken, videoID).send(
+          new QueryM3U8PathMessage(userToken?userToken:null, videoID).send(
             (info: string) => {
               try {
                 // 假设返回的是直接可用的播放路径
