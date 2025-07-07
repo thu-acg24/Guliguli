@@ -23,7 +23,7 @@ import scala.util.Try
  * UpdateVideoInfoMessage
  * desc: 修改视频元数据。
  * @param token: String (用户认证token，用于验证用户合法性。)
- * @param videoID: Int (视频的id)
+ * @param videoID: Int (视频ID)
  */
 
 case class UpdateVideoInfoMessage(

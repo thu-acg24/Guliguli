@@ -32,7 +32,7 @@ case class DeleteVideoMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[Unit] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = for {
     _ <- IO(logger.info(s"开始执行DeleteVideoMessagePlanner, token=$token, videoID=$videoID"))
@@ -109,10 +109,7 @@ case class DeleteVideoMessagePlanner(
    * 通知 RecommendationService 删除视频信息
    */
   private def notifyRecommendationService(videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video deletion: videoID=$videoID")) >> {
-      DeleteVideoInfoMessage(token, videoID).send.handleErrorWith { error =>
-        IO(logger.warn(s"Failed to notify RecommendationService: ${error.getMessage}")) >> IO.unit
-      }
-    }
+    IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService about video deletion: videoID=$videoID")) >>
+      DeleteVideoInfoMessage(token, videoID).send
   }
 }
