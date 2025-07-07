@@ -12,7 +12,7 @@ import { mainPagePath } from "Pages/MainPage/MainPage";
 import { messagePagePath } from "Pages/MessagePage/MessagePage";
 import { memberPagePath } from "Pages/MemberPage/MemberPage";
 
-const Header: React.FC = () => {
+const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({ usetransparent = false, transparent = false }) => {
     const navigate = useNavigate();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState("");
@@ -72,7 +72,7 @@ const Header: React.FC = () => {
     };
 
     return (
-        <header className="header-header">
+        <header className={`header-header ${usetransparent ? 'usetransparent' : ''} ${transparent ? 'transparent' : ''}`}>
             <div className="header-logo" onClick={() => {
                 navigate(mainPagePath);
                 window.scrollTo({ top: 0, behavior: "smooth" });

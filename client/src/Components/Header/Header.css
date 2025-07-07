@@ -11,6 +11,14 @@
     padding: 0 20px;
     z-index: 1000;
 }
+.header-header.usetransparent {
+    position: fixed;  
+}
+.header-header.transparent {
+    background-color: transparent;
+    box-shadow: none;
+}
+
 .header-logo {
     height: 60px;
     display: flex;
