@@ -13,3 +13,4 @@
 minio/config
 minio/data
 **/db-manager
+package-lock.json

@@ -67,13 +67,13 @@ case class ModifyVideoMessagePlanner(
   private def fetchUploaderIDAndStatus(videoID: Int)(using PlanContext): IO[(Int, VideoStatus)] = {
     val sql =
       s"""
-        SELECT uploader_id, video_status
+        SELECT uploader_id, status
         FROM ${schemaName}.video_table
         WHERE video_id = ?;
       """
     readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
       case None => throw InvalidInputException("视频不存在")
-      case Some(json) => (decodeField[Int](json, "uploader_id"), decodeField[VideoStatus](json, "video_status"))
+      case Some(json) => (decodeField[Int](json, "uploader_id"), decodeField[VideoStatus](json, "status"))
     }
   }
 
