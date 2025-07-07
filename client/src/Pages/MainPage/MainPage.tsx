@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "Components/Header/Header";
+import MainPicSrc from "Images/MainPic.jpg";
 import { videoPagePath } from "Pages/VideoPage/VideoPage"; // Importing the video page path
 import "./MainPage.css"; 
 
@@ -65,15 +66,15 @@ const MainPage: React.FC = () => {
             <Header />
 
             {/* Main View */}
-            <div className="main-main-view" onClick={() => alert('跳转到宣传页面')}>
-                主页主视图 - 宣传图区域
+            <div className="main-main-view" onClick={() => navigate("/video/2")}>
+                <img src={MainPicSrc} alt="主视图" className="main-large-ad-cover"  />
             </div>
 
             {/* Category Navigation */}
             <div className="main-category-nav">
                 <div className="main-hot-btn" onClick={loadHotContent}>热门</div>
                 <ul className="main-category-list">
-                    {['动画', '番剧', '国创', '音乐', '舞蹈', '游戏', '知识', '科技', '运动', '汽车', '生活', '美食', '动物圈', '鬼畜', '时尚', '娱乐', '影视', '纪录片', '电影', '电视剧'].map((category) => (
+                    {['动画', '番剧', '国创', '音乐', '舞蹈', '游戏', '知识', '科技', '运动', '汽车', '生活', '美食', '动物圈', '鬼畜', '时尚', '娱乐', '影视'].map((category) => (
                         <li
                             key={category}
                             className="main-category-item"
