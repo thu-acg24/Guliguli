@@ -42,25 +42,11 @@ case class SendReplyNoticeMessagePlanner(
       replyComment <- QueryCommentByIDMessage(replyID).send
       receiverID = replyComment.authorID
       videoID = replyComment.videoID
-      // Step 3: 检测评论是否存在
-      _ <- IO(logger.info("检查评论是否存在"))
-      _ <- checkRecord(commentID)
       // Step 3: 插入数据库
       _ <- IO(logger.info("消息构造成功，开始插入数据库"))
       timestamp <- IO(DateTime.now())
       _ <- insertRecord(userID, receiverID, comment.content, commentID,
         replyComment.content, replyComment.authorID, videoID, timestamp)
-    } yield()
-  }
-
-  private def checkRecord(commentID: Int)(using PlanContext): IO[Unit] = {
-    val sql =
-      s"""
-         SELECT COUNT(*) from ${schemaName}.reply_notice_table WHERE comment_id = ?;
-       """
-    for {
-      count <- readDBInt(sql, List(SqlParameter("Int", commentID.toString)))
-      _ <- if (count <= 0) IO.unit else IO.raiseError(InvalidInputException("未查找到评论"))
     } yield()
   }
 
