@@ -4,11 +4,12 @@ import Common.API.PlanContext
 import Common.DBAPI.{decodeField, readDBJson, readDBJsonOptional, writeDB}
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
+import cats.implicits.*
 import Objects.PGVector
 import cats.effect.IO
 import io.circe.Json
+import io.circe.generic.auto.*
 import org.slf4j.LoggerFactory
-
 import java.util.UUID
 
 //process plan import 预留标志位，不要删除
@@ -16,6 +17,15 @@ import java.util.UUID
 case object PerferenceProcess {
   private val logger = LoggerFactory.getLogger(getClass)
   //process plan code 预留标志位，不要删除
+
+  def getInfo(strings: List[String])(using PlanContext): IO[PGVector] = {
+    for {
+      initVector <- PGVector.fromString(UUID.randomUUID().toString)
+      result <- strings.traverse(str => PGVector.fromString(str)).map { vectors =>
+        vectors.foldLeft(initVector)(_ + _)
+      }
+    } yield result.normalize
+  }
 
   def updateEmbedding(userID: Int, videoID: Int, userRatio: Option[Float], videoRatio: Option[Float])(using PlanContext): IO[Unit] = {
     for {
@@ -47,7 +57,7 @@ case object PerferenceProcess {
            |SET embedding_vector = ?::vector
            |WHERE video_id = ?
            |""".stripMargin, List(
-          SqlParameter("Vector", (videoVector + userVector * ratio).toString),
+          SqlParameter("Vector", (videoVector + userVector * ratio).normalize.toString),
           SqlParameter("Int", videoID.toString)
         ))).getOrElse(IO.pure(""))
       _ <- videoRatio.map(ratio => writeDB(
@@ -56,7 +66,7 @@ case object PerferenceProcess {
            |SET embedding_vector = ?::vector
            |WHERE user_id = ?
            |""".stripMargin, List(
-          SqlParameter("Vector", (userVector + videoVector * ratio).toString),
+          SqlParameter("Vector", (userVector + videoVector * ratio).normalize.toString),
           SqlParameter("Int", userID.toString)
         ))).getOrElse(IO.pure(""))
     } yield()

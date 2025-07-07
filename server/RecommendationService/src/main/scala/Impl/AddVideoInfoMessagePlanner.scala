@@ -15,16 +15,15 @@ import Objects.PGVector
 import Objects.RecommendationService.VideoInfo
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.PerferenceProcess.getInfo
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -71,14 +70,5 @@ case class AddVideoInfoMessagePlanner(
       SqlParameter("Vector", getInfo(video.tag).toString),
     )
     writeDB(sql, parameters).as(())
-  }
-
-  private def getInfo(strings: List[String])(using PlanContext): IO[PGVector] = {
-    for {
-      initVector <- PGVector.fromString(UUID.randomUUID().toString)
-      result <- strings.traverse(str => PGVector.fromString(str)).map { vectors =>
-        vectors.foldLeft(initVector)(_ + _)
-      }
-    } yield result.normalize
   }
 }
