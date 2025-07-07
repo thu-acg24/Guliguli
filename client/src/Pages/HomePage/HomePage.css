@@ -34,6 +34,45 @@
     align-items: center;
 }
 
+.home-user-actions {
+    display: flex;
+    align-items: center;
+}
+
+.home-user-actions .home-follow-btn {
+    padding: 8px 16px;
+    background-color: white;
+    color: #fb7299;
+    border: 2px solid white;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 70px;
+}
+
+.home-user-actions .home-follow-btn:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+}
+
+.home-user-actions .home-follow-btn.following {
+    background-color: transparent;
+    color: white;
+    border-color: white;
+}
+
+.home-user-actions .home-follow-btn.following:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.home-user-actions .home-follow-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .home-user-basic-info {
     display: flex;
     flex-direction: column;
@@ -338,6 +377,15 @@
 
 .home-follow-btn:hover {
     background-color: #ff85ad;
+}
+
+.home-follow-btn.following {
+    background-color: #e7e7e7;
+    color: #666;
+}
+
+.home-follow-btn.following:hover {
+    background-color: #d1d5db;
 }
 
 /* 设置表单 */
