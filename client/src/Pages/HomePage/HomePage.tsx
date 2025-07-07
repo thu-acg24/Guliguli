@@ -9,6 +9,8 @@ import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMess
 import { QueryUserStatMessage } from "Plugins/UserService/APIs/QueryUserStatMessage";
 import { UserStat } from "Plugins/UserService/Objects/UserStat";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
+import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage";
+import { ChangeFollowStatusMessage } from "Plugins/UserService/APIs/ChangeFollowStatusMessage";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
 import "./HomePage.css";
 
@@ -35,88 +37,122 @@ const HomePage: React.FC = () => {
     const [isCurrentUser, setIsCurrentUser] = useState(false);
     const [isEditingBio, setIsEditingBio] = useState(false);
     const [tempBio, setTempBio] = useState("");
+    const [isFollowing, setIsFollowing] = useState(false);
 
     // 获取用户信息
     const fetchUserInfo = async () => {
-        if (!user_id) return;
-
         try {
-            setLoading(true);
             const userIdNum = parseInt(user_id);
-            new QueryUserInfoMessage(userIdNum).send(
-                (info: string) => {
-                    const data = JSON.parse(info);
-                    if (data.isBanned) {
-                        setUserInfo(null);
-                    } else {
-                        setUserInfo(data);
+            setUserInfo(await new Promise<UserInfo>((resolve, reject) => {
+                new QueryUserInfoMessage(userIdNum).send(
+                    (info: string) => {
+                        const data = JSON.parse(info);
+                        if (data.isBanned) {
+                            resolve(null);
+                        } else {
+                            resolve(data);
+                        }
+                    },
+                    (error: string) => {
+                        reject(error);
                     }
-                    setLoading(false);
-                },
-                (error: string) => {
-                    materialAlertError("加载失败", error);
-                    setUserInfo(null);
-                    setLoading(false);
-                }
-            );
+                );
+            }));
         } catch (error) {
             materialAlertError("加载失败", error.message);
             setUserInfo(null);
-            setLoading(false);
         }
     };
 
     // 获取用户统计信息
     const fetchUserStat = async () => {
-        if (!user_id) return;
-
         try {
-            setLoading(true);
             const userIdNum = parseInt(user_id);
-            new QueryUserStatMessage(userIdNum).send(
-                (info: string) => {
-                    const data = JSON.parse(info);
-                    setUserStat(data);
-                    setLoading(false);
-                },
-                (error: string) => {
-                    console.error("获取用户统计信息失败", error);
-                    setUserStat(null);
-                    setLoading(false);
-                }
-            );
+            const userStat = await new Promise<UserStat>((resolve, reject) => {
+                new QueryUserStatMessage(userIdNum).send(
+                    (info: string) => { resolve(JSON.parse(info) as UserStat); },
+                    (error: string) => { reject(error); }
+                );
+            });
+            setUserStat(userStat);
         } catch (error) {
             console.error("获取用户统计信息失败", error);
             setUserStat(null);
-            setLoading(false);
         }
     };
 
     // 获取用户视频数
     const fetchUserVideoCount = async () => {
-        if (!user_id) return;
-
         try {
-            setLoading(true);
             const userIdNum = parseInt(user_id);
-            new QueryUserVideosMessage(null, userIdNum).send(
-                (info: string) => {
-                    const data = JSON.parse(info);
-                    setVideoCount(Array.isArray(data) ? data.length : 0);
-                    setLoading(false);
-                },
-                (error: string) => {
-                    console.error("获取用户视频数失败", error);
-                    setVideoCount(0);
-                    setLoading(false);
-                }
-            );
+            const videoData = await new Promise<any>((resolve, reject) => {
+                new QueryUserVideosMessage(null, userIdNum).send(
+                    (info: string) => { resolve(JSON.parse(info)); },
+                    (error: string) => { reject(error); }
+                );
+            });
+            setVideoCount(Array.isArray(videoData) ? videoData.length : 0);
         } catch (error) {
             console.error("获取用户视频数失败", error);
             setVideoCount(0);
-            setLoading(false);
         }
     };
+
+    // 获取关注状态
+    const fetchFollowStatus = async () => {
+        try {
+            const userIdNum = parseInt(user_id);
+            const followResult = await new Promise<boolean>((resolve, reject) => {
+                new QueryFollowMessage(currentUserID, userIdNum).send(
+                    (info: string) => { resolve(JSON.parse(info)); },
+                    (error: string) => { reject(error); }
+                );
+            });
+            setIsFollowing(followResult);
+        } catch (error) {
+            console.error("获取关注状态失败", error);
+            setIsFollowing(false);
+        }
+    };
+
+    useEffect(() => {
+        setLoading(true);
+        const loadData = async () => {
+            try {
+                await Promise.all([
+                    fetchUserInfo(),
+                    fetchUserStat(),
+                    fetchUserVideoCount(),
+                    fetchFollowStatus()
+                ]);
+                setIsCurrentUser(!!currentUserID && currentUserID === parseInt(user_id || ""));
+                console.log('isCurrentUser:', isCurrentUser);
+            } catch (error) {
+                console.error('加载数据失败:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, [user_id, currentUserID]);
+
+    if (loading) {
+        return (
+            <div className="home-home-page">
+                <Header />
+                <div className="home-loading">加载中...</div>
+            </div>
+        );
+    }
+
+    if (!userInfo) {
+        return (
+            <div className="home-home-page">
+                <Header />
+                <div className="home-error-message">获取用户信息错误</div>
+            </div>
+        );
+    }
 
     // 开始编辑个性签名
     const startEditingBio = () => {
@@ -137,15 +173,18 @@ const HomePage: React.FC = () => {
             );
 
             // 第二步：发送更新请求
-            new ModifyUserInfoMessage(userToken, newUserInfo).send(
-                (info: string) => {
-                    // 请求成功后更新本地状态
-                    setUserInfo(newUserInfo);
-                },
-                (error: string) => {
-                    throw new Error(error);
-                }
-            );
+            await new Promise<void>((resolve, reject) => {
+                new ModifyUserInfoMessage(userToken, newUserInfo).send(
+                    (info: string) => {
+                        // 请求成功后更新本地状态
+                        setUserInfo(newUserInfo);
+                        resolve();
+                    },
+                    (error: string) => {
+                        reject(new Error(error));
+                    }
+                );
+            });
         } catch (error) {
             console.error("保存个性签名失败", error);
             materialAlertError("保存失败", "无法保存个性签名，请稍后再试。");
@@ -169,42 +208,55 @@ const HomePage: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        console.log('检查是否是当前用户')
-        fetchUserInfo();
-        fetchUserStat();
-        fetchUserVideoCount();
-        // 检查是否是当前用户
-        const checkIfCurrentUser = () => {
-            setIsCurrentUser(!!currentUserID && currentUserID === parseInt(user_id || ""));
-        };
+    // 处理关注/取消关注
+    const handleFollowToggle = async () => {
+        if (!user_id || !currentUserID || !userToken) {
+            console.warn("用户未登录，无法执行关注操作");
+            return;
+        }
 
-        checkIfCurrentUser();
-        console.log('isCurrentUser:', isCurrentUser);
-    }, [user_id, currentUserID]);
+        const userIdNum = parseInt(user_id);
+        if (currentUserID === userIdNum) {
+            console.warn("不能关注自己");
+            return;
+        }
 
-    if (loading) {
-        return (
-            <div className="home-home-page">
-                <Header />
-                <div className="home-loading">加载中...</div>
-            </div>
-        );
-    }
+        try {
+            // 立即更新UI状态
+            const newFollowingStatus = !isFollowing;
+            setIsFollowing(newFollowingStatus);
 
-    if (!userInfo) {
-        return (
-            <div className="home-home-page">
-                <Header />
-                <div className="home-error-message">获取用户信息错误</div>
-            </div>
-        );
-    }
+            // 发送关注状态更改请求
+            await new Promise<void>((resolve, reject) => {
+                new ChangeFollowStatusMessage(
+                    userToken,
+                    userIdNum,
+                    newFollowingStatus
+                ).send(
+                    (info: string) => {
+                        console.log("关注状态更改成功", info);
+                        resolve();
+                    },
+                    (error: any) => {
+                        console.error("关注状态更改失败", error);
+                        // 如果失败，恢复原状态
+                        setIsFollowing(!newFollowingStatus);
+                        reject(error);
+                    }
+                );
+            });
+
+            fetchUserStat();
+        } catch (error) {
+            console.error("关注操作失败", error);
+            materialAlertError("操作失败", "关注操作失败，请稍后再试");
+        }
+    };
 
     // 通过路由获取当前激活tab
     const getActiveTab = () => {
         const pathParts = location.pathname.split("/");
-        // /home/:user_id 或 /home/:user_id/xxx
+        // /home/:uyyaser_id 或 /home/:user_id/xxx
         if (pathParts.length < 4) return TAB_VIDEOS;
         return pathParts[3] || TAB_VIDEOS;
     };
@@ -254,6 +306,17 @@ const HomePage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                {/* 关注按钮 - 只有当前用户已登录且不是自己时才显示 */}
+                {currentUserID && !isCurrentUser && (
+                    <div className="home-user-actions">
+                        <button
+                            className={`home-follow-btn ${isFollowing ? 'following' : ''}`}
+                            onClick={handleFollowToggle}
+                        >
+                            {isFollowing ? '已关注' : '关注'}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* 内容区域 */}
@@ -321,7 +384,7 @@ const HomePage: React.FC = () => {
                     {!isCurrentUser && (activeTab === TAB_FAVORITES || activeTab === TAB_HISTORY || activeTab === TAB_SETTINGS) ? (
                         <div className="home-error-message">您没有权限访问此内容</div>
                     ) : (
-                        <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser, refreshUserInfo: fetchUserInfo }} />
+                        <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser, refreshUserInfo: fetchUserInfo, refreshUserStat: fetchUserStat, refreshUserVideoCount: fetchUserVideoCount, isFollowing: isFollowing }} />
                     )}
                 </div>
             </div>

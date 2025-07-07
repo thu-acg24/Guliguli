@@ -3,12 +3,13 @@ import React from "react";
 import { useOutletContext } from "react-router-dom";
 import UserInfoForm from "./SettingsTab/UserInfoForm";
 import PasswordForm from "./SettingsTab/PasswordForm";
+import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import "./HomePage.css";
 
-const SettingsTab: React.FC<{ userInfo?: any }> = (props) => {
-    const outlet = useOutletContext<{ userInfo: any, refreshUserInfo?: () => void }>();
-    const userInfo = props.userInfo ?? outlet?.userInfo;
-    const refreshHomePageUserInfo = outlet?.refreshUserInfo;
+const SettingsTab: React.FC = () => {
+    const outlet = useOutletContext<{ userInfo: UserInfo, refreshUserInfo: () => void }>();
+    const userInfo = outlet.userInfo;
+    const refreshHomePageUserInfo = outlet.refreshUserInfo;
 
     return (
         <div className="home-settings-tab">
