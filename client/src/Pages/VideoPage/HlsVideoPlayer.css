@@ -1,7 +1,7 @@
 .video-container {
   width: 100%;
-  height: 100%; /* 填满父容器 */
-  position: absolute; /* 适应父容器的绝对定位 */
+  height: 100%;
+  position: absolute;
   top: 0;
   left: 0;
   background: #000;
@@ -14,8 +14,197 @@
   outline: none;
 }
 
-/* 加载状态指示器 */
-.video-container::before {
+/* Custom controls */
+.custom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.custom-controls.visible {
+  opacity: 1;
+}
+
+.custom-controls.inactive {
+  opacity: 0;
+}
+
+.control-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  margin-right: 10px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.progress-container {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #00a1d6;
+  border-radius: 2px;
+  width: 0;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-container:hover .progress-bar::after {
+  opacity: 1;
+}
+
+.time-display {
+  color: white;
+  font-size: 12px;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Playback rate selector - 美化后的样式 */
+.playback-rate-container {
+  position: relative;
+  margin-right: 10px;
+}
+
+.playback-rate-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.playback-rate-selector select {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 30px 6px 12px;
+  font-size: 12px;
+  height: 32px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.playback-rate-selector::after {
+  content: '▼';
+  color: white;
+  font-size: 10px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.playback-rate-selector select:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.playback-rate-selector select:focus {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.playback-rate-selector select option {
+  background: rgba(40, 40, 40, 0.95);
+  color: white;
+  padding: 8px 12px;
+}
+
+.playback-rate-selector select option:checked {
+  background: #00a1d6;
+  color: white;
+}
+
+/* Fullscreen title - 与底栏同步显示 */
+.fullscreen-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 20px;
+  background: rgba(49, 49, 49, 0.3);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 10;
+  text-align: left;
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.fullscreen-title.visible {
+  opacity: 1;
+}
+
+.fullscreen-title.inactive {
+  opacity: 0;
+}
+
+/* Loading state */
+.video-container.loading::before {
   content: '加载中...';
   position: absolute;
   top: 50%;
@@ -24,17 +213,85 @@
   color: #fff;
   font-size: 16px;
   z-index: 10;
-  display: none;
 }
 
-.video-container.loading::before {
-  display: block;
-}
-
-/* 响应式处理 */
+/* Responsive */
 @media (max-width: 768px) {
   .video-container {
-    margin: 10px auto;
     border-radius: 4px;
   }
+  
+  .custom-controls {
+    padding: 8px 10px;
+  }
+  
+  .control-button {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+  }
+  
+  .volume-slider {
+    width: 60px;
+  }
+  
+  .time-display {
+    min-width: 70px;
+    font-size: 11px;
+  }
+  
+  .playback-rate-selector select {
+    padding: 4px 26px 4px 10px;
+    font-size: 11px;
+    
+  }
+  
+  .playback-rate-selector::after {
+    right: 10px;
+    font-size: 9px;
+    
+  }
+}
+/* 自定义下拉容器 */
+.playback-rate-custom-select {
+  position: relative;
+  min-width: 80px;
+}
+
+/* 当前选中项 */
+.selected-rate {
+  color:white ;
+  background: rgba(40, 40, 40, 0.85);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+}
+
+/* 下拉选项菜单 */
+.rate-options {
+  color:white ;
+  position: absolute;
+  bottom: 100%;
+  width: 100%;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* 单个选项 */
+.rate-option {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.rate-option:hover {
+  background: rgba(60, 60, 60, 0.8);
+}
+
+.rate-option.selected {
+  background: rgba(0, 161, 214, 0.7);
 }

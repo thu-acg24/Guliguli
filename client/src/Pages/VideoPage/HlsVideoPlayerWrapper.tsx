@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import MinioVideoPlayer from "./HlsVideoPlayer";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryM3U8PathMessage } from "Plugins/VideoService/APIs/QueryM3U8PathMessage";
+import { Video } from 'Plugins/VideoService/Objects/Video';
 
 interface HlsVideoPlayerWrapperProps {
   videoID: number;
+  videoinfo:Video;
 }
 
-const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID }) => {
+const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,videoinfo }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +78,7 @@ const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID }
     );
   }
 
-  return <MinioVideoPlayer videoUrl={videoUrl} />;
+  return <MinioVideoPlayer videoUrl={videoUrl}videoinfo={videoinfo}/>;
 };
 
 export default HlsVideoPlayerWrapper;

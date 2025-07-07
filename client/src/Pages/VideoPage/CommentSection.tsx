@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import CommentItem from "./CommentItem";
 import {CommentWithUserInfo} from './VideoPage'
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
+import {Video} from 'Plugins/VideoService/Objects/Video'
 import "./VideoPage.css";
 
 interface CommentSectionProps {
@@ -11,6 +12,7 @@ interface CommentSectionProps {
   isLoggedIn: boolean;
   userInfo: UserInfo;
   commentInput: string;
+  videoinfo:Video;
   setCommentInput: (value: string) => void;
   handlePostComment: () => void;
   handleLoadMore: () => void;
@@ -31,6 +33,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   isLoggedIn,
   userInfo,
   commentInput,
+  videoinfo,
   setCommentInput,
   handlePostComment,
   handleLoadMore,
@@ -54,7 +57,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
       <div className="video-comment-input-area" ref={commentInputRef}>
         <img
-          src={isLoggedIn ? (userInfo?.avatarPath || '/default-avatar.png') : '/default-avatar.png'}
+          src={isLoggedIn ? (userInfo?.avatarPath || 'default.jpg') : 'default.jpg'}
           alt="用户头像"
           className="video-comment-avatar"
           onClick={() => isLoggedIn && navigateToUser(userInfo?.userID || 0)}
@@ -77,6 +80,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             comment={comment}
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}
+            videoinfo={videoinfo}
             handleLikeComment={handleLikeComment}
             handleDeleteComment={handleDeleteComment}
             navigateToUser={navigateToUser}

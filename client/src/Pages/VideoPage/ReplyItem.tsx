@@ -3,11 +3,14 @@ import React from "react";
 import "./VideoPage.css";
 import { CommentWithUserInfo} from './VideoPage'
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
+import { Video } from "Plugins/VideoService/Objects/Video";
+import { formatTime } from 'Components/GetTime';
 
 interface ReplyItemProps {
   reply: CommentWithUserInfo;
   isLoggedIn: boolean;
   userInfo: UserInfo;
+  videoinfo:Video;
   handleLikeComment: (id: number) => void;
   handleDeleteComment: (id: number) => void;
   navigateToUser: (id: number) => void;
@@ -20,6 +23,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
   reply,
   isLoggedIn,
   userInfo,
+  videoinfo,
   handleLikeComment,
   handleDeleteComment,
   navigateToUser,
@@ -43,7 +47,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           >
             {reply.userInfo?.username || '未知用户'}
           </span>
-          <span className="video-reply-time">{reply.timestamp}</span>
+          <span className="video-reply-time">{formatTime(reply.timestamp)}</span>
         </div>
         <div className="video-reply-text">
           {reply.replyToUserID && (
@@ -83,7 +87,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           >
             回复
           </button>
-          {reply.authorID === userInfo?.userID && (
+          {(reply.authorID === userInfo?.userID ||userInfo?.userID === videoinfo?.uploaderID)&& (
             <button
               className="video-delete-btn"
               onClick={() => handleDeleteComment(reply.commentID)}

@@ -703,6 +703,7 @@ const VideoPage: React.FC = () => {
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}
             commentInput={commentInput}
+            videoinfo={videoinfo}
             setCommentInput={setCommentInput}
             handlePostComment={handlePostComment}
             handleLoadMore={handleLoadMore}

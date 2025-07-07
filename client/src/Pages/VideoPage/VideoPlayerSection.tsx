@@ -2,6 +2,7 @@ import React from "react";
 import HlsVideoPlayerWrapper from "./HlsVideoPlayerWrapper";
 import "./VideoPage.css";
 import { Video } from 'Plugins/VideoService/Objects/Video';
+import { formatTime } from 'Components/GetTime';
 
 interface VideoPlayerSectionProps {
   video_id: string;
@@ -26,11 +27,11 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
 
       <div className="video-video-meta">
         <span>播放: {videoinfo.views}</span>
-        <span>投稿时间: {videoinfo.uploadTime}</span>
+        <span>投稿时间: {formatTime(videoinfo.uploadTime,false)}</span>
       </div>
 
       <div className="video-video-player-container">
-        <HlsVideoPlayerWrapper videoID={Number(video_id)} />
+        <HlsVideoPlayerWrapper videoID={Number(video_id)} videoinfo={videoinfo} />
       </div>
 
       <div className="video-video-actions">
