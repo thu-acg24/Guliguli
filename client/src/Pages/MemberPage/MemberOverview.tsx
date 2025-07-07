@@ -86,6 +86,11 @@ const MemberOverview: React.FC = () => {
         navigate(videoPath);
     };
 
+    const handleVideoClick = (videoID: number) => {
+        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
+        navigate(videoPath);
+    };
+
     if (loading) {
         return (
             <div className="member-loading">
@@ -113,7 +118,10 @@ const MemberOverview: React.FC = () => {
                 <div className="member-video-list">
                     {videos.map((video) => (
                         <div key={video.videoID} className="member-video-item">
-                            <div className="member-video-cover-container">
+                            <div
+                                className="member-video-cover-container"
+                                onClick={() => handleVideoClick(video.videoID)}
+                            >
                                 <img
                                     src={video.cover || DefaultCover}
                                     alt={video.title}
@@ -132,7 +140,10 @@ const MemberOverview: React.FC = () => {
                             </div>
 
                             <div className="member-video-info">
-                                <div className="member-video-title">{video.title}</div>
+                                <div
+                                    className="member-video-title"
+                                    onClick={() => handleVideoClick(video.videoID)}
+                                >{video.title}</div>
                                 <div className="member-video-stats">
                                     <span>播放量: {formatCount(video.views)}</span>
                                     <span>点赞量: {formatCount(video.likes)}</span>

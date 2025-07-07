@@ -84,6 +84,7 @@
     margin-right: 20px;
     border-radius: 4px;
     overflow: hidden;
+    cursor: pointer;
 }
 
 .member-video-cover {
@@ -126,6 +127,12 @@
     font-weight: bold;
     color: #333;
     margin-bottom: 5px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.member-video-title:hover {
+    color: #fb7299;
 }
 
 .member-video-stats {

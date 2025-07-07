@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { videoPagePath } from "Pages/VideoPage/VideoPage"; // Importing the video page path
-import "./MainPage.css"; 
+import "./MainPage.css";
 
 export const mainPagePath = "/mainpage"
 
@@ -60,9 +60,24 @@ const MainPage: React.FC = () => {
         alert('正在加载更多视频...');
     };
 
+    const [isAtTop, setIsAtTop] = useState(window.scrollY === 0);
+
+    const handleScroll = () => {
+        const currentIsAtTop = window.scrollY === 0;
+
+        if (currentIsAtTop !== isAtTop) {
+            setIsAtTop(currentIsAtTop)
+            console.log(isAtTop ? "到达顶部" : "离开顶部");
+            // 这里可以触发回调或更新状态
+        }
+    };
+
+    // 添加滚动监听
+    window.addEventListener("scroll", handleScroll);
+
     return (
         <div className="main-main-page">
-            <Header />
+            <Header usetransparent={true} transparent={isAtTop} />
 
             {/* Main View */}
             <div className="main-main-view" onClick={() => alert('跳转到宣传页面')}>
