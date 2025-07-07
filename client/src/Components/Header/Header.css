@@ -115,7 +115,8 @@
 .header-user-panel-popover {
     position: absolute;
     top: 100%;
-    right: 0;
+    right: 50%;
+    transform: translateX(50%);
     margin-top: 8px;
     background: white;
     border-radius: 8px;
@@ -235,7 +236,8 @@
     content: '';
     position: absolute;
     top: -8px;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 8px solid transparent;
@@ -246,7 +248,8 @@
     content: '';
     position: absolute;
     top: -7px;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 8px solid transparent;
