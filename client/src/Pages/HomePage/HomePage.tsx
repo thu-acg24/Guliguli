@@ -13,6 +13,7 @@ import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage"
 import { ChangeFollowStatusMessage } from "Plugins/UserService/APIs/ChangeFollowStatusMessage";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
 import {WhisperTabpath} from "Pages/MessagePage/WhisperTab"
+import back from "Images/back.jpg";
 import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
@@ -285,7 +286,15 @@ const HomePage: React.FC = () => {
         <div className="home-home-page">
             <Header />
             {/* 用户信息区域 */}
-            <div className="home-user-info-section">
+            <div 
+                className="home-user-info-section"
+                style={{ 
+                    background: `url(${back}) center/cover no-repeat`,
+                    position: "relative",
+                    color: "white",
+                    padding: "30px 20px",
+                }}
+                >
                 <div className="home-user-left">
                     <div className="home-info-user-avatar">
                         <img src={userInfo.avatarPath} alt="用户头像" />

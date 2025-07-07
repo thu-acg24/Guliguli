@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
+import { useNavigate } from "react-router-dom";
 import { QueryReplyNoticesMessage } from 'Plugins/MessageService/APIs/QueryReplyNoticesMessage';
 import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
 import { useUserInfo } from 'Globals/GlobalStore';
@@ -9,6 +10,7 @@ import { formatTime } from 'Components/GetTime';
 import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import "./MessagePage.css";
 import "./ReplyTab.css";
+import { videoPagePath } from 'Pages/VideoPage/VideoPage';
 
 const ReplyTab: React.FC = () => {
   interface ReplyWithUserInfo {
@@ -19,6 +21,7 @@ const ReplyTab: React.FC = () => {
   const [replies, setReplies] = useState<ReplyWithUserInfo[]>([]);
   const [replyingComment, setReplyingComment] = useState<ReplyNotice | null>(null);
   const userToken = useUserToken();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userToken) fetchRepliesWithUserInfo();
@@ -55,8 +58,8 @@ const ReplyTab: React.FC = () => {
     });
   };
 
-  const handleOriginalClick = (videoUrl: number) => {
-
+  const handleOriginalClick = (videoid: number) => {
+      navigate(`/video/${videoid}`);
   };
 
   return (

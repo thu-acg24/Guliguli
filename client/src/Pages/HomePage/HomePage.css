@@ -28,15 +28,26 @@
     align-items: center;
     justify-content: space-between;
 }
-
+.home-user-info-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1); /* 黑色半透明遮罩 */
+  z-index: 0; /* 确保遮罩在背景之上，内容之下 */
+}
 .home-user-left {
     display: flex;
     align-items: center;
+    z-index:1;
 }
 
 .home-user-actions {
     display: flex;
     align-items: center;
+    z-index:1;
 }
 
 .home-user-actions .home-follow-btn {
@@ -111,7 +122,7 @@
 
 .home-user-signature {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255);
     line-height: 1.4;
 }
 
@@ -119,6 +130,7 @@
     transition: all 0.2s ease;
     min-height: 20px;
     display: inline-block;
+    
 }
 
 .home-bio-text.editable {
