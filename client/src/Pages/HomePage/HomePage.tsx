@@ -12,6 +12,7 @@ import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideo
 import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage";
 import { ChangeFollowStatusMessage } from "Plugins/UserService/APIs/ChangeFollowStatusMessage";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
+import {WhisperTabpath} from "Pages/MessagePage/WhisperTab"
 import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
@@ -258,7 +259,7 @@ const HomePage: React.FC = () => {
         // TODO: 实现私信功能的API调用
         console.log(`点击私信按钮，目标用户ID: ${user_id}`);
         // 这里可以跳转到私信页面或打开私信对话框
-        // navigate(`/message/${user_id}`);
+        navigate(`${WhisperTabpath}/${user_id}`);
     };
 
     // 通过路由获取当前激活tab

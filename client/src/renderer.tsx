@@ -37,6 +37,7 @@ const RouterContent = () => {
             <Route path={messagePagePath} element={<MessagePage />}>
                 <Route index element={<WhisperTab />} />
                 <Route path="whisper" element={<WhisperTab />} />
+                <Route path={`whisper/:userid`} element={<WhisperTab />} />
                 <Route path="reply" element={<ReplyTab />} />
                 <Route path="system" element={<SystemTab />} />
             </Route>
