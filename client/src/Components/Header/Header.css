@@ -15,7 +15,7 @@
     position: fixed;  
 }
 .header-header.transparent {
-    background-color: transparent;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
     box-shadow: none;
 }
 
@@ -99,6 +99,12 @@
 .header-header-action-btn:hover {
     color: #fb7299;
     background-color: #f5f5f5;
+}
+.header-header.transparent .header-header-action-btn {
+    color: white;
+}
+.header-header.transparent .header-header-action-btn:hover {
+    background-color: transparent;
 }
 .header-header-upload-btn {
     margin-left: 10px;
