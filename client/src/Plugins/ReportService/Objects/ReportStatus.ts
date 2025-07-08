@@ -1,7 +1,7 @@
 export enum ReportStatus {
-    pending = '待处理',
-    resolved = '已处理',
-    rejected = '驳回'
+    pending = 'Pending',
+    resolved = 'Resolved',
+    rejected = 'Rejected'
 }
 
 export const reportStatusList = Object.values(ReportStatus)

@@ -63,9 +63,12 @@
 .main-video-container {
     width: 100%;
     max-width: 1400px;
-    margin: 0 auto;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-top: 5px;
     padding: 20px;
     padding-top: 0;
+
     background-color: white;
 }
 

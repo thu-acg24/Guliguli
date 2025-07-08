@@ -60,7 +60,6 @@ export const fetchUserID = async (userToken: string): Promise<void> => {
 
 // 刷新用户信息
 export const refreshUserInfo = async (userID: number): Promise<void> => {
-    console.log("!!!!!!!!!!!!!!!!! 1")
     if (!userID) {
         setUserInfo(null)
         setError('userInfo', null)
@@ -69,14 +68,12 @@ export const refreshUserInfo = async (userID: number): Promise<void> => {
 
     setLoading('userInfo', true)
     setError('userInfo', null)
-    console.log("!!!!!!!!!!!!!!!!! 2")
 
     try {
         await new Promise<void>((resolve, reject) => {
             new QueryUserInfoMessage(userID).send(
                 (info: string) => {
                     const userInfo = JSON.parse(info)
-                    console.log("!!!!!!!!!!!!!!!!!获取用户信息成功:", userInfo)
                     setUserInfo(userInfo)
                     resolve()
                 },

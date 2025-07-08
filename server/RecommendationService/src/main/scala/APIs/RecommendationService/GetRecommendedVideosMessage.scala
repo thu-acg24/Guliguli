@@ -24,13 +24,16 @@ import scala.util.Try
  * desc: 基于用户行为或视频标签生成推荐视频列表
  * @param videoID: Int (视频ID，用于基于视频相关性生成推荐。)
  * @param userID: Int (用户ID，用于基于用户行为生成推荐。)
+ * @param randomRatio: Float (随机性参数，用于增强推荐的随机性)
+ * @param fetchLimit: Int (获取的视频数量，默认20个)
  * @return recommendedVideos: Video:1120 (推荐的视频列表，包含视频的完整信息。)
  */
 
 case class GetRecommendedVideosMessage(
   videoID: Option[Int] = None,
   userID: Option[String] = None,
-  randomRatio: Float = 0.2F
+  randomRatio: Float = 0.2F,
+  fetchLimit: Int = 20
 ) extends API[List[Video]](RecommendationServiceCode)
 
 case object GetRecommendedVideosMessage{

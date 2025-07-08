@@ -10,29 +10,14 @@ export const useGlobalUserEffects = () => {
 
     // 当 userToken 变化时，获取 userID 或清空用户数据
     useEffect(() => {
-        // 初次渲染时，lastTokenRef.current 为 undefined，会执行一次
-        // 之后只有当 token 真正改变时才执行
-
-
-        if (userToken) {
-            // 有 token 时获取用户 ID
-            fetchUserID(userToken)
-        } else {
-            // 无 token 时清空所有数据，并重置 userID ref
-            setUserID(null)
-        }
+        fetchUserID(userToken)
     }, [userToken])
 
     // 当 userID 变化时，获取用户信息和统计信息
     useEffect(() => {
         console.log('UserID changed: ->', userID)
-        if (userID) {
-            refreshUserInfo(userID)
-            refreshUserStat(userID)
-        } else if (!userID) {
-            setUserInfo(null)
-            setUserStat(null)
-        }
+        refreshUserInfo(userID)
+        refreshUserStat(userID)
     }, [userID])
 }
 
@@ -41,9 +26,7 @@ export const useRefreshUserInfo = () => {
     const { userID } = useUserID()
 
     return async () => {
-        if (userID) {
-            await refreshUserInfo(userID)
-        }
+        await refreshUserInfo(userID)
     }
 }
 
@@ -52,8 +35,6 @@ export const useRefreshUserStat = () => {
     const { userID } = useUserID()
 
     return async () => {
-        if (userID) {
-            await refreshUserStat(userID)
-        }
+        await refreshUserStat(userID)
     }
 }

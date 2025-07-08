@@ -1,0 +1,504 @@
+/* AuditPage.css */
+.audit-page {
+    min-height: 100vh;
+    background-color: #f4f4f4;
+}
+
+.audit-container {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 20px;
+}
+
+.audit-sidebar {
+    width: 200px;
+    background-color: white;
+    border-radius: 6px;
+    padding: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    height: fit-content;
+}
+
+.audit-sidebar-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    padding: 0 20px 15px 20px;
+    border-bottom: 1px solid #e7e7e7;
+    margin-bottom: 10px;
+}
+
+.audit-sidebar-item {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 15px;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.audit-sidebar-item:hover {
+    background-color: #f5f5f5;
+    color: #fb7299;
+}
+
+.audit-sidebar-item.active {
+    background-color: #fb7299;
+    color: white;
+    font-weight: bold;
+}
+
+.audit-main-content {
+    flex: 1;
+    background-color: white;
+    border-radius: 6px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.audit-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 60px);
+    font-size: 18px;
+    color: #666;
+}
+
+/* VideoAudit 页面样式 */
+.video-audit {
+    padding: 0;
+}
+
+.video-audit-header {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 16px;
+}
+
+.video-audit-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.video-audit-subtitle {
+    color: #666;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.video-audit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.video-audit-item {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e7e7e7;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.2s;
+}
+
+.video-audit-item:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.audit-video-cover-container {
+    width: 160px;
+    height: 90px;
+    margin-right: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.audit-video-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.audit-video-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.audit-video-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.audit-video-title:hover {
+    color: #fb7299;
+}
+
+.audit-video-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.audit-video-description {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.audit-video-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.audit-video-tag {
+    background-color: #f0f9ff;
+    color: #1890ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.audit-video-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.audit-btn {
+    padding: 8px 16px;
+    border: 1px solid #fb7299;
+    background-color: white;
+    color: #fb7299;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.audit-btn:hover {
+    background-color: #fb7299;
+    color: white;
+}
+
+.audit-btn-approve {
+    border-color: #52c41a;
+    color: #52c41a;
+}
+
+.audit-btn-approve:hover {
+    background-color: #52c41a;
+    color: white;
+}
+
+.audit-btn-reject {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+}
+
+.audit-btn-reject:hover {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+.audit-btn-view {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+.audit-btn-view:hover {
+    background-color: #1890ff;
+    color: white;
+}
+
+.audit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.audit-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.audit-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.audit-empty-text {
+    font-size: 16px;
+}
+
+/* 举报管理页面样式 */
+.report-management {
+    padding: 0;
+}
+
+.report-header {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 16px;
+}
+
+.report-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.report-subtitle {
+    color: #666;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.report-item {
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.report-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.report-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.report-item-id {
+    font-weight: bold;
+    color: #1890ff;
+    font-size: 16px;
+}
+
+.report-item-time {
+    color: #999;
+    font-size: 14px;
+}
+
+.report-item-content {
+    margin-bottom: 16px;
+}
+
+.report-item-reason {
+    background-color: #fff2e8;
+    border: 1px solid #ffbb96;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.report-reason-label {
+    font-weight: bold;
+    color: #d46b08;
+    margin-bottom: 6px;
+}
+
+.report-reason-text {
+    color: #ad6800;
+    line-height: 1.5;
+}
+
+.report-target-info {
+    background-color: #f6ffed;
+    border: 1px solid #b7eb8f;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.report-target-label {
+    font-weight: bold;
+    color: #389e0d;
+    margin-bottom: 6px;
+}
+
+.report-target-text {
+    color: #237804;
+    line-height: 1.5;
+}
+
+.report-item-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #e8e8e8;
+}
+
+.report-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.report-btn-approve {
+    background-color: #52c41a;
+    color: white;
+}
+
+.report-btn-approve:hover {
+    background-color: #389e0d;
+}
+
+.report-btn-reject {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+.report-btn-reject:hover {
+    background-color: #cf1322;
+}
+
+.report-btn-view {
+    background-color: #1890ff;
+    color: white;
+}
+
+.report-btn-view:hover {
+    background-color: #096dd9;
+}
+
+.report-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.report-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.report-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.report-empty-text {
+    font-size: 16px;
+}
+
+/* 评论举报管理特定样式 */
+.comment-preview {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 12px;
+    border-left: 3px solid #1890ff;
+}
+
+.comment-header {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.comment-content {
+    background: white;
+    border-radius: 4px;
+    padding: 10px;
+    border: 1px solid #e1e1e1;
+}
+
+.comment-text {
+    line-height: 1.5;
+    color: #333;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #666;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 8px;
+}
+
+.comment-meta span {
+    display: flex;
+    align-items: center;
+}
+
+.comment-meta span::before {
+    content: "•";
+    margin-right: 4px;
+    color: #d9d9d9;
+}
+
+.comment-meta span:first-child::before {
+    display: none;
+}
+
+/* 响应式样式优化 */
+@media (max-width: 768px) {
+    .comment-meta {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .comment-meta span::before {
+        display: none;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .audit-container {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .audit-sidebar {
+        width: 100%;
+        position: static;
+    }
+
+    .video-item-header {
+        flex-direction: column;
+    }
+
+    .video-item-cover {
+        width: 100%;
+        height: 200px;
+    }
+
+    .video-item-actions,
+    .report-item-actions {
+        flex-wrap: wrap;
+    }
+}

@@ -23,6 +23,11 @@ import MemberOverview from 'Pages/MemberPage/MemberOverview';
 import MemberUpload from 'Pages/MemberPage/MemberUpload';
 import MemberVideoEdit from 'Pages/MemberPage/MemberVideoEdit';
 import MemberDanmakuManagement from 'Pages/MemberPage/MemberDanmakuManagement';
+import AuditPage, { auditPagePath } from 'Pages/AuditPage/AuditPage';
+import VideoAudit from 'Pages/AuditPage/VideoAudit';
+import VideoReportManagement from 'Pages/AuditPage/VideoReportManagement';
+import DanmakuReportManagement from 'Pages/AuditPage/DanmakuReportManagement';
+import CommentReportManagement from 'Pages/AuditPage/CommentReportManagement';
 
 // 内部组件，用于在Router内部初始化开发者工具
 const RouterContent = () => {
@@ -55,6 +60,13 @@ const RouterContent = () => {
                 <Route path="upload" element={<MemberUpload />} />
                 <Route path="edit/:videoID" element={<MemberVideoEdit />} />
                 <Route path="danmaku/:videoID" element={<MemberDanmakuManagement />} />
+            </Route>
+            <Route path={auditPagePath} element={<AuditPage />}>
+                <Route index element={<VideoAudit />} />
+                <Route path="video" element={<VideoAudit />} />
+                <Route path="report/video" element={<VideoReportManagement />} />
+                <Route path="report/danmaku" element={<DanmakuReportManagement />} />
+                <Route path="report/comment" element={<CommentReportManagement />} />
             </Route>
             {/*<Route path={managementPagePath} element={<ManagementPage />} />
             <Route path={searchPagePath} element={<SearchPage />} /> */}

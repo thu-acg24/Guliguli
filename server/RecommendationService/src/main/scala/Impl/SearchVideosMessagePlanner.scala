@@ -1,77 +1,99 @@
 package Impl
 
 
+import APIs.UserService.GetUIDByTokenMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Objects.PGVector
+import Objects.PGVector.defaultDim
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
+import Utils.PerferenceProcess.{fetchVideoDetails, getUserVector}
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
+import java.util.UUID
+
 case class SearchVideosMessagePlanner(
+    token: Option[String],
     searchString: String,
-    rangeL: Int,
-    rangeR: Int,
+    fetchLimit: Int = 20,
     override val planContext: PlanContext
-) extends Planner[Option[List[Video]]] {
+) extends Planner[List[Video]] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using planContext: PlanContext): IO[Option[List[Video]]] = {
-    logger.info(s"执行SearchVideosMessage，searchString=$searchString, rangeL=$rangeL, rangeR=$rangeR")
+  override def plan(using planContext: PlanContext): IO[List[Video]] = {
+    logger.info(s"执行SearchVideosMessage，searchString=$searchString")
     for {
-      // Step 1: 查询匹配的 VideoInfoTable 中的 title 字段
-      _ <- IO(logger.info("开始匹配 VideoInfoTable 中的 title 字段"))
-      matchingVideos <- getMatchingVideos()
+      // Step 1: Validate input parameters
+      _ <- IO(logger.info(s"确认userToken合法性"))
+      userID <- token.traverse(GetUIDByTokenMessage(_).send)
 
-      // Step 2: 按 uploadTime 倒序排序
-      _ <- IO(logger.info(s"查询到的匹配 Video 数量：${matchingVideos.length}"))
-      sortedVideos <- IO {
-        matchingVideos.sortBy(video => decodeField[DateTime](video, "upload_time").getMillis).reverse
-      }
+      // Step 2: 查询
+      videoIDs <- getMatchingVideos(userID, searchString)
 
-      // Step 3: 分页筛选
-      _ <- IO(logger.info(s"开始分页处理：RangeL=$rangeL, RangeR=$rangeR"))
-      paginatedVideos <- IO { sortedVideos.slice(rangeL, rangeR) }
 
-      // Step 4: 组装为 Video 对象
-      _ <- IO(logger.info("开始将查询结果转换为 Video 对象列表"))
-      videoObjects <- IO { paginatedVideos.map(decodeType[Video]) }
-
-      // Step 5: 返回最终结果
-      _ <- IO(logger.info(s"返回的 Video 对象数量：${videoObjects.length}"))
-    } yield if (videoObjects.isEmpty) Some(Nil) else Some(videoObjects)
-  }.handleErrorWith { error =>
-    logger.error(s"SearchVideosMessage 执行过程中发生错误: ${error.getMessage}")
-    IO.pure(None)
+      // Step 3: 转回Video对象
+      _ <- IO(logger.info(s"将推荐视频ID列表映射为完整视频对象"))
+      videos <- fetchVideoDetails(videoIDs)
+    } yield videos
   }
 
-  private def getMatchingVideos()(using PlanContext): IO[List[Json]] = {
+  private def getMatchingVideos(
+                                         userID: Option[Int],
+                                         keyword: String
+                                       )(using PlanContext): IO[List[Int]] = {
+
+    val words = keyword.split("\\s+").filter(_.nonEmpty)
+    val likeConditions = words.map(_ => "title ILIKE ?").toList
+    val whereFilterClause = if likeConditions.isEmpty then "TRUE" else likeConditions.mkString(" AND ")
+
     val sql =
       s"""
-         |SELECT *
-         |FROM $schemaName.video_info_table
-         |WHERE title ILIKE ? AND visible = ?
-       """.stripMargin
+         |WITH filtered_candidates AS (
+         |  SELECT video_id, view_count, embedding <#> ? AS dot_product
+         |  FROM $schemaName.video_info_table
+         |  WHERE visible = true AND $whereFilterClause
+         |  ORDER BY embedding <#> ? DESC
+         |  LIMIT 200
+         |)
+         |SELECT video_id,
+         |       dot_product + (0.2 * log(10, GREATEST(view_count, 1))) AS combined_score
+         |FROM filtered_candidates
+         |ORDER BY combined_score DESC
+         |LIMIT $fetchLimit;
+         |""".stripMargin
 
-    // 构造SQL参数
-    val parameters = List(
-      SqlParameter("String", s"%$searchString%"), // 模糊匹配
-      SqlParameter("Boolean", "true") // 仅选择对外可见的视频
-    )
+    for {
+      userVector <- userID match {
+        case Some(id) => getUserVector(id)
+        case None     => IO.pure(PGVector(Vector.fill(defaultDim)(0.0f)))
+      }
 
-    logger.info(s"执行SQL查询匹配视频: sql=$sql")
-    readDBRows(sql, parameters)
+      randomVector <- PGVector.fromString(UUID.randomUUID.toString)
+
+      queryVector = (
+        randomVector * 0.3f +
+          userVector * (1.0f - 0.3f)
+        ).normalize
+      _ <- IO(logger.info("Started searching videos..."))
+      likeParams = words.map(w => SqlParameter("String", s"%$w%")).toList
+      queryParams = List(SqlParameter("Vector", queryVector.toString), SqlParameter("Vector", queryVector.toString))
+      allParams = likeParams ++ queryParams
+
+      resultIDs <- readDBRows(sql, allParams).map(_.map(json => decodeField[Int](json, "video_id")))
+    } yield resultIDs
   }
 }
