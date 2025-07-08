@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { QueryPendingVideosMessage } from "Plugins/VideoService/APIs/QueryPendingVideosMessage";
@@ -11,7 +11,7 @@ import DefaultCover from "Images/DefaultCover.jpg";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 
 const VideoAudit: React.FC = () => {
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -60,8 +60,7 @@ const VideoAudit: React.FC = () => {
     };
 
     const handleViewVideo = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     const formatDuration = (seconds: number): string => {

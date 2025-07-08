@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useNavigateHome } from "Globals/Navigate";
 import Header from "Components/Header/Header";
 import { useUserInfo } from 'Globals/GlobalStore';
 import { useUserToken } from "Globals/GlobalStore";
@@ -33,6 +34,17 @@ import "./VideoPage.css";
 
 export const videoPagePath = "/video/:video_id";
 
+
+export function useNavigateVideo() {
+  const navigate = useNavigate();
+
+  const navigateVideo = useCallback((video_id: string | number) => {
+    navigate(videoPagePath.replace(":video_id", String(video_id)));
+  }, [navigate]);
+
+  return { navigateVideo };
+}
+
 export interface CommentWithUserInfo extends Comment {
   isLocal?: boolean;
   userInfo?: UserInfo;
@@ -46,7 +58,7 @@ export interface CommentWithUserInfo extends Comment {
 const VideoPage: React.FC = () => {
   const { video_id } = useParams<{ video_id: string }>();
   const userToken = useUserToken();
-  const navigate = useNavigate();
+  const { navigateHome } = useNavigateHome();
   const { userInfo } = useUserInfo();
   const [uploaderInfo, setUploaderInfo] = useState<UserInfo | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -524,7 +536,7 @@ const VideoPage: React.FC = () => {
   };
 
   const navigateToUser = (userID: number) => {
-    navigate(`/home/${userID}`);
+    navigateHome(userID);
   };
 
   const followUp = (upID: number) => {

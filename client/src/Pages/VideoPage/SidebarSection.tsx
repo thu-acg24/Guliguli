@@ -4,6 +4,7 @@ import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { Video } from 'Plugins/VideoService/Objects/Video';
 import { UserStat } from 'Plugins/UserService/Objects/UserStat';
 import { useNavigate } from "react-router-dom";
+import { useNavigateHome, useNavigateVideo } from "Globals/Navigate";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { SimpleVideo } from "Components/RecommendVideoService";
 
@@ -31,18 +32,19 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   navigateToUser,
   recommendedVideos,
 }) => {
-  const navigate = useNavigate();
+  const { navigateHome } = useNavigateHome();
+  const { navigateVideo } = useNavigateVideo();
 
   const handleVideoClick = (videoId: number) => {
     if (videoId > 0) {
-      navigate(`/video/${videoId}`);
+      navigateVideo(videoId);
     }
   };
 
   const handleAuthorClick = (userId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (userId > 0) {
-      navigateToUser(userId);
+      navigateHome(userId);
     }
   };
 
@@ -54,13 +56,13 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
             <img 
               src={uploaderInfo.avatarPath} 
               alt="UP主头像" 
-              onClick={() => navigateToUser(uploaderInfo.userID)}
+              onClick={() => navigateHome(uploaderInfo.userID)}
               onError={(e) => { e.currentTarget.src = DefaultCover; }}
             />
           </div>
           <div className="video-up-details">
             <div className="video-up-name">
-              <span onClick={() => navigateToUser(uploaderInfo.userID)}>
+              <span onClick={() => navigateHome(uploaderInfo.userID)}>
                 {uploaderInfo.username}
               </span>
             </div>

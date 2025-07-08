@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useNavigateMember, useNavigateVideo } from "Globals/Navigate";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
 import { Video } from "Plugins/VideoService/Objects/Video";
@@ -11,6 +12,8 @@ import DefaultCover from "Images/DefaultCover.jpg";
 
 const MemberOverview: React.FC = () => {
     const navigate = useNavigate();
+    const { navigateMember } = useNavigateMember();
+    const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const { userID } = useUserID();
     const [videos, setVideos] = useState<Video[]>([]);
@@ -82,13 +85,11 @@ const MemberOverview: React.FC = () => {
     };
 
     const handleManageComments = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     const handleVideoClick = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     if (loading) {

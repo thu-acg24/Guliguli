@@ -1,5 +1,5 @@
 // src/Pages/HomePage/HomePage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Outlet, useLocation } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
@@ -18,17 +18,44 @@ import "./HomePage.css";
 
 export const homePagePath = "/home/:user_id";
 
-// 定义页面标签常量
-const TAB_VIDEOS = "videos";
-const TAB_FOLLOWING = "following";
-const TAB_FOLLOWERS = "followers";
-const TAB_FAVORITES = "favorites";
-const TAB_HISTORY = "history";
-const TAB_SETTINGS = "settings";
+// 定义页面标签枚举
+export enum HomePageTab {
+    videos = "videos",
+    following = "following",
+    followers = "followers",
+    favorites = "favorites",
+    history = "history",
+    settings = "settings",
+}
+
+const getTab = (path: string): HomePageTab => {
+    const parts = path.split("/");
+    if (parts.length < 4) return HomePageTab.videos; // 默认返回视频标签
+    const tab = parts[3];
+    return Object.values(HomePageTab).includes(tab as HomePageTab) ? (tab as HomePageTab) : HomePageTab.videos;
+}
+
+export function useNavigateHome() {
+    const navigate = useNavigate();
+    const navigateHome = useCallback((user_id: string | number) => {
+        navigate(homePagePath.replace(":user_id", String(user_id)));
+    }, [navigate]);
+
+    const navigateHomeTab = useCallback((user_id: string | number, tab: HomePageTab) => {
+        if (tab === HomePageTab.videos) {
+            navigateHome(user_id);
+        } else {
+            navigate(`${homePagePath.replace(":user_id", String(user_id))}/${tab}`);
+        }
+    }, [navigate, navigateHome]);
+
+    return { navigateHome, navigateHomeTab };
+}
 
 const HomePage: React.FC = () => {
     const { user_id } = useParams<{ user_id: string }>();
     const navigate = useNavigate();
+    const { navigateHomeTab } = useNavigateHome();
     const location = useLocation();
     const userToken = useUserToken();
     const { userID: currentUserID } = useUserID();
@@ -224,7 +251,6 @@ const HomePage: React.FC = () => {
         }
 
         try {
-            // 立即更新UI状态
             const newFollowingStatus = !isFollowing;
 
             // 发送关注状态更改请求
@@ -257,29 +283,16 @@ const HomePage: React.FC = () => {
 
     // 处理私信按钮点击
     const handleMessageClick = () => {
-        // TODO: 实现私信功能的API调用
         console.log(`点击私信按钮，目标用户ID: ${user_id}`);
-        // 这里可以跳转到私信页面或打开私信对话框
         navigate(`${WhisperTabpath}/${user_id}`);
     };
 
     // 通过路由获取当前激活tab
-    const getActiveTab = () => {
-        const pathParts = location.pathname.split("/");
-        // /home/:uyyaser_id 或 /home/:user_id/xxx
-        if (pathParts.length < 4) return TAB_VIDEOS;
-        return pathParts[3] || TAB_VIDEOS;
-    };
-    const activeTab = getActiveTab();
+    const activeTab = getTab(location.pathname);
 
     // 侧边栏点击跳转
-    const handleTabClick = (tab: string) => {
-        const basePath = homePagePath.replace(":user_id", user_id!);
-        if (tab === TAB_VIDEOS) {
-            navigate(basePath);
-        } else {
-            navigate(`${basePath}/${tab}`);
-        }
+    const handleTabClick = (tab: HomePageTab) => {
+        navigateHomeTab(user_id!, tab);
     };
 
     return (
@@ -292,7 +305,7 @@ const HomePage: React.FC = () => {
                     background: `url(${back}) center/cover no-repeat`,
                     position: "relative",
                     color: "white",
-                    padding: "30px 20px",
+                    padding: "30px 40px",
                 }}
             >
                 <div className="home-user-left">
@@ -348,22 +361,22 @@ const HomePage: React.FC = () => {
                 {/* 侧边栏导航 */}
                 <div className="home-sidebar">
                     <div
-                        className={`home-sidebar-item ${activeTab === TAB_VIDEOS ? "active" : ""}`}
-                        onClick={() => handleTabClick(TAB_VIDEOS)}
+                        className={`home-sidebar-item ${activeTab === HomePageTab.videos ? "active" : ""}`}
+                        onClick={() => handleTabClick(HomePageTab.videos)}
                     >
                         <span>视频</span>
                         <span className="home-sidebar-count">{videoCount}</span>
                     </div>
                     <div
-                        className={`home-sidebar-item ${activeTab === TAB_FOLLOWING ? "active" : ""}`}
-                        onClick={() => handleTabClick(TAB_FOLLOWING)}
+                        className={`home-sidebar-item ${activeTab === HomePageTab.following ? "active" : ""}`}
+                        onClick={() => handleTabClick(HomePageTab.following)}
                     >
                         <span>关注</span>
                         <span className="home-sidebar-count">{userStat?.followingCount || 0}</span>
                     </div>
                     <div
-                        className={`home-sidebar-item ${activeTab === TAB_FOLLOWERS ? "active" : ""}`}
-                        onClick={() => handleTabClick(TAB_FOLLOWERS)}
+                        className={`home-sidebar-item ${activeTab === HomePageTab.followers ? "active" : ""}`}
+                        onClick={() => handleTabClick(HomePageTab.followers)}
                     >
                         <span>粉丝</span>
                         <span className="home-sidebar-count">{userStat?.followerCount || 0}</span>
@@ -372,20 +385,20 @@ const HomePage: React.FC = () => {
                     {isCurrentUser && (
                         <>
                             <div
-                                className={`home-sidebar-item ${activeTab === TAB_FAVORITES ? "active" : ""}`}
-                                onClick={() => handleTabClick(TAB_FAVORITES)}
+                                className={`home-sidebar-item ${activeTab === HomePageTab.favorites ? "active" : ""}`}
+                                onClick={() => handleTabClick(HomePageTab.favorites)}
                             >
                                 收藏
                             </div>
                             <div
-                                className={`home-sidebar-item ${activeTab === TAB_HISTORY ? "active" : ""}`}
-                                onClick={() => handleTabClick(TAB_HISTORY)}
+                                className={`home-sidebar-item ${activeTab === HomePageTab.history ? "active" : ""}`}
+                                onClick={() => handleTabClick(HomePageTab.history)}
                             >
                                 历史记录
                             </div>
                             <div
-                                className={`home-sidebar-item ${activeTab === TAB_SETTINGS ? "active" : ""}`}
-                                onClick={() => handleTabClick(TAB_SETTINGS)}
+                                className={`home-sidebar-item ${activeTab === HomePageTab.settings ? "active" : ""}`}
+                                onClick={() => handleTabClick(HomePageTab.settings)}
                             >
                                 设置
                             </div>
@@ -396,16 +409,16 @@ const HomePage: React.FC = () => {
                 {/* 主内容区域 */}
                 <div className="home-main-content">
                     <div className="home-tab-title">
-                        {activeTab === TAB_VIDEOS && "发布的视频"}
-                        {activeTab === TAB_FOLLOWING && "关注列表"}
-                        {activeTab === TAB_FOLLOWERS && "粉丝列表"}
-                        {activeTab === TAB_FAVORITES && "收藏的视频"}
-                        {activeTab === TAB_HISTORY && "观看历史"}
-                        {activeTab === TAB_SETTINGS && "个人设置"}
+                        {activeTab === HomePageTab.videos && "发布的视频"}
+                        {activeTab === HomePageTab.following && "关注列表"}
+                        {activeTab === HomePageTab.followers && "粉丝列表"}
+                        {activeTab === HomePageTab.favorites && "收藏的视频"}
+                        {activeTab === HomePageTab.history && "观看历史"}
+                        {activeTab === HomePageTab.settings && "个人设置"}
                     </div>
 
                     {/* 检查是否有权限访问私人内容 */}
-                    {!isCurrentUser && (activeTab === TAB_FAVORITES || activeTab === TAB_HISTORY || activeTab === TAB_SETTINGS) ? (
+                    {!isCurrentUser && (activeTab === HomePageTab.favorites || activeTab === HomePageTab.history || activeTab === HomePageTab.settings) ? (
                         <div className="home-error-message">您没有权限访问此内容</div>
                     ) : (
                         <Outlet context={{ userID: userInfo.userID, userInfo, isCurrentUser, refreshUserInfo: fetchUserInfo, refreshUserStat: fetchUserStat, refreshUserVideoCount: fetchUserVideoCount, isFollowing: isFollowing }} />

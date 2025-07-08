@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useNavigateHome, useNavigateVideo } from "Globals/Navigate";
 import Header from "Components/Header/Header";
 import MainPicSrc from "Images/MainPic.jpg";
 import { useUserToken } from "Globals/GlobalStore";
@@ -11,9 +12,17 @@ import "./MainPage.css";
 
 
 export const mainPagePath = "/mainpage";
+export function useNavigateMain() {
+    const navigate = useNavigate();
+    const navigateMain = useCallback(() => {
+        navigate(mainPagePath);
+    }, [navigate]);
+    return { navigateMain };
+}
 
 const MainPage: React.FC = () => {
-    const navigate = useNavigate();
+    const { navigateHome } = useNavigateHome();
+    const { navigateVideo } = useNavigateVideo();
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [categoryTitle, setCategoryTitle] = useState("");
     const [recommendvideosInfo, setRecommendvideosInfo] = useState<SimpleVideo[]>([]);
@@ -38,15 +47,16 @@ const MainPage: React.FC = () => {
         setShowCategoryModal(true);
     };
 
+
     const handleVideoClick = (videoId: number) => {
         if (videoId > 0) {
-            navigate(`/video/${videoId}`);
+            navigateVideo(videoId);
         }
     };
 
     const handleAuthorClick = (userID: number) => {
         if (userID > 0) {
-            navigate(`/home/${userID}`);
+            navigateHome(userID);
         }
     };
 

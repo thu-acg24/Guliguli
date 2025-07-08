@@ -1,7 +1,8 @@
 // src/Pages/HomePage/FollowingTab.tsx
 import React, { useState, useEffect } from "react";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
+import { useNavigateHome } from "Globals/Navigate";
 import { QueryFollowingListMessage } from "Plugins/UserService/APIs/QueryFollowingListMessage";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage";
@@ -22,7 +23,7 @@ const FollowingTab: React.FC = () => {
     const userID = outlet.userID;
     const refreshUserStat = outlet.refreshUserStat;
 
-    const navigate = useNavigate();
+    const { navigateHome } = useNavigateHome();
     const currentUserID = useUserIDValue();
     const userToken = useUserToken();
 
@@ -167,7 +168,7 @@ const FollowingTab: React.FC = () => {
 
     // 处理用户点击跳转到主页
     const handleUserClick = (userID: number) => {
-        navigate(`/home/${userID}`);
+        navigateHome(userID);
     };
 
     return (

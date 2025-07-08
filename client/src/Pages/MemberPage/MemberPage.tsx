@@ -1,36 +1,66 @@
-import React, { useEffect } from "react";
+
+import React, { useCallback, useEffect } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
-import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
-import { mainPagePath } from "Pages/MainPage/MainPage";
+import { useNavigateMain } from "Globals/Navigate";
 import "./MemberPage.css";
 
 export const memberPagePath = "/member";
 
-const MemberPage: React.FC = () => {
+export enum MemberPageTab {
+    overview = "overview",
+    upload = "upload",
+}
+
+const getMemberTab = (path: string): MemberPageTab => {
+    const parts = path.split("/");
+    if (parts.length < 3 || parts[2] === "" || parts[2] === undefined) return MemberPageTab.overview;
+    if (parts[2] === "upload") return MemberPageTab.upload;
+    return MemberPageTab.overview;
+};
+
+export function useNavigateMember() {
     const navigate = useNavigate();
+
+    const navigateMember = useCallback(() => {
+        navigate(memberPagePath);
+    }, [navigate]);
+
+    const navigateMemberTab = useCallback((tab: MemberPageTab) => {
+        switch (tab) {
+            case MemberPageTab.overview:
+                navigate(memberPagePath);
+                break;
+            case MemberPageTab.upload:
+                navigate(`${memberPagePath}/upload`);
+                break;
+            default:
+                navigate(memberPagePath);
+        }
+    }, [navigate]);
+
+    return { navigateMember, navigateMemberTab };
+}
+
+
+const MemberPage: React.FC = () => {
     const location = useLocation();
     const userToken = useUserToken();
+    const { navigateMemberTab } = useNavigateMember();
+    const { navigateMain } = useNavigateMain();
 
     useEffect(() => {
         console.log("MemberPage mounted or userToken changed:", userToken);
         if (!userToken) {
-            materialAlertError("请先登录", "您需要登录才能访问创作者中心", () => {
-                navigate(mainPagePath);
-            });
+            console.error("用户未登录，重定向到主页面");
+            // 跳转到主页面
+            navigateMain();
         }
-    }, [userToken, navigate]);
+    }, [userToken, navigateMemberTab]);
 
-    const getActiveTab = () => {
-        const pathParts = location.pathname.split('/');
-        if (pathParts.length === 2) return 'overview';
-        return pathParts[pathParts.length - 1] || 'overview';
-    };
+    const activeTab = getMemberTab(location.pathname);
 
-    const activeTab = getActiveTab();
-
-    // 如果用户未登录，不显示内容
     if (!userToken) {
         return (
             <div className="member-page">
@@ -47,14 +77,14 @@ const MemberPage: React.FC = () => {
                 <div className="member-sidebar">
                     <div className="member-sidebar-title">创作者中心</div>
                     <div
-                        className={`member-sidebar-item ${activeTab === 'upload' ? 'active' : ''}`}
-                        onClick={() => navigate(`${memberPagePath}/upload`)}
+                        className={`member-sidebar-item ${activeTab === MemberPageTab.upload ? 'active' : ''}`}
+                        onClick={() => navigateMemberTab(MemberPageTab.upload)}
                     >
                         上传视频
                     </div>
                     <div
-                        className={`member-sidebar-item ${activeTab === 'overview' ? 'active' : ''}`}
-                        onClick={() => navigate(memberPagePath)}
+                        className={`member-sidebar-item ${activeTab === MemberPageTab.overview ? 'active' : ''}`}
+                        onClick={() => navigateMemberTab(MemberPageTab.overview)}
                     >
                         内容管理
                     </div>

@@ -1,6 +1,7 @@
 // src/Pages/HomePage/FollowersTab.tsx
 import React, { useState, useEffect } from "react";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
+import { useNavigateHome } from "Globals/Navigate";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { QueryFollowerListMessage } from "Plugins/UserService/APIs/QueryFollowerListMessage";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
@@ -23,7 +24,7 @@ const FollowersTab: React.FC = () => {
     const refreshUserStat = outlet.refreshUserStat;
     const isFollowing = outlet.isFollowing;
 
-    const navigate = useNavigate();
+    const { navigateHome } = useNavigateHome();
     const currentUserID = useUserIDValue();
     const userToken = useUserToken();
 
@@ -181,7 +182,7 @@ const FollowersTab: React.FC = () => {
 
     // 处理用户点击跳转到主页
     const handleUserClick = (userID: number) => {
-        navigate(`/home/${userID}`);
+        navigateHome(userID);
     };
 
     return (

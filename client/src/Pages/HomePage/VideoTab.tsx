@@ -1,6 +1,7 @@
 // src/Pages/HomePage/VideoTab.tsx
 import React, { useState, useEffect } from "react";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import { Video } from "Plugins/VideoService/Objects/Video";
@@ -10,7 +11,7 @@ import "./HomePage.css";
 const VideoTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
     const userID = props.userID ?? outlet?.userID;
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
 
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,8 +37,7 @@ const VideoTab: React.FC<{ userID?: number }> = (props) => {
 
     // 处理视频点击
     const handleVideoClick = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     useEffect(() => {

@@ -1,33 +1,58 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
-import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
-import { mainPagePath } from "Pages/MainPage/MainPage";
+import { useNavigateMain } from "Globals/Navigate";
 import "./MessagePage.css";
 
+// 消息页面路径
 export const messagePagePath = "/message";
 
-const MessagePage: React.FC = () => {
+// 定义消息页面标签枚举
+export enum MessagePageTab {
+  whisper = "whisper",
+  reply = "reply",
+  system = "system",
+}
+
+// 获取当前 tab
+const getMessageTab = (path: string): MessagePageTab => {
+  const parts = path.split("/");
+  // /message/whisper 结构，parts[2] 是 tab
+  if (parts.length < 3) return MessagePageTab.whisper;
+  const tab = parts[2];
+  return Object.values(MessagePageTab).includes(tab as MessagePageTab) ? (tab as MessagePageTab) : MessagePageTab.whisper;
+};
+
+// 导航 hooks
+export function useNavigateMessage() {
   const navigate = useNavigate();
+  const navigateMessage = useCallback(() => {
+    navigate(`${messagePagePath}/${MessagePageTab.whisper}`);
+  }, [navigate]);
+
+  const navigateMessageTab = useCallback((tab: MessagePageTab) => {
+    navigate(`${messagePagePath}/${tab}`);
+  }, [navigate]);
+
+  return { navigateMessage, navigateMessageTab };
+}
+
+const MessagePage: React.FC = () => {
   const location = useLocation();
   const userToken = useUserToken();
+  const { navigateMessageTab } = useNavigateMessage();
+  const { navigateMain } = useNavigateMain();
 
   useEffect(() => {
-    console.log("MessagePage mounted or userToken changed:", userToken);
     if (!userToken) {
-      materialAlertError("请先登录", "您需要登录才能查看消息", () => {
-        navigate(mainPagePath);
-      });
+      // 未登录时跳转到主页面
+      console.error("用户未登录，重定向到主页面");
+      navigateMain();
     }
-  }, [userToken, navigate]);
+  }, [userToken]);
 
-  const getActiveTab = () => {
-    const pathParts = location.pathname.split('/');
-    return pathParts[pathParts.length - 1] || 'whisper';
-  };
-
-  const activeTab = getActiveTab();
+  const activeTab = getMessageTab(location.pathname);
 
   return (
     <div className="message-page">
@@ -35,20 +60,20 @@ const MessagePage: React.FC = () => {
       <div className="message-container">
         <div className="message-sidebar">
           <div
-            className={`sidebar-item ${activeTab === 'whisper' ? 'active' : ''}`}
-            onClick={() => navigate(`${messagePagePath}/whisper`)}
+            className={`sidebar-item ${activeTab === MessagePageTab.whisper ? 'active' : ''}`}
+            onClick={() => navigateMessageTab(MessagePageTab.whisper)}
           >
             我的消息
           </div>
           <div
-            className={`sidebar-item ${activeTab === 'reply' ? 'active' : ''}`}
-            onClick={() => navigate(`${messagePagePath}/reply`)}
+            className={`sidebar-item ${activeTab === MessagePageTab.reply ? 'active' : ''}`}
+            onClick={() => navigateMessageTab(MessagePageTab.reply)}
           >
             回复我的
           </div>
           <div
-            className={`sidebar-item ${activeTab === 'system' ? 'active' : ''}`}
-            onClick={() => navigate(`${messagePagePath}/system`)}
+            className={`sidebar-item ${activeTab === MessagePageTab.system ? 'active' : ''}`}
+            onClick={() => navigateMessageTab(MessagePageTab.system)}
           >
             系统通知
           </div>

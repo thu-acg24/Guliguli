@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { QueryVideoReportsMessage } from "Plugins/ReportService/APIs/QueryVideoReportsMessage";
@@ -19,7 +19,7 @@ const VideoReportManagement: React.FC = () => {
         video: Video;
     }
 
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const [reports, setReports] = useState<ReportWithVideo[]>([]);
     const [loading, setLoading] = useState(true);
@@ -105,8 +105,7 @@ const VideoReportManagement: React.FC = () => {
     };
 
     const handleViewVideo = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     const formatDate = (timestamp: number): string => {

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useNavigateMember } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { ModifyVideoMessage } from "Plugins/VideoService/APIs/ModifyVideoMessage";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
@@ -9,7 +10,7 @@ import { VideoBasicInfo, VideoUpload, CoverUpload } from "./VideoEdit";
 
 const MemberVideoEdit: React.FC = () => {
     const { videoID } = useParams<{ videoID: string }>();
-    const navigate = useNavigate();
+    const { navigateMember } = useNavigateMember();
     const userToken = useUserToken();
 
     const [activeTab, setActiveTab] = useState<'basic' | 'video' | 'cover'>('basic');
@@ -93,7 +94,7 @@ const MemberVideoEdit: React.FC = () => {
             <div className="member-page-header">
                 <button
                     className="member-back-btn"
-                    onClick={() => navigate(memberPagePath)}
+                    onClick={() => navigateMember()}
                 >
                     ← 返回
                 </button>

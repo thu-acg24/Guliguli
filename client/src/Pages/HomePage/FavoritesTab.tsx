@@ -1,7 +1,8 @@
 // src/Pages/HomePage/FavoritesTab.tsx
 import React, { useState, useEffect } from "react";
 import { Video } from "Plugins/VideoService/Objects/Video";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { QueryFavoriteVideosMessage } from "Plugins/VideoService/APIs/QueryFavoriteVideosMessage";
 import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import DefaultCover from "Images/DefaultCover.jpg";
@@ -10,7 +11,7 @@ import "./HomePage.css";
 const FavoritesTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
     const userID = props.userID ?? outlet?.userID;
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
 
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,8 +37,7 @@ const FavoritesTab: React.FC<{ userID?: number }> = (props) => {
 
     // 处理视频点击
     const handleVideoClick = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     useEffect(() => {

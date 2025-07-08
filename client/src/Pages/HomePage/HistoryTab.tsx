@@ -1,6 +1,7 @@
 // src/Pages/HomePage/HistoryTab.tsx
 import React, { useState, useEffect } from "react";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { Video } from "Plugins/VideoService/Objects/Video";
@@ -15,7 +16,7 @@ const perpage = 10; // 每次新显示的历史记录数量
 const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
     const userToken = useUserToken();
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
 
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
@@ -101,8 +102,7 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
 
     // 处理视频点击
     const handleVideoClick = (videoID: number) => {
-        const videoPath = videoPagePath.replace(":video_id", videoID.toString());
-        navigate(videoPath);
+        navigateVideo(videoID);
     };
 
     useEffect(() => {

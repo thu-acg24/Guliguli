@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
-import { useNavigate } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { QueryReplyNoticesMessage } from 'Plugins/MessageService/APIs/QueryReplyNoticesMessage';
 import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
 import { useUserInfo } from 'Globals/GlobalStore';
@@ -21,7 +21,7 @@ const ReplyTab: React.FC = () => {
   const [replies, setReplies] = useState<ReplyWithUserInfo[]>([]);
   const [replyingComment, setReplyingComment] = useState<ReplyNotice | null>(null);
   const userToken = useUserToken();
-  const navigate = useNavigate();
+  const { navigateVideo } = useNavigateVideo();
 
   useEffect(() => {
     if (userToken) fetchRepliesWithUserInfo();
@@ -59,7 +59,7 @@ const ReplyTab: React.FC = () => {
   };
 
   const handleOriginalClick = (videoid: number) => {
-      navigate(`/video/${videoid}`);
+      navigateVideo(videoid);
   };
 
   return (

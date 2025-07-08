@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { ReportComment } from "Plugins/ReportService/Objects/ReportComment";
@@ -16,7 +16,7 @@ const CommentReportManagement: React.FC = () => {
         comment: Comment;
     }
 
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const [reports, setReports] = useState<ReportWithComment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -84,7 +84,7 @@ const CommentReportManagement: React.FC = () => {
     };
 
     const handleViewVideo = (videoID: number) => {
-        navigate(`/video/${videoID}`);
+        navigateVideo(videoID);
     };
 
     if (loading) {

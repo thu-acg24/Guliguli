@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate,useParams  } from "react-router-dom";
+import { useNavigateHome } from "Globals/Navigate";
 import { useUserToken } from 'Globals/GlobalStore';
 import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
 
@@ -26,6 +27,7 @@ const WhisperTab: React.FC = () => {
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userToken = useUserToken();
   const navigate = useNavigate();
+  const { navigateHome } = useNavigateHome();
   // 在组件顶部添加新状态保存刷新前选中的用户
   const [refreshFlag, setRefreshFlag] = useState(false);
   const { userInfo } = useUserInfo();
@@ -102,7 +104,7 @@ const WhisperTab: React.FC = () => {
 
     // 跳转函数
   const handleAvatarClick = async (userID:number) => {
-        navigate(`/home/${userID}`);
+        navigateHome(userID);
   }
   const fetchMessages = async (userID: number): Promise<void> => {
     try {

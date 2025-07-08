@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateVideo } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { QueryDanmakuReportsMessage } from "Plugins/ReportService/APIs/QueryDanmakuReportsMessage";
@@ -17,7 +17,7 @@ const DanmakuReportManagement: React.FC = () => {
         danmaku: Danmaku | null;
     }
 
-    const navigate = useNavigate();
+    const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const [reports, setReports] = useState<ReportWithDanmaku[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,7 +91,7 @@ const DanmakuReportManagement: React.FC = () => {
     };
 
     const handleViewVideo = (videoID: number) => {
-        navigate(`/video/${videoID}`);
+        navigateVideo(videoID);
     };
 
     if (loading) {

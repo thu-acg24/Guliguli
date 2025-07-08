@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateMember } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { UploadVideoMessage } from "Plugins/VideoService/APIs/UploadVideoMessage";
 import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
@@ -8,7 +8,7 @@ import { VideoBasicInfo, VideoUpload, CoverUpload } from "./VideoEdit";
 import { set } from "lodash";
 
 const MemberUpload: React.FC = () => {
-    const navigate = useNavigate();
+    const { navigateMember } = useNavigateMember();
     const userToken = useUserToken();
 
     const [step, setStep] = useState(1); // 1: 基本信息, 2: 上传视频, 3: 设置封面
@@ -80,7 +80,7 @@ const MemberUpload: React.FC = () => {
             buttonText: '返回创作中心',
             onConfirm: () => {
                 setModalConfig(prev => ({ ...prev, show: false }));
-                navigate(memberPagePath);
+                navigateMember();
             }
         });
     };

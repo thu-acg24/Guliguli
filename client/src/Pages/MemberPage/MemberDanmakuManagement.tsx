@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useNavigateMember } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryVideoDanmakuMessage } from "Plugins/DanmakuService/APIs/QueryVideoDanmakuMessage";
 import { DeleteDanmakuMessage } from "Plugins/DanmakuService/APIs/DeleteDanmakuMessage";
@@ -21,7 +22,7 @@ interface Danmaku {
 
 const MemberDanmakuManagement: React.FC = () => {
     const { videoID } = useParams<{ videoID: string }>();
-    const navigate = useNavigate();
+    const { navigateMember } = useNavigateMember();
     const userToken = useUserToken();
 
     const [danmakus, setDanmakus] = useState<Danmaku[]>([]);
@@ -112,7 +113,7 @@ const MemberDanmakuManagement: React.FC = () => {
             <div className="member-page-header">
                 <button
                     className="member-back-btn"
-                    onClick={() => navigate(memberPagePath)}
+                    onClick={navigateMember}
                 >
                     ← 返回
                 </button>
