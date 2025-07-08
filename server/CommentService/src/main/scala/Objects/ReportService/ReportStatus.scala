@@ -18,9 +18,9 @@ enum ReportStatus(val desc: String):
 
   override def toString: String = this.desc
 
-  case Pending extends ReportStatus("待处理") // 待处理
-  case Resolved extends ReportStatus("已处理") // 已处理
-  case Rejected extends ReportStatus("驳回") // 驳回
+  case Pending extends ReportStatus("Pending") // 待处理
+  case Resolved extends ReportStatus("Resolved") // 已处理
+  case Rejected extends ReportStatus("Rejected") // 驳回
 
 object ReportStatus:
   given encode: Encoder[ReportStatus] = Encoder.encodeString.contramap[ReportStatus](toString)
@@ -28,21 +28,21 @@ object ReportStatus:
   given decode: Decoder[ReportStatus] = Decoder.decodeString.emap(fromStringEither)
 
   def fromString(s: String):ReportStatus  = s match
-    case "待处理" => Pending
-    case "已处理" => Resolved
-    case "驳回" => Rejected
+    case "Pending" => Pending
+    case "Resolved" => Resolved
+    case "Rejected" => Rejected
     case _ => throw Exception(s"Unknown ReportStatus: $s")
 
   def fromStringEither(s: String):Either[String, ReportStatus]  = s match
-    case "待处理" => Right(Pending)
-    case "已处理" => Right(Resolved)
-    case "驳回" => Right(Rejected)
+    case "Pending" => Right(Pending)
+    case "Resolved" => Right(Resolved)
+    case "Rejected" => Right(Rejected)
     case _ => Left(s"Unknown ReportStatus: $s")
 
   def toString(t: ReportStatus): String = t match
-    case Pending => "待处理"
-    case Resolved => "已处理"
-    case Rejected => "驳回"
+    case Pending => "Pending"
+    case Resolved => "Resolved"
+    case Rejected => "Rejected"
 
 // Jackson 序列化器
 class ReportStatusSerializer extends JsonSerializer[ReportStatus] {
