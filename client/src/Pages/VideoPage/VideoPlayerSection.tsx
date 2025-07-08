@@ -4,6 +4,7 @@ import HlsVideoPlayerWrapper from "./HlsVideoPlayerWrapper";
 import "./VideoPage.css";
 import { Video } from 'Plugins/VideoService/Objects/Video';
 import { formatTime } from 'Components/GetTime';
+import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus"
 import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
 
@@ -47,15 +48,15 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
           danmakuRef={danmakuRef}
         />
       </div>
-
-      <DanmakuInput 
+      {videoInfo.status === VideoStatus.approved &&(
+      < DanmakuInput 
         videoID={Number(video_id)} 
         isLoggedIn={isLoggedIn} 
         setShowLoginModal={setShowLoginModal}
         currentTime={currentTime}
         danmakuRef={danmakuRef}
-      />
-
+      />)}
+      {videoInfo.status === VideoStatus.approved &&(
       <div className="video-video-actions">
         <button
           className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
@@ -69,7 +70,8 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
         >
           {isFavorited ? '收藏' : '收藏'}&nbsp;{videoInfo.favorites}
         </button>
-      </div>
+      </div>)}
+      
 
       <div className="video-video-tags">
         {videoInfo.tag?.map(ttag => (
