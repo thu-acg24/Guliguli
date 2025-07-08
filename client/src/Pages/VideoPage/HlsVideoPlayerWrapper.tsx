@@ -3,17 +3,20 @@ import MinioVideoPlayer from "./HlsVideoPlayer";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryM3U8PathMessage } from "Plugins/VideoService/APIs/QueryM3U8PathMessage";
 import { Video } from 'Plugins/VideoService/Objects/Video';
-import { Danmaku } from "Plugins/DanmakuService/Objects/Danmaku";
+import { Danmaku as DanmakuObj } from "Plugins/DanmakuService/Objects/Danmaku";
+import Danmaku from "danmaku";
 import {QueryVideoDanmakuMessage} from "Plugins/DanmakuService/APIs/QueryVideoDanmakuMessage";
 
 interface HlsVideoPlayerWrapperProps {
   videoID: number;
   videoInfo: Video;
+  onTimeUpdate?: (time: number) => void;  // 添加这个prop
+  danmakuRef: React.RefObject<Danmaku>;
 }
 
-const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,videoInfo }) => {
+const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,videoInfo,onTimeUpdate,danmakuRef  }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [danmakuList, setDanmakuList] = useState<Danmaku[] | null>(null);
+  const [danmakuList, setDanmakuList] = useState<DanmakuObj[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const userToken = useUserToken();
@@ -39,7 +42,7 @@ const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,v
               (errorMsg) => reject(new Error(errorMsg))
             );
           }),
-          new Promise<Danmaku[]>((resolve, reject) => {
+          new Promise<DanmakuObj[]>((resolve, reject) => {
             new QueryVideoDanmakuMessage(videoID).send((res: string) => {
               try {resolve(JSON.parse(res));} catch (e) {reject(e);}
             }, (e) => reject(new Error(e)))
@@ -89,7 +92,7 @@ const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,v
     );
   }
 
-  return <MinioVideoPlayer videoUrl={videoUrl} videoInfo={videoInfo} danmakuList={danmakuList}/>;
+  return <MinioVideoPlayer videoUrl={videoUrl} videoInfo={videoInfo} danmakuList={danmakuList} onTimeUpdate={onTimeUpdate} danmakuRef={danmakuRef}/>;
 };
 
 export default HlsVideoPlayerWrapper;

@@ -9,12 +9,13 @@ interface MinioVideoPlayerProps {
   videoUrl: string;
   videoInfo: Video;
   danmakuList: DanmakuObj[];
+  onTimeUpdate?: (time: number) => void; 
+  danmakuRef: React.RefObject<Danmaku>
 }
 
-const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo, danmakuList }) => {
+const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo, danmakuList, onTimeUpdate, danmakuRef  }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const danmakuRef = useRef<Danmaku | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -83,7 +84,12 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo
     const playListener = () => setIsPlaying(true);
     const pauseListener = () => setIsPlaying(false);
     const volumeChangeListener = () => setVolume(video.volume);
-    const timeUpdateListener = () => setCurrentTime(video.currentTime);
+    const timeUpdateListener = () => {
+      const time = video.currentTime;
+      setCurrentTime(time);
+      onTimeUpdate?.(time);  // 调用父组件的回调
+      
+    }
     const durationChangeListener = () => setDuration(video.duration);
 
     video.addEventListener('play', playListener);

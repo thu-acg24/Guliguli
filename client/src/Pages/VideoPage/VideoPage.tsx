@@ -614,6 +614,8 @@ const VideoPage: React.FC = () => {
             isFavorited={isFavorited}
             likeVideo={likeVideo}
             favoriteVideo={favoriteVideo}
+            isLoggedIn={isLoggedIn}
+            setShowLoginModal={setShowLoginModal}
           />
           {videoInfo?.status===VideoStatus.approved&&
           <CommentSection
