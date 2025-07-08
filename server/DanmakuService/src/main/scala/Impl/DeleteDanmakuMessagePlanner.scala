@@ -28,7 +28,7 @@ case class DeleteDanmakuMessagePlanner(
                                         danmakuID: Int,
                                         override val planContext: PlanContext
                                       ) extends Planner[Unit] {
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Unit] = {
     for {
@@ -75,16 +75,12 @@ case class DeleteDanmakuMessagePlanner(
     for {
       isDanmakuAuthor <- IO(userID == senderID)
 
-      isVideoUploader <- QueryVideoInfoMessage(Some(token), videoID).send.flatMap {
-        case video => IO(video.uploaderID == userID)
-        case _ =>
-          IO(logger.error(s"未找到视频信息，视频ID：$videoID")) >> IO(false)
+      isVideoUploader <- QueryVideoInfoMessage(Some(token), videoID).send.map {
+        video => video.uploaderID == userID
       }
 
-      isAuditor <- QueryUserRoleMessage(token).send.flatMap {
-        case role => IO(role == UserRole.Auditor)
-        case _ =>
-          IO(logger.error(s"无法验证用户角色，用户ID：$userID")) >> IO(false)
+      isAuditor <- QueryUserRoleMessage(token).send.map {
+        role => role == UserRole.Auditor
       }
     } yield isDanmakuAuthor || isVideoUploader || isAuditor
   }
