@@ -13,7 +13,7 @@ import Common.ServiceUtils.schemaName
 import Objects.PGVector
 import Objects.PGVector.defaultDim
 import Objects.VideoService.Video
-import Utils.PerferenceProcess.{getUserVector, getVideoVector}
+import Utils.PerferenceProcess.{fetchVideoDetails, getUserVector, getVideoVector}
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
@@ -108,23 +108,5 @@ case class GetRecommendedVideosMessagePlanner(
           List(SqlParameter("Vector", queryVector.toString)).flatMap(x => List(x, x))
         ).map(_.map(json => decodeField[Int](json, "video_id")))
     } yield resultIDs
-  }
-
-  private def generateRecommendationsFromTags(tags: List[String]): IO[List[Int]] = {
-    val dummyRecommendations = tags.flatMap(tag => List(tag.hashCode.abs % 100)) // 简化示例
-    IO(logger.info(s"基于标签生成的推荐视频ID：$dummyRecommendations")).map(_ => dummyRecommendations)
-  }
-
-  private def fetchVideoDetails(videoIDs: List[Int])(using PlanContext): IO[List[Video]] = {
-    videoIDs match {
-      case Nil => IO.pure(List.empty)
-      case ids =>
-        IO(logger.info(s"开始根据ID获取视频完整信息，共 ${ids.length} 个")) *>
-          ids.traverse(fetchSingleVideo)
-    }
-  }
-
-  private def fetchSingleVideo(videoID: Int)(using PlanContext): IO[Video] = {
-    QueryVideoInfoMessage(None, videoID).send
   }
 }

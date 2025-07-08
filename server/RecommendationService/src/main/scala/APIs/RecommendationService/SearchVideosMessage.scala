@@ -22,16 +22,16 @@ import scala.util.Try
 /**
  * SearchVideosMessage
  * desc: 提供模糊搜索功能，返回匹配的视频列表。
+ * @param token: Option[String] (用户Token，可选)
  * @param searchString: String (搜索关键字，用于匹配视频标题。)
- * @param rangeL: Int (分页查询的起始位置。)
- * @param rangeR: Int (分页查询的结束位置。)
- * @return searchResult: Video:1120 (返回的视频列表，包含匹配的所有视频信息。)
+ * @param fetchLimit: Int (返回结果数上限)
+ * @return searchResult: List[Video] (返回的视频列表，包含匹配的所有视频信息。)
  */
 
 case class SearchVideosMessage(
+  token: Option[String],
   searchString: String,
-  rangeL: Int,
-  rangeR: Int
+  fetchLimit: Int = 20,
 ) extends API[List[Video]](RecommendationServiceCode)
 
 case object SearchVideosMessage{

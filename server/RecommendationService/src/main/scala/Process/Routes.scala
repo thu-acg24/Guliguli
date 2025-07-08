@@ -12,7 +12,6 @@ import Impl.AddVideoInfoMessagePlanner
 import Impl.DeleteVideoInfoMessagePlanner
 import Impl.GetRecommendedVideosMessagePlanner
 import Impl.RecordWatchDataMessagePlanner
-import Impl.SearchVideosCountMessagePlanner
 import Impl.SearchVideosMessagePlanner
 import Impl.UpdateFeedbackFavoriteMessagePlanner
 import Impl.UpdateFeedbackLikeMessagePlanner
@@ -69,13 +68,6 @@ object Routes:
         IO(
           decode[SearchVideosMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SearchVideosMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-       
-      case "SearchVideosCountMessage" =>
-        IO(
-          decode[SearchVideosCountMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SearchVideosCountMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

@@ -1,15 +1,18 @@
 package Utils
 
+import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.DBAPI.{decodeField, readDBJson, readDBJsonOptional, writeDB}
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import cats.implicits.*
 import Objects.PGVector
+import Objects.VideoService.Video
 import cats.effect.IO
 import io.circe.Json
 import io.circe.generic.auto.*
 import org.slf4j.LoggerFactory
+
 import java.util.UUID
 
 //process plan import 预留标志位，不要删除
@@ -94,5 +97,17 @@ case object PerferenceProcess {
           SqlParameter("Vector", initVector.toString)
         ))
     } yield initVector
+  }
+  def fetchVideoDetails(videoIDs: List[Int])(using PlanContext): IO[List[Video]] = {
+    videoIDs match {
+      case Nil => IO.pure(List.empty)
+      case ids =>
+        IO(logger.info(s"开始根据ID获取视频完整信息，共 ${ids.length} 个")) *>
+          ids.traverse(fetchSingleVideo)
+    }
+  }
+
+  private def fetchSingleVideo(videoID: Int)(using PlanContext): IO[Video] = {
+    QueryVideoInfoMessage(None, videoID).send
   }
 }
