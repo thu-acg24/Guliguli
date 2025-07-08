@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import iconSrc from "Images/LOGO.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
+import { useUserRole } from "Hooks/useUserRole";
+import { UserRole } from "Plugins/UserService/Objects/UserRole";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
 import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
@@ -21,10 +23,13 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
     const { userInfo } = useUserInfo();
     const { userStat } = useUserStat();
     const { userID } = useUserID();
-
+    const { userRole } = useUserRole();
     // 跳转函数
     const handleAvatarClick = async () => {
         navigate(`/home/${userID}`);
+    }
+    const handleAuditClick = async () => {
+        navigate(`/audit`);
     }
 
     // 处理头像鼠标悬浮
@@ -35,6 +40,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
     const handleAvatarMouseLeave = () => {
         setShowUserPanel(false);
     };
+
 
     const handleMsgClick = async () => {
         navigate(messagePagePath);
@@ -141,6 +147,15 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
                                             <span>个人中心</span>
                                         </div>
                                     </div>
+
+                                    {userRole === UserRole.auditor &&
+                                        <div className="header-panel-links">
+                                            <div className="header-panel-link-item" onClick={handleAuditClick}>
+                                                <PersonCenterIcon />
+                                                <span>审核中心</span>
+                                            </div>
+                                        </div>
+                                    }
 
                                     <div className="header-panel-divider"></div>
 

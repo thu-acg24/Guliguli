@@ -1,7 +1,7 @@
 export enum UserRole {
-    admin = '管理员',
-    auditor = '审核员',
-    normal = '普通用户'
+    admin = 'Admin',
+    auditor = 'Auditor',
+    normal = 'Normal'
 }
 
 export const userRoleList = Object.values(UserRole)
