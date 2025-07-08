@@ -1,5 +1,5 @@
 # 使用 NVIDIA 官方预构建的 FFmpeg 镜像
-FROM nvidia/cuda:12.6.1-base-ubuntu20.04
+FROM jrottenberg/ffmpeg:4.1-nvidia
 
 # 设置环境变量
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -7,32 +7,89 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8
 
 # 安装系统依赖
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    ffmpeg \
+RUN \
+    apt-get update && \
+    apt-get install -f -y --no-install-recommends \
     python3-pip \
     python3-dev \
-    libsm6 \
-    libxext6 \
-    libgl1-mesa-glx \
-    curl \
-    wget \
+#     curl \
+#     wget \
+#     tar \
+#     gcc \
+#     nasm yasm \
+#     git \
+#     # mercurial \
+#     # git-all \
+#     # cmake \
+#     make \
+#     # gcc \
+#     # g++ \
+#     # cmake-curses-gui build-essential \
+#     # libx264 libx265 libfdk_acc libmp3lame libops libogg libvorbis libvpx \
+#     cuda-toolkit-12-3 \
+#     libx264-dev \
+#     libx265-dev \
+#     libfdk-aac-dev \
+#     libmp3lame-dev \
+#     libopus-dev \
+#     libogg-dev \
+#     libvorbis-dev \
+#     libvpx-dev \
+#     libfreetype6-dev \
+#     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /home
+
+# ENV PATH="/usr/local/cuda/bin:${PATH}"
+# ENV LD_LIBRARY_PATH="/usr/local/cuda/libcuda.so:/usr/local/cuda/libcudart.so:${LD_LIBRARY_PATH}"
+
+# RUN nvcc --version
+
+# RUN git clone https://github.com/FFmpeg/nv-codec-headers.git
+# RUN cd nv-codec-headers && make && make install
+
+# RUN pkg-config --modversion ffnvcodec
+
+# RUN git clone --branch release/5.1 https://github.com/FFmpeg/FFmpeg.git && \
+#     cd FFmpeg && \
+#     ./configure \
+#         --enable-gpl \
+#         --enable-nonfree \
+#         --enable-debug \
+#         --enable-libx264 \
+#         --enable-libx265 \
+#         --enable-libfdk-aac \
+#         --enable-libmp3lame \
+#         --enable-libopus \
+#         --enable-libvorbis \
+#         --enable-libvpx \
+#         --enable-nvenc \
+#         --enable-cuda \
+#         --enable-cuvid \
+#         --enable-ffnvcodec \
+#         --extra-cflags="-I/usr/local/cuda/include" \
+#         --extra-ldflags="-L/usr/local/cuda/lib64" \
+#          && \
+#     make -j$(nproc) && \
+#     make install
+
+# RUN rm -rf ./FFmpeg && rm -rf ./nv-codec-headers
+    
 # 创建应用程序目录
 RUN mkdir -p /app
 WORKDIR /app
 
-# 复制应用文件
+# 安装 Python 依赖
 COPY ./video-docker/requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# 复制应用文件
 COPY ./Utils/app.py .
 COPY ./Utils/common.py .
 COPY ./Utils/image_processor.py .
 COPY ./Utils/video_processor.py .
 COPY ./video-docker/entrypoint.sh .
-
-# 安装 Python 依赖
-RUN pip3 install --no-cache-dir -r requirements.txt
 
 # 设置权限
 RUN chmod +x entrypoint.sh
@@ -41,8 +98,8 @@ RUN chmod +x entrypoint.sh
 RUN useradd -m appuser
 USER appuser
 
-# 暴露端口
-EXPOSE $PORT
+# 不暴露端口，实际在4850上运行
+# EXPOSE 4850
 
 # 设置入口点
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh", "--log-level=info"]

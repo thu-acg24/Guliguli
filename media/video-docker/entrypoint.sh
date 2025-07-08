@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 使用环境变量（由Docker注入）
-PORT=${PORT:-5000}
+PORT=${PORT:-4850}
 WORKERS=${WORKERS:-4}
 
 echo "===== System Diagnostics ====="
@@ -16,5 +16,5 @@ ffmpeg -hide_banner -hwaccels || echo "hwaccels check failed"
 echo "=============================="
 
 # 启动Gunicorn
-# exec gunicorn -w $WORKERS -b 0.0.0.0:$PORT app:app --capture-output --log-level info
-python3 app.py
+exec gunicorn -w $WORKERS -b 0.0.0.0:$PORT app:app --capture-output --log-level info
+# python3 app.py

@@ -1,13 +1,40 @@
 services:
-  media-processor:
+  # nginx:
+  #   image: nginx:latest
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   depends_on:
+  #     - minio
+  #     - media_processor
+  #   networks:
+  #     - media-network
+  cloudflared:
+    image: cloudflare/cloudflared
+    volumes:
+      - ./tunnels.yml:/etc/cloudflared/config.yml
+      - ${CREDENTIALS_JSON}:/etc/cloudflared/credentials.json
+      - ../../cloudflared/tunnel_cert.pem:/etc/cloudflared/cert.pem
+    # environment:
+    #   - TUNNEL_ORIGIN_CERT=/etc/cloudflared/cert.pem
+    command: tunnel --config /etc/cloudflared/config.yml --origincert=/etc/cloudflared/cert.pem run
+    depends_on:
+      - minio
+      - media_processor
+    networks:
+      - media-network
+  media_processor:
     build:
       context: .
       dockerfile: ./video-docker/dockerfile
-    container_name: media-processor
+    image: media-processor:1.0 
+    container_name: media_processor
     env_file:
       - .env
     ports:
-      - "5000:5000"
+      - "4850:4850"
     tmpfs:
       - /tmp
     deploy:
@@ -15,8 +42,8 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
-              capabilities: [gpu, utility]
+              count: all
+              capabilities: [gpu, utility, compute, video]
     depends_on:
       - minio
     networks:

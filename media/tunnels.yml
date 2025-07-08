@@ -1,0 +1,17 @@
+tunnel: ${TUNNEL_UUID}
+credentials-file: /etc/cloudflared/credentials.json
+ingress:
+  - hostname: minio.guliguli.space
+    service: http://minio:5003
+
+  - hostname: minio-console.guliguli.space
+    service: http://minio:5004
+
+  - hostname: media.guliguli.space
+    originRequest:
+      proxyType: ""
+    service: http://media_processor:4850
+
+  # 默认规则（必须存在，处理未匹配的请求）
+  - service: http_status:404
+loglevel: debug

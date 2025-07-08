@@ -10,7 +10,6 @@
 **.css.map
 **/*.env
 **/.DS_Store
-minio/config
-minio/data
 **/db-manager
+**/__pycache__
 package-lock.json

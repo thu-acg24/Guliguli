@@ -8,8 +8,11 @@ from minio.error import S3Error
 import os
 import shutil
 import sys
+import logging
 
-from common import minio_client, CALLBACK_VIDEO_API, CALLBACK_VIDEO_API_NAME
+from common import minio_client, CALLBACK_VIDEO_API_NAME
+
+video_bp = Blueprint('video_bp', __name__)
     
 def validate_video(file_path):
     """验证视频文件合法性"""
@@ -36,7 +39,7 @@ def validate_video(file_path):
         
         # 解析视频信息
         video_info = json.loads(result.stdout)
-        print(f"video_info: {video_info}")
+        video_bp.logger.info(f"video_info: {video_info}")
         streams = video_info.get("streams", [])
         
         if not streams:
@@ -47,7 +50,7 @@ def validate_video(file_path):
         height = int(stream.get("height", 0))
         duration = float(stream.get("duration", 0))
 
-        print(f"width: {width}, height: {height}, duration: {duration}")
+        video_bp.logger.info(f"width: {width}, height: {height}, duration: {duration}")
         
         # 验证视频参数
         if width < 100 or height < 100:
@@ -62,12 +65,13 @@ def validate_video(file_path):
         if duration > 3600:  # 60分钟
             raise ValueError("Video too long (max 60 minutes)")
         
-        return True
+        return duration
         
     except Exception as e:
+        video_bp.logger.info(f"Video validation failed: {str(e)}")
         raise RuntimeError(f"Video validation failed: {str(e)}")
 
-def process_video_async(video_id, token, file_name, local_path):
+def process_video_async(video_id, token, file_name, local_path, duration, target_ip):
     """异步处理视频转码和切片"""
     try:
         # 生成唯一视频ID作为前缀
@@ -79,31 +83,31 @@ def process_video_async(video_id, token, file_name, local_path):
         m3u8_file = f"{output_dir}/index.m3u8"
         ts_pattern = f"{output_dir}/segment_%05d.ts"
 
-        print(f"m3u8: {m3u8_file}, ts_pattern: {ts_pattern}")
+        video_bp.logger.info(f"m3u8: {m3u8_file}, ts_pattern: {ts_pattern}")
         
         # 转码命令
         cmd = [
             "ffmpeg",
-            "-hwaccel", "cuda",         # 启用 CUDA 硬件加速
-            "-hwaccel_output_format", "cuda",  # 设置输出格式
+            "-hwaccel", "cuda",                 # 启用CUDA硬件加速
+            "-hwaccel_output_format", "cuda",   # 设置输出格式
             "-i", local_path,
-            "-c:v", "h264_nvenc",       # 使用 NVIDIA H.264 编码器
-            "-preset", "p4",            # Windows 下建议使用 p4 预设
-            "-profile:v", "main",       # H.264 profile
-            "-level", "4.1",            # H.264 level
-            "-b:v", "5M",               # 视频码率
-            "-maxrate", "10M",          # 最大码率
-            "-bufsize", "10M",          # 缓冲区大小
-            "-c:a", "aac",              # 音频编码
-            "-b:a", "128k",             # 音频码率
-            "-hls_time", "10",          # HLS 片段时长
-            "-hls_list_size", "0",      # 无限播放列表
+            "-c:v", "h264_nvenc",               # 使用NVIDIA H.264编码器
+            "-preset", "medium",                  # Win-p4, Linux下推荐使用slow/medium/fast等预设
+            "-profile:v", "main",               # H.264 profile
+            "-level", "4.1",                    # H.264 level
+            "-b:v", "5M",                       # 视频码率
+            "-maxrate", "10M",                  # 最大码率
+            "-bufsize", "10M",                  # 缓冲区大小
+            "-c:a", "aac",                      # 音频编码
+            "-b:a", "128k",                     # 音频码率
+            "-hls_time", "10",                  # HLS片段时长
+            "-hls_list_size", "0",              # 无限播放列表
             "-hls_segment_filename", ts_pattern,
             "-f", "hls",
             m3u8_file
         ]
 
-        print(f"cmd: {cmd}")
+        video_bp.logger.info(f"cmd: {cmd}")
         
         # 执行转码
         process = subprocess.Popen(
@@ -133,27 +137,29 @@ def process_video_async(video_id, token, file_name, local_path):
         
         # 准备回调数据
         callback_data = {
-            "token": token,
+            "sessionToken": token,
             "status": "success",
-            "m3u8_path": f"{video_prefix}/index.m3u8",
-            "ts_path_prefix": f"{video_prefix}/segment_",
-            "ts_count": ts_count
+            "m3u8Name": f"{video_prefix}/index.m3u8",
+            "tsPrefix": f"{video_prefix}/segment",
+            "sliceCount": ts_count,
+            "duration": duration
         }
         
         # 发送回调请求
-        questPost(callback_data)
+        questPost(callback_data, target_ip)
         
     except Exception as e:
         # 准备错误回调数据
+        video_bp.logger.info(f"Video process failed: {str(e)}")
         callback_data = {
             "token": token,
             "status": "failure",
-            "m3u8_path": "",
-            "ts_path_prefix": "",
-            "ts_count": 0,
-            "error": str(e)
+            "m3u8Name": "",
+            "tsPrefix": "",
+            "sliceCount": 0,
+            "duration": 0
         }
-        questPost(callback_data)
+        questPost(callback_data, target_ip)
         
     finally:
         # 清理资源
@@ -173,7 +179,7 @@ def process_video_async(video_id, token, file_name, local_path):
         except:
             pass
 
-def questPost(data: dict):
+def questPost(data: dict, target_ip: str):
     """发送回调请求到API"""
     # 添加服务标识
     data["serviceName"] = "Tong-Wen"
@@ -188,18 +194,19 @@ def questPost(data: dict):
         "X-Hash": x_hash,
     }
     
+    callback_api = f"http://{target_ip}:10016/api/{CALLBACK_VIDEO_API_NAME}"
+
     try:
+        video_bp.logger.info(f"callback: url={callback_api}, headers={headers}, data={body_str}")
         response = requests.post(
-            url=CALLBACK_VIDEO_API,
+            url=callback_api,
             headers=headers,
             data=body_str,
             timeout=10
         )
-        print(f"Callback Status: {response.status_code}, Response: {response.text}", file=sys.stderr)
+        video_bp.logger.info(f"Callback Status: {response.status_code}, Response: {response.text}")
     except requests.exceptions.RequestException as e:
-        print(f"Callback failed: {str(e)}", file=sys.stderr)
-
-video_bp = Blueprint('video_bp', __name__)
+        video_bp.logger.info(f"Callback failed: {str(e)}")
 
 @video_bp.route('/video', methods=['POST'])
 def handle_video():
@@ -207,6 +214,9 @@ def handle_video():
     video_id = request.json.get('id')
     token = request.json.get('token')
     file_name = request.json.get('file_name')
+    target_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+
+    video_bp.logger.info(f"token: {token}, video_id: {video_id}, file_name: {file_name}\n")
     
     if not all([video_id, token, file_name]):
         return jsonify({"status": "failure", "message": "Missing parameters: token, id, file_name are required"}), 400
@@ -219,12 +229,12 @@ def handle_video():
         minio_client.fget_object("temp", file_name, local_path)
         
         # 验证视频文件
-        validate_video(local_path)
+        duration = validate_video(local_path)
         
         # 启动异步处理线程
         threading.Thread(
             target=process_video_async,
-            args=(video_id, token, file_name, local_path),
+            args=(video_id, token, file_name, local_path, duration, target_ip),
             daemon=True
         ).start()
         

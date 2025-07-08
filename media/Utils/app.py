@@ -2,9 +2,14 @@ from flask import Flask
 from common import create_buckets
 from image_processor import image_bp
 from video_processor import video_bp
+import logging
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 def create_app():
     app = Flask(__name__)
+    app.logger.setLevel(logging.INFO)
+    image_bp.logger = app.logger
+    video_bp.logger = app.logger
     app.register_blueprint(image_bp)
     app.register_blueprint(video_bp)
     with app.app_context():
