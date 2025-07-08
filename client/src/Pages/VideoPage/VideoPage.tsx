@@ -141,7 +141,7 @@ const VideoPage: React.FC = () => {
     if (!video_id) return;
     try { 
       const videoInfo = await new Promise<Video>((resolve, reject) => {
-        new QueryVideoInfoMessage(userToken, Number(video_id)).send(
+        new QueryVideoInfoMessage(userToken?userToken:null, Number(video_id)).send(
           (info: string) => {
             try {
               const data: Video = JSON.parse(info);
