@@ -65,7 +65,7 @@ const VideoPage: React.FC = () => {
   const [likeisprocessing, setLikeisprocessing] = useState(false);
   const [followisprocessing, setFollowisprocessing] = useState(false);
   const [favoriteisprocessing, setFavoriteisprocessing] = useState(false);
-  const [videoinfo, setVideoinfo] = useState<Video>(null);
+  const [videoInfo, setVideoinfo] = useState<Video>(null);
   const [recommendvideosInfo, setRecommendvideosInfo] = useState<SimpleVideo[]>([]);
   const [videosisloading, setVideosisloading] = useState(true);
   const [upstat, setUpstat] = useState<UserStat>();
@@ -105,8 +105,8 @@ const VideoPage: React.FC = () => {
   useEffect(() => {
     
     console.log("开始获取用户点赞收藏关注");
-    if(!userToken || !videoinfo) return;
-    console.log("当前视频信息",videoinfo);
+    if(!userToken || !videoInfo) return;
+    console.log("当前视频信息",videoInfo);
     new QueryLikeMessage(userToken, Number(video_id)).send(
       (info: string) => {
         const isLiked = JSON.parse(info);
@@ -126,8 +126,8 @@ const VideoPage: React.FC = () => {
         console.error("获取用户收藏状态失败:", error);
       }
     );
-    if(userInfo.userID===videoinfo.uploaderID)return;
-    new QueryFollowMessage(userInfo.userID, videoinfo.uploaderID).send(
+    if(userInfo.userID===videoInfo.uploaderID)return;
+    new QueryFollowMessage(userInfo.userID, videoInfo.uploaderID).send(
       (info: string) => {
         const isFollowing = JSON.parse(info);
         setIsFollowing(isFollowing);
@@ -136,7 +136,7 @@ const VideoPage: React.FC = () => {
         console.error("获取用户关注状态失败:", error);
       }
     );
-  }, [userInfo,videoinfo]);
+  }, [userInfo,videoInfo]);
   const fetchVideoInfo = async () => {
     if (!video_id) return;
     try { 
@@ -536,7 +536,7 @@ const VideoPage: React.FC = () => {
     setFollowisprocessing(true);
     upstat.followerCount = isFollowing ? upstat.followerCount - 1 : upstat.followerCount + 1;
     console.log("当前关注状态",isFollowing);
-    new ChangeFollowStatusMessage(userToken,videoinfo.uploaderID, !isFollowing).send(
+    new ChangeFollowStatusMessage(userToken,videoInfo.uploaderID, !isFollowing).send(
       () => {
         console.log("视频关注状态更新成功");
         setIsFollowing(!isFollowing);
@@ -555,7 +555,7 @@ const VideoPage: React.FC = () => {
     }
     if(likeisprocessing) return; // 防止重复点击
     setLikeisprocessing(true);
-    videoinfo.likes = isLiked ? videoinfo.likes - 1 : videoinfo.likes + 1;
+    videoInfo.likes = isLiked ? videoInfo.likes - 1 : videoInfo.likes + 1;
     new ChangeLikeMessage(userToken, Number(video_id), !isLiked).send(
       () => {
         console.log("视频点赞状态更新成功");
@@ -577,7 +577,7 @@ const VideoPage: React.FC = () => {
     }
     if(favoriteisprocessing) return; // 防止重复点击
     setFavoriteisprocessing(true);
-    videoinfo.favorites = isFavorited ? videoinfo.favorites - 1 : videoinfo.favorites + 1;
+    videoInfo.favorites = isFavorited ? videoInfo.favorites - 1 : videoInfo.favorites + 1;
     new ChangeFavoriteMessage(userToken, Number(video_id), !isFavorited).send(
       () => {
         console.log("视频收藏状态更新成功");
@@ -603,7 +603,7 @@ const VideoPage: React.FC = () => {
         <div className="video-video-main-content">
           <VideoPlayerSection
             video_id={video_id}
-            videoinfo={videoinfo}
+            videoInfo={videoInfo}
             isLiked={isLiked}
             isFavorited={isFavorited}
             likeVideo={likeVideo}
@@ -617,7 +617,7 @@ const VideoPage: React.FC = () => {
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}
             commentInput={commentInput}
-            videoinfo={videoinfo}
+            videoInfo={videoInfo}
             setCommentInput={setCommentInput}
             handlePostComment={handlePostComment}
             handleLoadMore={handleLoadMore}
@@ -634,7 +634,7 @@ const VideoPage: React.FC = () => {
 
         <SidebarSection
           uploaderInfo={uploaderInfo}
-          videoinfo={videoinfo}
+          videoInfo={videoInfo}
           userToken={userToken}
           userInfo={userInfo}
           isFollowing={isFollowing}

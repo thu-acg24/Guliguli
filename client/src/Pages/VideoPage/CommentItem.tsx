@@ -10,7 +10,7 @@ interface CommentItemProps {
   comment: CommentWithUserInfo;
   isLoggedIn: boolean;
   userInfo: UserInfo;
-  videoinfo:Video;
+  videoInfo:Video;
   handleLikeComment: (id: number) => void;
   handleDeleteComment: (id: number) => void;
   navigateToUser: (id: number) => void;
@@ -25,7 +25,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   isLoggedIn,
   userInfo,
-  videoinfo,
+  videoInfo,
   handleLikeComment,
   handleDeleteComment,
   navigateToUser,
@@ -79,7 +79,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             >
               回复
             </button>
-            {(comment.authorID === userInfo?.userID||userInfo?.userID === videoinfo?.uploaderID) && (
+            {(comment.authorID === userInfo?.userID||userInfo?.userID === videoInfo?.uploaderID) && (
               <button
                 className="video-delete-btn"
                 onClick={() => handleDeleteComment(comment.commentID)}
@@ -99,7 +99,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       reply={reply}
                       isLoggedIn={isLoggedIn}
                       userInfo={userInfo}
-                      videoinfo={videoinfo}
+                      videoInfo={videoInfo}
                       handleLikeComment={handleLikeComment}
                       handleDeleteComment={handleDeleteComment}
                       navigateToUser={navigateToUser}
@@ -119,7 +119,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       reply={reply}
                       isLoggedIn={isLoggedIn}
                       userInfo={userInfo}
-                      videoinfo={videoinfo}
+                      videoInfo={videoInfo}
                       handleLikeComment={handleLikeComment}
                       handleDeleteComment={handleDeleteComment}
                       navigateToUser={navigateToUser}

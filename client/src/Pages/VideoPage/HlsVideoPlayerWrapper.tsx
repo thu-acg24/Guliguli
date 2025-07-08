@@ -3,14 +3,17 @@ import MinioVideoPlayer from "./HlsVideoPlayer";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryM3U8PathMessage } from "Plugins/VideoService/APIs/QueryM3U8PathMessage";
 import { Video } from 'Plugins/VideoService/Objects/Video';
+import { Danmaku } from "Plugins/DanmakuService/Objects/Danmaku";
+import {QueryVideoDanmakuMessage} from "Plugins/DanmakuService/APIs/QueryVideoDanmakuMessage";
 
 interface HlsVideoPlayerWrapperProps {
   videoID: number;
-  videoinfo:Video;
+  videoInfo: Video;
 }
 
-const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,videoinfo }) => {
+const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,videoInfo }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [danmakuList, setDanmakuList] = useState<Danmaku[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const userToken = useUserToken();
@@ -21,22 +24,30 @@ const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,v
         setLoading(true);
         setError(null);
         
-        const uploadPath = await new Promise<string>((resolve, reject) => {
-          new QueryM3U8PathMessage(userToken?userToken:null, videoID).send(
-            (info: string) => {
-              try {
-                // 假设返回的是直接可用的播放路径
-                const data: string = JSON.parse(info);
-                resolve(data);
-              } catch (e) {
-                reject(new Error("Failed to parse video path"));
-              }
-            },
-            (errorMsg) => reject(new Error(errorMsg))
-          );
-        });
+        const [uploadPath, danmakus] = await Promise.all([
+          new Promise<string>((resolve, reject) => {
+            new QueryM3U8PathMessage(userToken?userToken:null, videoID).send(
+              (info: string) => {
+                try {
+                  // 假设返回的是直接可用的播放路径
+                  const data: string = JSON.parse(info);
+                  resolve(data);
+                } catch (e) {
+                  reject(new Error("Failed to parse video path"));
+                }
+              },
+              (errorMsg) => reject(new Error(errorMsg))
+            );
+          }),
+          new Promise<Danmaku[]>((resolve, reject) => {
+            new QueryVideoDanmakuMessage(videoID).send((res: string) => {
+              try {resolve(JSON.parse(res));} catch (e) {reject(e);}
+            }, (e) => reject(new Error(e)))
+          })
+        ]);
         
         setVideoUrl(uploadPath);
+        setDanmakuList(danmakus);
       } catch (err) {
         console.error("获取视频路径失败:", err);
         setError("无法加载视频，请稍后再试");
@@ -78,7 +89,7 @@ const HlsVideoPlayerWrapper: React.FC<HlsVideoPlayerWrapperProps> = ({ videoID,v
     );
   }
 
-  return <MinioVideoPlayer videoUrl={videoUrl}videoinfo={videoinfo}/>;
+  return <MinioVideoPlayer videoUrl={videoUrl} videoInfo={videoInfo} danmakuList={danmakuList}/>;
 };
 
 export default HlsVideoPlayerWrapper;

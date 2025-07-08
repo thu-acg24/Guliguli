@@ -6,7 +6,7 @@ import { formatTime } from 'Components/GetTime';
 
 interface VideoPlayerSectionProps {
   video_id: string;
-  videoinfo: Video;
+  videoInfo: Video;
   isLiked: boolean;
   isFavorited: boolean;
   likeVideo: () => void;
@@ -15,7 +15,7 @@ interface VideoPlayerSectionProps {
 
 const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
   video_id,
-  videoinfo,
+  videoInfo,
   isLiked,
   isFavorited,
   likeVideo,
@@ -23,15 +23,15 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
 }) => {
   return (
     <div className="video-video-player-section">
-      <h1 className="video-video-title">{videoinfo.title}</h1>
+      <h1 className="video-video-title">{videoInfo.title}</h1>
 
       <div className="video-video-meta">
-        <span>播放: {videoinfo.views}</span>
-        <span>投稿时间: {formatTime(videoinfo.uploadTime,false)}</span>
+        <span>播放: {videoInfo.views}</span>
+        <span>投稿时间: {formatTime(videoInfo.uploadTime,false)}</span>
       </div>
 
       <div className="video-video-player-container">
-        <HlsVideoPlayerWrapper videoID={Number(video_id)} videoinfo={videoinfo} />
+        <HlsVideoPlayerWrapper videoID={Number(video_id)} videoInfo={videoInfo} />
       </div>
 
       <div className="video-video-actions">
@@ -39,18 +39,18 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
           className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
           onClick={() => likeVideo()}
         >
-          {isLiked ? '点赞' : '点赞'}&nbsp;{videoinfo.likes}
+          {isLiked ? '点赞' : '点赞'}&nbsp;{videoInfo.likes}
         </button>
         <button
           className={`video-videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
           onClick={() => favoriteVideo()}
         >
-          {isFavorited ? '收藏' : '收藏'}&nbsp;{videoinfo.favorites}
+          {isFavorited ? '收藏' : '收藏'}&nbsp;{videoInfo.favorites}
         </button>
       </div>
 
       <div className="video-video-tags">
-        {videoinfo.tag?.map(ttag => (
+        {videoInfo.tag?.map(ttag => (
           <span
             key={ttag}
             className="video-tag"
