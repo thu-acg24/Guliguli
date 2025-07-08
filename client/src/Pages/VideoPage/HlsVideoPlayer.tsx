@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
+import Danmaku from 'danmaku';
 import './HlsVideoPlayer.css';
 import { Video } from 'Plugins/VideoService/Objects/Video';
 
@@ -11,6 +12,7 @@ interface MinioVideoPlayerProps {
 const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoinfo }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const danmakuRef = useRef<Danmaku | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -35,6 +37,9 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoinfo
 
     if (hlsRef.current) {
       hlsRef.current.destroy();
+    }
+    if (danmakuRef.current) {
+      danmakuRef.current.destroy();
     }
 
     if (Hls.isSupported()) {
@@ -105,9 +110,36 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoinfo
       container.addEventListener('mousemove', handleMouseMove);
       container.addEventListener('mouseleave', handleMouseLeave);
 
+
+      const danmaku = new Danmaku({
+        container: container,
+        media: video,
+        engine: "canvas",
+        comments: [{
+          text: '测试弹幕', time: 10,
+          style: {
+            font: '30px sans-serif',
+            textAlign: 'start',
+            // Note that 'bottom' is the default
+            textBaseline: 'bottom',
+            direction: 'inherit',
+            fillStyle: '#ffffff',
+            strokeStyle: '#ffffff',
+            lineWidth: 1.0,
+            // ...
+          },
+        }]
+      });
+      danmaku.show();
+      danmakuRef.current = danmaku;
+      container.addEventListener('resize', () => {danmaku.resize()});
+
       return () => {
         if (hlsRef.current) {
           hlsRef.current.destroy();
+        }
+        if (danmakuRef.current) {
+          danmakuRef.current.destroy();
         }
         video.removeEventListener('play', playListener);
         video.removeEventListener('pause', pauseListener);

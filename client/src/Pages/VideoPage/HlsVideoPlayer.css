@@ -12,6 +12,7 @@
   height: 100%;
   display: block;
   outline: none;
+  position: absolute;
 }
 
 /* Custom controls */
