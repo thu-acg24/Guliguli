@@ -31,7 +31,7 @@ object Init {
       _ <- writeDB("CREATE EXTENSION IF NOT EXISTS VECTOR", List())
       /** 包含视频基础信息的表，支持RecommendationService的功能
        * video_id: 对应视频的唯一ID，主键
-       * title: 视频标题
+       * description: 视频信息
        * visible: 视频是否对大众可见
        * embedding: 视频对应向量
        */
@@ -40,7 +40,7 @@ object Init {
         CREATE TABLE IF NOT EXISTS "$schemaName"."video_info_table" (
             video_id INT NOT NULL PRIMARY KEY,
             view_count INT NOT NULL DEFAULT 0,
-            title TEXT NOT NULL,
+            description TEXT NOT NULL,
             visible BOOLEAN DEFAULT TRUE,
             embedding VECTOR($defaultDim)
         );

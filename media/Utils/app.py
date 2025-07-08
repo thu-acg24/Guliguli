@@ -1,5 +1,5 @@
 from flask import Flask
-from common import create_buckets
+from common_unsafe import create_buckets
 from image_processor import image_bp
 from video_processor import video_bp
 import logging

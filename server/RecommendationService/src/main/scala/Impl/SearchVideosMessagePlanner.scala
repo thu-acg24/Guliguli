@@ -57,7 +57,7 @@ case class SearchVideosMessagePlanner(
                                        )(using PlanContext): IO[List[Int]] = {
 
     val words = keyword.split("\\s+").filter(_.nonEmpty)
-    val likeConditions = words.map(_ => "title ILIKE ?").toList
+    val likeConditions = words.map(_ => "description ILIKE ?").toList
     val whereFilterClause = if likeConditions.isEmpty then "TRUE" else likeConditions.mkString(" AND ")
 
     val sql =

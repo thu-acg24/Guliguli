@@ -12,6 +12,9 @@ ingress:
       proxyType: ""
     service: http://media_processor:4850
 
+  - hostname: db-manager.guliguli.space
+    service: http://host.docker.internal:10002
+
   # 默认规则（必须存在，处理未匹配的请求）
   - service: http_status:404
 loglevel: debug

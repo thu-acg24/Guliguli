@@ -53,14 +53,14 @@ case class UpdateVideoInfoMessagePlanner(
     val sql =
       s"""
       UPDATE $schemaName.video_info_table
-      SET title = ?, visible = ?, embedding = ?
+      SET description = ?, visible = ?, embedding = ?
       WHERE video_id = ?;
       """.stripMargin
 
     for {
       infoVector <- getInfo(video.tag)
       parameters <- IO.pure(List(
-        SqlParameter("String", video.title + video.description),
+        SqlParameter("String", s"${video.title},${video.description},${video.tag.mkString(",")}"),
         SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
         SqlParameter("Vector", infoVector.toString),
         SqlParameter("Int", video.videoID.toString),

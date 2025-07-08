@@ -10,7 +10,7 @@ import shutil
 import sys
 import logging
 
-from common import minio_client, CALLBACK_VIDEO_API_NAME
+from common_unsafe import minio_client, CALLBACK_VIDEO_API_NAME
 
 video_bp = Blueprint('video_bp', __name__)
     
@@ -92,7 +92,7 @@ def process_video_async(video_id, token, file_name, local_path, duration, target
             "-hwaccel_output_format", "cuda",   # 设置输出格式
             "-i", local_path,
             "-c:v", "h264_nvenc",               # 使用NVIDIA H.264编码器
-            "-preset", "medium",                  # Win-p4, Linux下推荐使用slow/medium/fast等预设
+            "-preset", "p4",                  # Win-p4, Linux下推荐使用slow/medium/fast等预设
             "-profile:v", "main",               # H.264 profile
             "-level", "4.1",                    # H.264 level
             "-b:v", "5M",                       # 视频码率

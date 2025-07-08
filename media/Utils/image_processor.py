@@ -11,7 +11,7 @@ import requests
 import sys
 import logging
 
-from common import minio_client, CALLBACK_AVATAR_API_NAME, CALLBACK_COVER_API_NAME
+from common_unsafe import minio_client, CALLBACK_AVATAR_API_NAME, CALLBACK_COVER_API_NAME
 
 image_bp = Blueprint('image_bp', __name__)
 

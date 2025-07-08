@@ -60,14 +60,14 @@ case class AddVideoInfoMessagePlanner(
     val sql =
       s"""
         INSERT INTO $schemaName.video_info_table
-        (video_id, title, visible, embedding)
+        (video_id, description, visible, embedding)
         VALUES (?, ?, ?, ?);
       """
     for {
       infoVector <- getInfo(video.tag)
       parameters <- IO.pure(List(
         SqlParameter("Int", video.videoID.toString),
-        SqlParameter("String", video.title + video.description),
+        SqlParameter("String", s"${video.title},${video.description},${video.tag.mkString(",")}"),
         SqlParameter("Boolean", (video.status == VideoStatus.Approved).toString),
         SqlParameter("Vector", infoVector.toString),
       ))
