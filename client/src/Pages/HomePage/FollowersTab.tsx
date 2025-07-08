@@ -21,6 +21,7 @@ const FollowersTab: React.FC = () => {
     const outlet = useOutletContext<{ userID: number, refreshUserStat: () => void, isFollowing: boolean }>();
     const userID = outlet.userID;
     const refreshUserStat = outlet.refreshUserStat;
+    const isFollowing = outlet.isFollowing;
 
     const navigate = useNavigate();
     const currentUserID = useUserIDValue();
@@ -31,12 +32,23 @@ const FollowersTab: React.FC = () => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
+    useEffect(() => {
+        // 重置状态
+        setFollowers([]);
+        setPage(1);
+        setHasMore(true);
+        setLoading(true);
+
+        // 立即加载第一页数据
+        fetchFollowers(1);
+    }, [isFollowing, userID]);
+
     // 获取用户的粉丝
     const fetchFollowers = async (page: number) => {
         setLoading(true);
         try {
             const newFollowersID = await new Promise<number[]>((resolve, reject) => {
-                new QueryFollowerListMessage(userID, (page - 1) * perpage + 1, page * perpage).send(
+                new QueryFollowerListMessage(userID, (page - 1) * perpage + 1, page * perpage + 1).send(
                     (info: string) => {
                         const followerList = JSON.parse(info);
                         resolve(followerList.map((relation: any) => relation.followerID));
@@ -103,7 +115,9 @@ const FollowersTab: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchFollowers(page);
+        if (page > 1) {
+            fetchFollowers(page);
+        }
     }, [page]);
 
     const handleLoadMore = () => {
