@@ -10,7 +10,7 @@ interface ReplyItemProps {
   reply: CommentWithUserInfo;
   isLoggedIn: boolean;
   userInfo: UserInfo;
-  videoinfo:Video;
+  videoInfo:Video;
   handleLikeComment: (id: number) => void;
   handleDeleteComment: (id: number) => void;
   navigateToUser: (id: number) => void;
@@ -23,7 +23,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
   reply,
   isLoggedIn,
   userInfo,
-  videoinfo,
+  videoInfo,
   handleLikeComment,
   handleDeleteComment,
   navigateToUser,
@@ -87,7 +87,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           >
             回复
           </button>
-          {(reply.authorID === userInfo?.userID ||userInfo?.userID === videoinfo?.uploaderID)&& (
+          {(reply.authorID === userInfo?.userID ||userInfo?.userID === videoInfo?.uploaderID)&& (
             <button
               className="video-delete-btn"
               onClick={() => handleDeleteComment(reply.commentID)}

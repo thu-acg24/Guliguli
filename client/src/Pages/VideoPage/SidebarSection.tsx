@@ -10,7 +10,7 @@ import { SimpleVideo } from "Components/RecommendVideoService";
 
 interface SidebarSectionProps {
   uploaderInfo: UserInfo;
-  videoinfo: Video;
+  videoInfo: Video;
   userToken: string;
   userInfo: UserInfo;
   isFollowing: boolean;
@@ -22,7 +22,7 @@ interface SidebarSectionProps {
 
 const SidebarSection: React.FC<SidebarSectionProps> = ({
   uploaderInfo,
-  videoinfo,
+  videoInfo,
   userToken,
   userInfo,
   isFollowing,
@@ -71,7 +71,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
             </div>
           </div>
         </div>
-        {((!userToken) || (videoinfo.uploaderID !== userInfo?.userID)) && (
+        {((!userToken) || (videoInfo.uploaderID !== userInfo?.userID)) && (
           <button
             className={`video-follow-btn ${isFollowing ? 'following' : ''}`}
             onClick={() => followUp(uploaderInfo.userID)}

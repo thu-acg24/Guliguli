@@ -33,7 +33,6 @@ object Init {
        * reason: 举报理由
        * status: 举报状态（Pending, Resolved, Rejected）
        * timestamp: 举报时间
-       * node_path: 节点路径
        */
       _ <- writeDB(
         s"""
@@ -43,8 +42,7 @@ object Init {
             reporter_id INT NOT NULL,
             reason TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'Pending',
-            timestamp TIMESTAMP NOT NULL,
-            node_path TEXT DEFAULT 'guliguliguli/ReportService/ReportService-TableRoot/ReportDanmakuTable'
+            timestamp TIMESTAMP NOT NULL
         );
          
         """,

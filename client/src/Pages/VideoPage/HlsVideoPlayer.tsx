@@ -1,15 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import Danmaku from 'danmaku';
+import { Danmaku as DanmakuObj } from 'Plugins/DanmakuService/Objects/Danmaku'
 import './HlsVideoPlayer.css';
 import { Video } from 'Plugins/VideoService/Objects/Video';
 
 interface MinioVideoPlayerProps {
   videoUrl: string;
-  videoinfo: Video;
+  videoInfo: Video;
+  danmakuList: DanmakuObj[];
 }
 
-const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoinfo }) => {
+const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo, danmakuList }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const danmakuRef = useRef<Danmaku | null>(null);
@@ -115,22 +117,21 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoinfo
         container: container,
         media: video,
         engine: "canvas",
-        comments: [{
-          text: '测试弹幕', time: 10,
-          style: {
-            font: '30px sans-serif',
-            textAlign: 'start',
-            // Note that 'bottom' is the default
-            textBaseline: 'bottom',
-            direction: 'inherit',
-            fillStyle: '#ffffff',
-            strokeStyle: '#ffffff',
-            lineWidth: 1.0,
-            // ...
-          },
-        }]
+        comments: []
       });
-      danmaku.show();
+      danmakuList.forEach((d) => {
+        danmaku.emit({
+          text: d.content,
+          time: d.timeInVideo,
+          style: {
+            font: '20px sans-serif',
+            textAlign: 'start',
+            fillStyle: d.danmakuColor,
+            strokeStyle: d.danmakuColor,
+            lineWidth: 1,
+          }
+        })
+      })
       danmakuRef.current = danmaku;
       container.addEventListener('resize', () => {danmaku.resize()});
 
@@ -248,9 +249,9 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoinfo
       className="video-container"
       onClick={handleVideoClick}
     >
-      {videoinfo?.title && (
+      {videoInfo?.title && (
         <div className={`fullscreen-title ${showControls ? 'visible' : ''}`}>
-          {videoinfo.title}
+          {videoInfo.title}
         </div>
       )}
       

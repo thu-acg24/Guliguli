@@ -13,7 +13,7 @@ interface CommentSectionProps {
   isLoggedIn: boolean;
   userInfo: UserInfo;
   commentInput: string;
-  videoinfo:Video;
+  videoInfo:Video;
   setCommentInput: (value: string) => void;
   handlePostComment: () => void;
   handleLoadMore: () => void;
@@ -34,7 +34,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   isLoggedIn,
   userInfo,
   commentInput,
-  videoinfo,
+  videoInfo,
   setCommentInput,
   handlePostComment,
   handleLoadMore,
@@ -81,7 +81,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             comment={comment}
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}
-            videoinfo={videoinfo}
+            videoInfo={videoInfo}
             handleLikeComment={handleLikeComment}
             handleDeleteComment={handleDeleteComment}
             navigateToUser={navigateToUser}
