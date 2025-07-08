@@ -28,6 +28,7 @@ import VideoPlayerSection from "./VideoPlayerSection";
 import CommentSection from "./CommentSection";
 import SidebarSection from "./SidebarSection";
 import { getRecommendedVideos, SimpleVideo } from "Components/RecommendVideoService";
+import {VideoStatus} from "Plugins/VideoService/Objects/VideoStatus"
 import "./VideoPage.css";
 
 export const videoPagePath = "/video/:video_id";
@@ -73,13 +74,13 @@ const VideoPage: React.FC = () => {
   
   useEffect(() => {
       setVideosisloading(true);
-      getRecommendedVideos(userToken?userToken:null,Number(video_id),4).then(setRecommendvideosInfo).then(()=>{setVideosisloading(false)});
+      getRecommendedVideos(userToken?userToken:null,(videoInfo?.status===VideoStatus.approved?Number(video_id):null),4).then(setRecommendvideosInfo).then(()=>{setVideosisloading(false)});
   }, [userToken]);
   useLayoutEffect(() => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
     window.scrollTo(0, 0);
-    fetchVideoInfo()
+    fetchVideoInfo();
   }, [video_id]);
   useEffect(() => {
     setIsLoggedIn(!!userToken);
@@ -87,8 +88,10 @@ const VideoPage: React.FC = () => {
     setNoMoreComments(false);
     setCommentInput("");
     setReplyingTo(null);
-    fetchComments();
   }, [userToken]);
+  useEffect(()=>{
+    fetchComments();
+  },[video_id,userToken]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,8 +107,8 @@ const VideoPage: React.FC = () => {
   }, []);
   useEffect(() => {
     
+    if(!userToken || !videoInfo||videoInfo?.status!==VideoStatus.approved) return;
     console.log("开始获取用户点赞收藏关注");
-    if(!userToken || !videoInfo) return;
     console.log("当前视频信息",videoInfo);
     new QueryLikeMessage(userToken, Number(video_id)).send(
       (info: string) => {
@@ -179,6 +182,7 @@ const VideoPage: React.FC = () => {
   }
   const fetchComments = async (lastComment?: CommentWithUserInfo) => {
     if (loadingComments || noMoreComments) return;
+    if(videoInfo?.status!==VideoStatus.approved)return;
     
     setLoadingComments(true);
     try {
@@ -554,6 +558,7 @@ const VideoPage: React.FC = () => {
       return;
     }
     if(likeisprocessing) return; // 防止重复点击
+    if(videoInfo.status!==VideoStatus.approved)return;
     setLikeisprocessing(true);
     videoInfo.likes = isLiked ? videoInfo.likes - 1 : videoInfo.likes + 1;
     new ChangeLikeMessage(userToken, Number(video_id), !isLiked).send(
@@ -576,6 +581,7 @@ const VideoPage: React.FC = () => {
       return;
     }
     if(favoriteisprocessing) return; // 防止重复点击
+    if(videoInfo.status!==VideoStatus.approved)return;
     setFavoriteisprocessing(true);
     videoInfo.favorites = isFavorited ? videoInfo.favorites - 1 : videoInfo.favorites + 1;
     new ChangeFavoriteMessage(userToken, Number(video_id), !isFavorited).send(
@@ -609,7 +615,7 @@ const VideoPage: React.FC = () => {
             likeVideo={likeVideo}
             favoriteVideo={favoriteVideo}
           />
-
+          {videoInfo?.status===VideoStatus.approved&&
           <CommentSection
             comments={comments}
             loadingComments={loadingComments}
@@ -630,6 +636,7 @@ const VideoPage: React.FC = () => {
             handleToggleReplies={handleToggleReplies}
             handleLoadMoreReplies={handleLoadMoreReplies}
           />
+          }
         </div>
 
         <SidebarSection
@@ -645,7 +652,7 @@ const VideoPage: React.FC = () => {
         />
       </div>
 
-      {showBottomCommentBar && (
+      {showBottomCommentBar&&videoInfo.status===VideoStatus.approved && (
         <div className="video-bottom-comment-bar">
           <input
             type="text"
