@@ -44,7 +44,7 @@ object Init {
         List()
       )
       _ <- writeDB(
-        s"""CREATE INDEX IF NOT EXISTS idx_history_view_time ON "$schemaName"."comment_table"(view_time);
+        s"""CREATE INDEX IF NOT EXISTS idx_history_view_time ON "$schemaName"."history_record_table"(view_time);
            |""".stripMargin, List())
     } yield ()
 

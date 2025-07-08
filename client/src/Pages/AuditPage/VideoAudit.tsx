@@ -114,19 +114,21 @@ const VideoAudit: React.FC = () => {
                                         (e.target as HTMLImageElement).src = DefaultCover;
                                     }}
                                 />
+                                {video.duration &&
+                                    <div className="audit-video-duration">
+                                        {formatDuration(video.duration)}
+                                    </div>}
                             </div>
                             <div className="audit-video-info">
                                 <h3 className="audit-video-title"
                                     onClick={() => handleViewVideo(video.videoID)}>
                                     {video.title}
                                 </h3>
-                                <div className="audit-video-meta">
-                                    <span>时长: {formatDuration(video.duration)}</span>
-                                    <span>上传者ID: {video.uploaderID}</span>
-                                    <span>上传时间: {formatDate(video.uploadTime)}</span>
-                                </div>
                                 <div className="audit-video-description">
-                                    {video.description || "无描述"}
+                                    {video.description || " "}
+                                </div>
+                                <div className="audit-video-meta">
+                                    上传时间: {formatDate(video.uploadTime)}
                                 </div>
                                 {video.tag && video.tag.length > 0 && (
                                     <div className="audit-video-tags">
@@ -138,18 +140,18 @@ const VideoAudit: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="audit-video-actions">
+                            <div className="danmaku-report-actions">
                                 <button
-                                    className="audit-btn audit-btn-approve"
+                                    className="danmaku-action-btn danmaku-action-approve"
                                     onClick={() => handleVideoAction(video.videoID, VideoStatus.approved)}
                                 >
-                                    通过
+                                    ✓
                                 </button>
                                 <button
-                                    className="audit-btn audit-btn-reject"
+                                    className="danmaku-action-btn danmaku-action-reject"
                                     onClick={() => handleVideoAction(video.videoID, VideoStatus.rejected)}
                                 >
-                                    拒绝
+                                    ×
                                 </button>
                             </div>
                         </div>

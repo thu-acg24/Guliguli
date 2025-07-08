@@ -47,9 +47,12 @@ case class ProcessVideoReportMessagePlanner(
       (videoTitle, uploaderID) <- validateVideo(videoID)
       _ <- updateReportStatus(reportID, status)
       _ <- privatizeVideoIfNeeded(videoID)
-      _ <- SendNotificationMessage(token, reporterID, s"您举报的视频 $videoTitle 已被处理").send
+      _ <- SendNotificationMessage(token, reporterID,
+        s"举报处理通知",
+        s"您举报的视频 $videoTitle 已被处理").send
       _ <- status match {
         case ReportStatus.Resolved => SendNotificationMessage(token, uploaderID,
+          s"视频违规通知",
           s"您的视频 $videoTitle 被举报并已被审核员下架").send
         case _ => IO.unit
       }
@@ -62,7 +65,7 @@ case class ProcessVideoReportMessagePlanner(
     for {
       _ <- IO(logger.info(s"校验 reportID [$reportID] 是否存在"))
       result <- readDBJsonOptional(
-        s"SELECT reporter_id, comment_id, status FROM $schemaName.report_video_table WHERE report_id = ?;",
+        s"SELECT reporter_id, video_id, status FROM $schemaName.report_video_table WHERE report_id = ?;",
         List(SqlParameter("Int", reportID.toString))
       )
     } yield result match {
@@ -99,7 +102,7 @@ case class ProcessVideoReportMessagePlanner(
     for {
       _ <- IO(logger.info(s"更新举报记录状态为 $status"))
       writeResult <- writeDB(
-        s"UPDATE $schemaName.report_danmaku_table SET status = ? WHERE report_id = ?;",
+        s"UPDATE $schemaName.report_video_table SET status = ? WHERE report_id = ?;",
         List(
           SqlParameter("String", status.toString),
           SqlParameter("Int", reportID.toString)

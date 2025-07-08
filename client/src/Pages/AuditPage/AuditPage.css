@@ -105,10 +105,6 @@
     transition: all 0.2s;
 }
 
-.video-audit-item:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
 .audit-video-cover-container {
     width: 160px;
     height: 90px;
@@ -116,6 +112,7 @@
     border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
 }
 
 .audit-video-cover {
@@ -124,18 +121,29 @@
     object-fit: cover;
 }
 
+.audit-video-duration {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 12px;
+}
+
 .audit-video-info {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-right: 20px;
 }
 
 .audit-video-title {
     font-size: 16px;
     font-weight: bold;
     color: #333;
-    margin-bottom: 5px;
     cursor: pointer;
     transition: color 0.2s ease;
 }
@@ -155,9 +163,9 @@
     color: #666;
     font-size: 14px;
     line-height: 1.5;
-    max-height: 60px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
 
 .audit-video-tags {
@@ -280,10 +288,6 @@
     border-radius: 8px;
     padding: 20px;
     transition: all 0.3s ease;
-}
-
-.report-item:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .report-item-header {
@@ -464,7 +468,7 @@
     display: none;
 }
 
-/* 响应式样式优化 */
+/* 响应式样式 */
 @media (max-width: 768px) {
     .comment-meta {
         flex-direction: column;
@@ -500,5 +504,181 @@
     .video-item-actions,
     .report-item-actions {
         flex-wrap: wrap;
+    }
+}
+
+/* 弹幕举报管理 - 新的一行一条布局样式 */
+.danmaku-report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.danmaku-report-item {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 16px 20px;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.danmaku-report-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.danmaku-report-title {
+    font-size: 16px;
+    margin-bottom: 6px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.danmaku-content-text {
+    background-color: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+    transition: all 0.2s;
+    border: 1px solid #e0e0e0;
+}
+
+.danmaku-content-text:hover {
+    background-color: #eaeaea;
+    white-space: normal;
+    text-overflow: clip;
+    max-width: none;
+}
+
+.danmaku-content-missing {
+    color: #ff4d4f;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.danmaku-report-reason {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.danmaku-report-meta {
+    font-size: 14px;
+    color: #999;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.danmaku-report-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.danmaku-action-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.danmaku-action-approve {
+    background-color: white;
+    color: #52c41a;
+    border: 1px solid #52c41a;
+}
+
+.danmaku-action-approve:hover {
+    background-color: #52c41a;
+    color: white;
+    transform: scale(1.1);
+}
+
+.danmaku-action-reject {
+    background-color: white;
+    color: #ff4d4f;
+    border: 1px solid #ff4d4f;
+}
+
+.danmaku-action-reject:hover {
+    background-color: #ff4d4f;
+    color: white;
+    transform: scale(1.1);
+}
+
+.danmaku-action-view {
+    background-color: white;
+    color: #fb7299;
+    border: 1px solid #fb7299;
+    width: auto;
+    padding: 0 16px;
+    font-size: 14px;
+}
+
+.danmaku-action-view:hover {
+    background-color: #fb7299;
+    color: white;
+    transform: scale(1.1);
+}
+
+.danmaku-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .danmaku-report-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .danmaku-report-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .danmaku-report-meta {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .danmaku-content-text {
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .danmaku-report-actions {
+        justify-content: center;
+    }
+
+    .danmaku-content-text {
+        max-width: 200px;
     }
 }

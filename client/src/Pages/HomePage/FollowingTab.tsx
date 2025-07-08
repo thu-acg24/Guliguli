@@ -36,7 +36,7 @@ const FollowingTab: React.FC = () => {
         setLoading(true);
         try {
             const newFollowingID = await new Promise<number[]>((resolve, reject) => {
-                new QueryFollowingListMessage(userID, (page - 1) * perpage + 1, page * perpage).send(
+                new QueryFollowingListMessage(userID, (page - 1) * perpage + 1, page * perpage + 1).send(
                     (info: string) => {
                         const followingList = JSON.parse(info);
                         resolve(followingList.map((relation: any) => relation.followeeID));

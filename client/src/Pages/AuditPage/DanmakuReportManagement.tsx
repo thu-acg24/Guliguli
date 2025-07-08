@@ -4,15 +4,22 @@ import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { QueryDanmakuReportsMessage } from "Plugins/ReportService/APIs/QueryDanmakuReportsMessage";
 import { ProcessDanmakuReportMessage } from "Plugins/ReportService/APIs/ProcessDanmakuReportMessage";
+import { QueryDanmakuByIDMessage } from "Plugins/DanmakuService/APIs/QueryDanmakuByIDMessage";
 import { ReportDanmaku } from "Plugins/ReportService/Objects/ReportDanmaku";
+import { Danmaku } from "Plugins/DanmakuService/Objects/Danmaku";
 import { ReportStatus } from "Plugins/ReportService/Objects/ReportStatus";
 import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 
 const DanmakuReportManagement: React.FC = () => {
+    interface ReportWithDanmaku {
+        report: ReportDanmaku;
+        danmaku: Danmaku | null;
+    }
+
     const navigate = useNavigate();
     const userToken = useUserToken();
-    const [reports, setReports] = useState<ReportDanmaku[]>([]);
+    const [reports, setReports] = useState<ReportWithDanmaku[]>([]);
     const [loading, setLoading] = useState(true);
     const { ToastComponent, showSuccess } = useTopSuccessToast();
 
@@ -21,8 +28,6 @@ const DanmakuReportManagement: React.FC = () => {
     }, []);
 
     const loadReports = async () => {
-        if (!userToken) return;
-
         try {
             setLoading(true);
             const response = await new Promise<string>((resolve, reject) => {
@@ -33,7 +38,22 @@ const DanmakuReportManagement: React.FC = () => {
             });
 
             const reportsData = JSON.parse(response) as ReportDanmaku[];
-            setReports(reportsData);
+
+            // 获取每个举报对应的弹幕内容
+            const reportsWithDanmaku = await Promise.all(
+                reportsData.map(async (report) => {
+                    const danmakuResponse = await new Promise<string>((resolve, reject) => {
+                        new QueryDanmakuByIDMessage(report.danmakuID).send(
+                            (info: string) => resolve(info),
+                            (error: string) => reject(new Error(error))
+                        );
+                    });
+                    const danmaku = JSON.parse(danmakuResponse) as Danmaku;
+                    return { report, danmaku };
+                })
+            );
+
+            setReports(reportsWithDanmaku);
         } catch (error) {
             console.error("获取弹幕举报失败", error);
             materialAlertError("加载失败", error instanceof Error ? error.message : "获取弹幕举报失败");
@@ -43,17 +63,6 @@ const DanmakuReportManagement: React.FC = () => {
     };
 
     const handleReportAction = async (reportID: number, status: ReportStatus) => {
-        if (!userToken) {
-            materialAlertError("未登录", "请先登录");
-            return;
-        }
-
-        const actionText = status === ReportStatus.resolved ? "通过举报" : "驳回举报";
-
-        if (!confirm(`确定要${actionText}吗？`)) {
-            return;
-        }
-
         try {
             await new Promise<void>((resolve, reject) => {
                 new ProcessDanmakuReportMessage(userToken, reportID, status).send(
@@ -63,16 +72,26 @@ const DanmakuReportManagement: React.FC = () => {
             });
 
             // 从列表中移除已处理的举报
-            setReports(prev => prev.filter(report => report.reportID !== reportID));
-            showSuccess(`${actionText}成功`);
+            setReports(prev => prev.filter(item => item.report.reportID !== reportID));
+            showSuccess(`处理成功`);
         } catch (error) {
             console.error("处理举报失败", error);
-            materialAlertError("操作失败", error instanceof Error ? error.message : `${actionText}失败`);
+            materialAlertError("操作失败", error instanceof Error ? error.message : ``);
         }
+    };
+
+    const formatDuration = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     const formatDate = (timestamp: number): string => {
         return new Date(timestamp).toLocaleString('zh-CN');
+    };
+
+    const handleViewVideo = (videoID: number) => {
+        navigate(`/video/${videoID}`);
     };
 
     if (loading) {
@@ -102,42 +121,45 @@ const DanmakuReportManagement: React.FC = () => {
                     <div className="report-empty-text">暂无待处理的弹幕举报</div>
                 </div>
             ) : (
-                <div className="report-list">
-                    {reports.map(report => (
-                        <div key={report.reportID} className="report-item">
-                            <div className="report-item-header">
-                                <div className="report-item-id">
-                                    举报ID: #{report.reportID}
+                <div className="danmaku-report-list">
+                    {reports.map(item => (
+                        <div key={item.report.reportID} className="danmaku-report-item">
+                            <div className="danmaku-report-content">
+                                <div className="danmaku-report-reason">
+                                    <strong>举报弹幕：</strong>{item.danmaku.content}
                                 </div>
-                                <div className="report-item-time">
-                                    {formatDate(report.timestamp)}
+                                <div className="danmaku-report-reason">
+                                    <strong>弹幕时间：</strong>{formatDuration(item.danmaku.timeInVideo)}
+                                </div>
+                                <div className="danmaku-report-reason">
+                                    <strong>举报原因：</strong>{item.report.reason}
+                                </div>
+                                <div className="danmaku-report-meta">
+                                    举报时间：{formatDate(item.report.timestamp)}
                                 </div>
                             </div>
 
-                            <div className="report-item-content">
-                                <div className="report-item-reason">
-                                    <div className="report-reason-label">举报原因：</div>
-                                    <div className="report-reason-text">{report.reason}</div>
-                                </div>
-
-                                <div className="report-target-info">
-                                    <div className="report-target-label">被举报弹幕：</div>
-                                    <div className="report-target-text">
-                                        弹幕ID: {report.danmakuID} | 举报者ID: {report.reporterID}
-                                    </div>
-                                </div>
-                            </div>                                <div className="report-item-actions">
+                            <div className="danmaku-report-actions">
                                 <button
-                                    className="report-btn report-btn-approve"
-                                    onClick={() => handleReportAction(report.reportID, ReportStatus.resolved)}
+                                    className="danmaku-action-btn danmaku-action-view"
+                                    onClick={() => handleViewVideo(item.danmaku.videoID)}
+                                    title="查看原视频"
                                 >
-                                    通过举报
+                                    查看原视频
                                 </button>
                                 <button
-                                    className="report-btn report-btn-reject"
-                                    onClick={() => handleReportAction(report.reportID, ReportStatus.rejected)}
+                                    className="danmaku-action-btn danmaku-action-approve"
+                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
+                                    title="通过举报"
                                 >
-                                    驳回举报
+                                    ✓
+                                </button>
+                                <button
+                                    className="danmaku-action-btn danmaku-action-reject"
+                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.rejected)}
+                                    title="驳回举报"
+                                >
+                                    ×
                                 </button>
                             </div>
                         </div>

@@ -51,9 +51,12 @@ case class ProcessCommentReportMessagePlanner(
       (commentContent, commentAuthorID, videoTitle, videoID) <- validateCommentAndVideo(commentID)
       _ <- updateReportStatus(reportID, status)
       _ <- deleteCommentIfNeeded(commentID)
-      _ <- SendNotificationMessage(token, reporterID, s"您在视频 $videoTitle 下举报的评论 $commentContent 已被处理").send
+      _ <- SendNotificationMessage(token, reporterID,
+        s"举报处理通知",
+        s"您在视频 $videoTitle 下举报的评论 $commentContent 已被处理").send
       _ <- status match {
         case ReportStatus.Resolved => SendNotificationMessage(token, commentAuthorID,
+          s"评论违规通知",
           s"您在视频 $videoTitle 下的评论 $commentContent 被举报并已被审核员删除").send
         case _ => IO.unit
       }

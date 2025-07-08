@@ -49,9 +49,11 @@ case class ProcessDanmakuReportMessagePlanner(
       _ <- updateReportStatus(reportID, status)
       _ <- deleteDanmakuIfNeeded(danmakuID)
       _ <- SendNotificationMessage(token, reporterID,
+        s"举报处理通知",
         s"您在视频 $videoTitle 下举报的弹幕 $danmakuContent 已被处理").send
       _ <- status match {
         case ReportStatus.Resolved => SendNotificationMessage(token, danmakuAuthorID,
+          s"弹幕违规通知",
           s"您在视频 $videoTitle 下的弹幕 $danmakuContent 被举报并已被审核员删除").send
         case _ => IO.unit
       }
@@ -64,7 +66,7 @@ case class ProcessDanmakuReportMessagePlanner(
     for {
       _ <- IO(logger.info(s"校验 reportID [$reportID] 是否存在"))
       result <- readDBJsonOptional(
-        s"SELECT reporter_id, comment_id, status FROM $schemaName.report_danmaku_table WHERE report_id = ?;",
+        s"SELECT reporter_id, danmaku_id, status FROM $schemaName.report_danmaku_table WHERE report_id = ?;",
         List(SqlParameter("Int", reportID.toString))
       )
     } yield result match {
