@@ -1,18 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useUserToken } from 'Globals/GlobalStore';
-import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
-import { ReportComment } from 'Plugins/ReportService/Objects/ReportComment';
-import { ReportStatus } from 'Plugins/ReportService/Objects/ReportStatus';
-import { Comment } from 'Plugins/CommentService/Objects/Comment';
-import { QueryCommentReportsMessage } from 'Plugins/ReportService/APIs/QueryCommentReportsMessage';
-import { ProcessCommentReportMessage } from 'Plugins/ReportService/APIs/ProcessCommentReportMessage';
-import { QueryCommentByIDMessage } from 'Plugins/CommentService/APIs/QueryCommentByIDMessage';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUserToken } from "Globals/GlobalStore";
+import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
+import { ReportComment } from "Plugins/ReportService/Objects/ReportComment";
+import { ReportStatus } from "Plugins/ReportService/Objects/ReportStatus";
+import { Comment } from "Plugins/CommentService/Objects/Comment";
+import { QueryCommentReportsMessage } from "Plugins/ReportService/APIs/QueryCommentReportsMessage";
+import { ProcessCommentReportMessage } from "Plugins/ReportService/APIs/ProcessCommentReportMessage";
+import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 
 const CommentReportManagement: React.FC = () => {
+    interface ReportWithComment {
+        report: ReportComment;
+        comment: Comment;
+    }
+
+    const navigate = useNavigate();
     const userToken = useUserToken();
-    const [reports, setReports] = useState<ReportComment[]>([]);
-    const [commentDetails, setCommentDetails] = useState<{ [key: number]: Comment }>({});
+    const [reports, setReports] = useState<ReportWithComment[]>([]);
     const [loading, setLoading] = useState(true);
     const { ToastComponent, showSuccess } = useTopSuccessToast();
 
@@ -21,8 +27,6 @@ const CommentReportManagement: React.FC = () => {
     }, []);
 
     const loadReports = async () => {
-        if (!userToken) return;
-
         try {
             setLoading(true);
             const response = await new Promise<string>((resolve, reject) => {
@@ -32,195 +36,126 @@ const CommentReportManagement: React.FC = () => {
                 );
             });
 
-            const responseData = JSON.parse(response);
-            if (responseData.reports) {
-                const reportsList = responseData.reports.map((report: any) =>
-                    new ReportComment(
-                        report.reportID,
-                        report.commentID,
-                        report.reporterID,
-                        report.reason,
-                        report.status,
-                        report.timestamp
-                    )
-                );
-                setReports(reportsList);
+            const reportsData = JSON.parse(response) as ReportComment[];
 
-                // 加载评论详情
-                await loadCommentDetails(reportsList);
-            }
+            // 获取每个举报对应的评论内容
+            const reportsWithComment = await Promise.all(
+                reportsData.map(async (report) => {
+                    const commentResponse = await new Promise<string>((resolve, reject) => {
+                        new QueryCommentByIDMessage(report.commentID).send(
+                            (info: string) => resolve(info),
+                            (error: string) => reject(new Error(error))
+                        );
+                    });
+                    const comment = JSON.parse(commentResponse) as Comment;
+                    return { report, comment };
+                })
+            );
+
+            setReports(reportsWithComment);
         } catch (error) {
-            console.error('加载评论举报失败:', error);
-            materialAlertError('加载失败', error instanceof Error ? error.message : '获取评论举报失败');
+            console.error("获取弹幕举报失败", error);
+            materialAlertError("加载失败", error instanceof Error ? error.message : "获取弹幕举报失败");
         } finally {
             setLoading(false);
         }
     };
 
-    const loadCommentDetails = async (reportsList: ReportComment[]) => {
-        const commentIDs = [...new Set(reportsList.map(report => report.commentID))];
-        const details: { [key: number]: Comment } = {};
-
-        for (const commentID of commentIDs) {
-            try {
-                const response = await new Promise<string>((resolve, reject) => {
-                    new QueryCommentByIDMessage(commentID).send(
-                        (info: string) => resolve(info),
-                        (error: string) => reject(new Error(error))
-                    );
-                });
-
-                const responseData = JSON.parse(response);
-                if (responseData.comment) {
-                    const comment = responseData.comment;
-                    details[commentID] = new Comment(
-                        comment.commentID,
-                        comment.content,
-                        comment.videoID,
-                        comment.authorID,
-                        comment.replyToID,
-                        comment.replyToUserID,
-                        comment.likes,
-                        comment.replyCount,
-                        comment.timestamp
-                    );
-                }
-            } catch (error) {
-                console.error(`加载评论 ${commentID} 详情失败:`, error);
-            }
-        }
-
-        setCommentDetails(details);
-    };
-
-    const handleReportAction = async (reportID: number, newStatus: ReportStatus) => {
-        if (!userToken) {
-            materialAlertError('未登录', '请先登录');
-            return;
-        }
-
+    const handleReportAction = async (reportID: number, status: ReportStatus) => {
         try {
-            await new Promise<string>((resolve, reject) => {
-                new ProcessCommentReportMessage(userToken, reportID, newStatus).send(
-                    (info: string) => resolve(info),
+            await new Promise<void>((resolve, reject) => {
+                new ProcessCommentReportMessage(userToken, reportID, status).send(
+                    (info: string) => resolve(),
                     (error: string) => reject(new Error(error))
                 );
             });
 
-            setReports(prev =>
-                prev.map(report =>
-                    report.reportID === reportID
-                        ? new ReportComment(
-                            report.reportID,
-                            report.commentID,
-                            report.reporterID,
-                            report.reason,
-                            newStatus,
-                            report.timestamp
-                        )
-                        : report
-                )
-            );
-
-            showSuccess('举报状态已更新');
+            // 从列表中移除已处理的举报
+            setReports(prev => prev.filter(item => item.report.reportID !== reportID));
+            showSuccess(`处理成功`);
         } catch (error) {
-            console.error('处理举报失败:', error);
-            materialAlertError('操作失败', error instanceof Error ? error.message : '处理举报失败');
+            console.error("处理举报失败", error);
+            materialAlertError("操作失败", error instanceof Error ? error.message : ``);
         }
     };
 
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp * 1000).toLocaleString();
+    const formatDate = (timestamp: number): string => {
+        return new Date(timestamp).toLocaleString('zh-CN');
     };
 
-    const truncateText = (text: string, maxLength: number = 50) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    const handleViewVideo = (videoID: number) => {
+        navigate(`/video/${videoID}`);
     };
 
     if (loading) {
-        return <div className="loading">加载中...</div>;
-    }
-
-    const pendingReports = reports.filter(report => report.status === ReportStatus.pending);
-
-    return (
-        <div className="audit-content">
-            {ToastComponent}
-            <h2>评论举报管理</h2>
-
-            <div className="stats">
-                <div className="stat-item">
-                    <span className="stat-label">待处理举报:</span>
-                    <span className="stat-value">{pendingReports.length}</span>
+        return (
+            <div className="report-management">
+                <div className="report-header">
+                    <h1 className="report-title">评论举报管理</h1>
+                    <p className="report-subtitle">加载中...</p>
                 </div>
             </div>
+        );
+    }
 
-            <div className="report-list">
-                {pendingReports.length === 0 ? (
-                    <div className="no-data">暂无待处理的评论举报</div>
-                ) : (
-                    pendingReports.map(report => {
-                        const comment = commentDetails[report.commentID];
+    return (
+        <div className="report-management">
+            {ToastComponent}
+            <div className="report-header">
+                <h1 className="report-title">评论举报管理</h1>
+                <p className="report-subtitle">
+                    共有 {reports.length} 个待处理举报
+                </p>
+            </div>
 
-                        return (
-                            <div key={report.reportID} className="report-item">
-                                <div className="report-header">
-                                    <span className="report-id">举报ID: {report.reportID}</span>
-                                    <span className="report-time">{formatDate(report.timestamp)}</span>
+            {reports.length === 0 ? (
+                <div className="report-empty">
+                    <div className="report-empty-icon">💬</div>
+                    <div className="report-empty-text">暂无待处理的评论举报</div>
+                </div>
+            ) : (
+                <div className="danmaku-report-list">
+                    {reports.map(item => (
+                        <div key={item.report.reportID} className="danmaku-report-item">
+                            <div className="danmaku-report-content">
+                                <div className="danmaku-report-reason">
+                                    <strong>举报评论：</strong>{item.comment.content}
                                 </div>
-
-                                <div className="report-content">
-                                    <div className="report-info">
-                                        <div className="info-row">
-                                            <strong>举报原因:</strong> {report.reason}
-                                        </div>
-                                        <div className="info-row">
-                                            <strong>举报人ID:</strong> {report.reporterID}
-                                        </div>
-                                        <div className="info-row">
-                                            <strong>评论ID:</strong> {report.commentID}
-                                        </div>
-                                    </div>
-
-                                    {comment && (
-                                        <div className="comment-preview">
-                                            <div className="comment-header">
-                                                <strong>被举报评论内容:</strong>
-                                            </div>
-                                            <div className="comment-content">
-                                                <div className="comment-text">
-                                                    {truncateText(comment.content, 100)}
-                                                </div>
-                                                <div className="comment-meta">
-                                                    <span>作者ID: {comment.authorID}</span>
-                                                    <span>视频ID: {comment.videoID}</span>
-                                                    <span>点赞数: {comment.likes}</span>
-                                                    <span>发布时间: {new Date(comment.timestamp).toLocaleString()}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                <div className="danmaku-report-reason">
+                                    <strong>举报原因：</strong>{item.report.reason}
                                 </div>
-
-                                <div className="report-actions">
-                                    <button
-                                        className="btn-approve"
-                                        onClick={() => handleReportAction(report.reportID, ReportStatus.resolved)}
-                                    >
-                                        通过举报
-                                    </button>
-                                    <button
-                                        className="btn-reject"
-                                        onClick={() => handleReportAction(report.reportID, ReportStatus.rejected)}
-                                    >
-                                        驳回举报
-                                    </button>
+                                <div className="danmaku-report-meta">
+                                    举报时间：{formatDate(item.report.timestamp)}
                                 </div>
                             </div>
-                        );
-                    })
-                )}
-            </div>
+
+                            <div className="danmaku-report-actions">
+                                <button
+                                    className="danmaku-action-btn danmaku-action-view"
+                                    onClick={() => handleViewVideo(item.comment.videoID)}
+                                    title="查看原视频"
+                                >
+                                    查看原视频
+                                </button>
+                                <button
+                                    className="danmaku-action-btn danmaku-action-approve"
+                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
+                                    title="通过举报"
+                                >
+                                    ✓
+                                </button>
+                                <button
+                                    className="danmaku-action-btn danmaku-action-reject"
+                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.rejected)}
+                                    title="驳回举报"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

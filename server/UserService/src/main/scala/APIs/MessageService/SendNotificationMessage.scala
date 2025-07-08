@@ -5,10 +5,10 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.Serialize.JacksonSerializeUtils
 import Global.ServiceCenter.MessageServiceCode
 import com.fasterxml.jackson.core.`type`.TypeReference
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.parser.*
 import io.circe.syntax.*
-import io.circe.{Decoder, Encoder, Json}
 import org.joda.time.DateTime
 
 import java.util.UUID

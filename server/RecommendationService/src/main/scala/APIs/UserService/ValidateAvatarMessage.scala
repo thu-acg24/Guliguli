@@ -17,12 +17,12 @@ import scala.util.Try
 /**
  * ValidateAvatarMessage
  * desc: 用户上传完头像后，将上一步得到的Token传入，用于检验用户上传文件是否合法功能
- * @param token: String (sessionToken，用于校验身份及权限。)
+ * @param sessionToken: String (sessionToken，用于校验身份及权限。)
  */
 
 case class ValidateAvatarMessage(
-  token: String
-) extends API[List[String]](UserServiceCode)
+  sessionToken: String
+) extends API[Unit](UserServiceCode)
 
 case object ValidateAvatarMessage{
 
@@ -40,12 +40,12 @@ case object ValidateAvatarMessage{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given ChangeBanStatusMessageEncoder: Encoder[ValidateAvatarMessage] = Encoder.instance { config =>
+  given ValidateAvatarMessageEncoder: Encoder[ValidateAvatarMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given ChangeBanStatusMessageDecoder: Decoder[ValidateAvatarMessage] = Decoder.instance { cursor =>
+  given ValidateAvatarMessageDecoder: Decoder[ValidateAvatarMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
