@@ -70,7 +70,7 @@ case class SearchVideosMessagePlanner(
          |  LIMIT 200
          |)
          |SELECT video_id,
-         |       dot_product + (0.2 * log(10, GREATEST(view_count, 1))) AS combined_score
+         |       dot_product + (0.05 * log(10, GREATEST(view_count, 1))) AS combined_score
          |FROM filtered_candidates
          |ORDER BY combined_score DESC
          |LIMIT $fetchLimit;

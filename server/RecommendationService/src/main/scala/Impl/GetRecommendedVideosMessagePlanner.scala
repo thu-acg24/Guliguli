@@ -39,7 +39,7 @@ case class GetRecommendedVideosMessagePlanner(
       // Step 1: Validate input parameters
       _ <- IO(logger.info(s"确认userToken合法性"))
       userID <- userToken.traverse(GetUIDByTokenMessage(_).send)
-      _ <- IO(logger.info(s"校验入参，确保 videoID 或 userID 至少有一个有效值"))
+      _ <- IO(logger.info(s"校验入参，确保随机的权重必须要在0.1-0.9之间"))
       _ <- validateInputParams(userID, videoID)
 
       // Step 2: Generate recommended video IDs
@@ -53,9 +53,9 @@ case class GetRecommendedVideosMessagePlanner(
   }
 
   private def validateInputParams(userID: Option[Int], videoID: Option[Int])(using PlanContext): IO[Unit] = {
-    //if (videoID.isEmpty && userID.isEmpty)
-    //  IO.raiseError(InvalidInputException("videoID 和 userID 至少需要一个有效值"))
-    //else
+    if (randomRatio < 0.1 || randomRatio > 0.9)
+      IO.raiseError(InvalidInputException("随机的权重必须要在0.1-0.9之间"))
+    else
       for {
         _ <- videoID match {
           case Some(id) =>
@@ -83,7 +83,7 @@ case class GetRecommendedVideosMessagePlanner(
          |  LIMIT 200
          |)
          |SELECT video_id,
-         |       dot_product + (0.2 * log(10, GREATEST(view_count, 1))) AS combined_score
+         |       dot_product + (0.05 * log(10, GREATEST(view_count, 1))) AS combined_score
          |FROM nearest_candidates
          |ORDER BY combined_score DESC
          |LIMIT $fetchLimit;
