@@ -23,7 +23,7 @@ const MainPage: React.FC = () => {
 
     useEffect(() => {
         setVideosisloading(true);
-        getRecommendedVideos(userToken?userToken:null,null,15).then(setRecommendvideosInfo).then(()=>{setVideosisloading(false)});
+        getRecommendedVideos(userToken ? userToken : null, null, 15).then(setRecommendvideosInfo).then(() => { setVideosisloading(false) });
     }, [userToken]);
 
     const loadCategoryContent = (categoryName: string, categoryId: string) => {
@@ -96,48 +96,47 @@ const MainPage: React.FC = () => {
             </div>
 
             <div className="main-video-container">
-                <div className="main-video-row">
-                    <div className="main-large-ad">
+                <div className="main-video-row main-video-row-2x5">
+                    <div className="main-large-ad main-large-ad-small">
                         <img src={Advertisement} alt="热门视频广告" className="main-large-ad-cover" onError={(e) => { e.currentTarget.src = DefaultCover; }} />
                     </div>
-                    <div className="main-video-grid">
-                        {[0, 1, 2, 3].map((i) => (
-                            <div key={i} className="main-video-item" data-video-id={recommendvideosInfo[i]?.videoID} onClick={(e) => {
-                                if (!(e.target as HTMLElement).classList.contains('video-author') && recommendvideosInfo[i]?.videoID) {
-                                    handleVideoClick(recommendvideosInfo[i].videoID);
-                                }
-                            }}>
-                                <div className="main-video-cover-container">
-                                    <img 
-                                        src={recommendvideosInfo[i]?.cover || DefaultCover} 
-                                        alt="视频封面" 
-                                        className="main-video-cover" 
-                                        onError={(e) => { e.currentTarget.src = DefaultCover; }} 
-                                    />
-                                </div>
-                                <div className="main-video-info">
-                                    <div className="main-video-title">{recommendvideosInfo[i]?.title || "暂无视频"}</div>
-                                    <div className="main-video-meta">
-                                        <span 
-                                            className="main-video-author" 
-                                            data-user-id={recommendvideosInfo[i]?.uploaderID} 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (recommendvideosInfo[i]?.uploaderID) {
-                                                    handleAuthorClick(recommendvideosInfo[i].uploaderID);
-                                                }
-                                            }}
-                                        >
-                                            UP主：{recommendvideosInfo[i]?.uploaderInfo?.username || "未知用户"}
-                                        </span>
-                                        <span className="main-video-time">
-                                            {recommendvideosInfo[i]?.uploadTime ? dateformatTime(recommendvideosInfo[i].uploadTime) : ""}
-                                        </span>
-                                    </div>
+                    {/* 右侧2行3列视频，整体2行5列，广告占1-2列6格视频占3-5列 */}
+                    {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="main-video-item main-video-item-2x5" data-video-id={recommendvideosInfo[i]?.videoID} onClick={(e) => {
+                            if (!(e.target as HTMLElement).classList.contains('video-author') && recommendvideosInfo[i]?.videoID) {
+                                handleVideoClick(recommendvideosInfo[i].videoID);
+                            }
+                        }}>
+                            <div className="main-video-cover-container">
+                                <img
+                                    src={recommendvideosInfo[i]?.cover || DefaultCover}
+                                    alt="视频封面"
+                                    className="main-video-cover"
+                                    onError={(e) => { e.currentTarget.src = DefaultCover; }}
+                                />
+                            </div>
+                            <div className="main-video-info">
+                                <div className="main-video-title">{recommendvideosInfo[i]?.title || "暂无视频"}</div>
+                                <div className="main-video-meta">
+                                    <span
+                                        className="main-video-author"
+                                        data-user-id={recommendvideosInfo[i]?.uploaderID}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (recommendvideosInfo[i]?.uploaderID) {
+                                                handleAuthorClick(recommendvideosInfo[i].uploaderID);
+                                            }
+                                        }}
+                                    >
+                                        UP主：{recommendvideosInfo[i]?.uploaderInfo?.username || "未知用户"}
+                                    </span>
+                                    <span className="main-video-time">
+                                        {recommendvideosInfo[i]?.uploadTime ? dateformatTime(recommendvideosInfo[i].uploadTime) : ""}
+                                    </span>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
 
                 <div className="main-normal-video-list">
@@ -148,19 +147,19 @@ const MainPage: React.FC = () => {
                             }
                         }}>
                             <div className="main-video-cover-container">
-                                <img 
-                                    src={recommendvideosInfo[i]?.cover || DefaultCover} 
-                                    alt="视频封面" 
-                                    className="main-video-cover" 
-                                    onError={(e) => { e.currentTarget.src = DefaultCover; }} 
+                                <img
+                                    src={recommendvideosInfo[i]?.cover || DefaultCover}
+                                    alt="视频封面"
+                                    className="main-video-cover"
+                                    onError={(e) => { e.currentTarget.src = DefaultCover; }}
                                 />
                             </div>
                             <div className="main-video-info">
                                 <div className="main-video-title">{recommendvideosInfo[i]?.title || "暂无视频"}</div>
                                 <div className="main-video-meta">
-                                    <span 
-                                        className="main-video-author" 
-                                        data-user-id={recommendvideosInfo[i]?.uploaderID} 
+                                    <span
+                                        className="main-video-author"
+                                        data-user-id={recommendvideosInfo[i]?.uploaderID}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             if (recommendvideosInfo[i]?.uploaderID) {

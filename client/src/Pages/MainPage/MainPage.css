@@ -63,27 +63,49 @@
 .main-video-container {
     width: 100%;
     max-width: 1400px;
-    margin-left: 15px;
-    margin-right: 15px;
+    margin-left: auto;
+    margin-right: auto;
     margin-top: 5px;
-    padding: 20px;
+    padding: 40px;
     padding-top: 0;
-
     background-color: white;
 }
+
+
 
 .main-video-row {
     display: flex;
     margin-bottom: 20px;
 }
 
+/* 2行5列布局，广告2列6视频3列 */
+.main-video-row-2x5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
 .main-large-ad {
-    width: 60%;
-    margin-right: 20px;
+    grid-row: 1 / span 2;
+    grid-column: 1 / span 2;
+}
+
+.main-large-ad {
+    width: 100%;
+    height: 100%;
     background-color: #ddd;
     border-radius: 6px;
     overflow: hidden;
     position: relative;
+    grid-row: span 2;
+    grid-column: span 2;
+}
+
+.main-large-ad-small {
+    height: 80%;
+    min-height: 0;
 }
 
 .main-large-ad-cover {
@@ -94,10 +116,13 @@
 }
 
 .main-video-grid {
-    width: 40%;
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-gap: 20px;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px;
+    grid-column: 3 / span 2;
+    grid-row: 1 / span 2;
 }
 
 /* 视频项固定尺寸 */
