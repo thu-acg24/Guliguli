@@ -1,6 +1,7 @@
 package Impl
 
 import APIs.RecommendationService.RecordWatchDataMessage
+import APIs.HistoryService.AddBrowseHistoryMessage
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
 import Common.DBAPI.*
@@ -144,6 +145,7 @@ case class QueryM3U8PathMessagePlanner(
 
   private def updateViewInfo(token: String, videoID: Int)(using PlanContext): IO[Unit] = {
     for {
+      _ <- AddBrowseHistoryMessage(token, videoID).send
       recordable <- RecordWatchDataMessage(token, videoID).send
       _ <- if (recordable) writeDB(
         s"""

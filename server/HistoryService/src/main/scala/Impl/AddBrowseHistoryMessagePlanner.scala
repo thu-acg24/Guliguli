@@ -85,7 +85,7 @@ case class AddBrowseHistoryMessagePlanner(
     val sql =
       s"""
          |UPDATE $schemaName.history_record_table
-         |SET timestamp = ?
+         |SET view_time = ?
          |WHERE user_id = ? AND video_id = ?;
          """.stripMargin
     writeDB(sql, List(
