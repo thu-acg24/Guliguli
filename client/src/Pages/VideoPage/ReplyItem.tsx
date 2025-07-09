@@ -1,10 +1,10 @@
-
 import React from "react";
 import "./VideoPage.css";
 import { CommentWithUserInfo } from './VideoPage'
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { formatTime } from 'Components/Formatter';
+import { ThreeDotsIcon, LikeIcon } from 'Images/Icons';
 
 interface ReplyItemProps {
   reply: CommentWithUserInfo;
@@ -31,6 +31,8 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
   setShowReplyModal,
   setShowLoginModal,
 }) => {
+  const [showOptions, setShowOptions] = React.useState(false);
+
   return (
     <div className="video-reply-item">
       <img
@@ -68,7 +70,8 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
             className={`video-like-btn ${reply.isLiked ? 'liked' : ''}`}
             onClick={() => handleLikeComment(reply.commentID)}
           >
-            <span>点赞</span> {reply.likes}
+            <LikeIcon className="video-like-icon" />
+            <span>{reply.likes}</span>
           </button>
           <button
             className="video-reply-btn"
@@ -87,14 +90,32 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           >
             回复
           </button>
-          {(reply.authorID === userInfo?.userID || userInfo?.userID === videoInfo?.uploaderID) && (
-            <button
-              className="video-delete-btn"
-              onClick={() => handleDeleteComment(reply.commentID)}
-            >
-              删除
-            </button>
-          )}
+          
+          <div 
+            className="video-reply-options"
+            onMouseEnter={() => setShowOptions(true)}
+            onMouseLeave={() => setShowOptions(false)}
+          >
+            <ThreeDotsIcon className="video-options-icon" />
+            {showOptions && (
+              <div className="video-options-menu">
+                <button 
+                  className="video-report-btn"
+                  onClick={() => alert(`举报回复: ${reply.content}`)}
+                >
+                  举报
+                </button>
+                {(reply.authorID === userInfo?.userID || userInfo?.userID === videoInfo?.uploaderID) && (
+                  <button
+                    className="video-delete-btn"
+                    onClick={() => handleDeleteComment(reply.commentID)}
+                  >
+                    删除
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

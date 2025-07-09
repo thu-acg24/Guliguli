@@ -8,6 +8,7 @@ import { useNavigateHome, useNavigateVideo } from "Globals/Navigate";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { SimpleVideo } from "Components/RecommendVideoService";
 import { formatCount } from "Components/Formatter";
+import { DanmakuReportModal } from "./ReportComponents";
 import { Danmaku as DanmakuObj } from "Plugins/DanmakuService/Objects/Danmaku";
 import { QueryVideoDanmakuMessage } from "Plugins/DanmakuService/APIs/QueryVideoDanmakuMessage";
 import { formatDuration } from "Components/Formatter";
@@ -22,6 +23,8 @@ interface SidebarSectionProps {
   upstat: UserStat;
   followUp: (id: number) => void;
   navigateToUser: (id: number) => void;
+  isLoggedIn: boolean;
+  setShowLoginModal: (value: boolean) => void;
   recommendedVideos: SimpleVideo[];
 }
 
@@ -34,6 +37,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   upstat,
   followUp,
   navigateToUser,
+  isLoggedIn,
+  setShowLoginModal,
   recommendedVideos,
 }) => {
   const { navigateHome } = useNavigateHome();
@@ -41,7 +46,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const [showDanmakuList, setShowDanmakuList] = useState(false);
   const [danmakuList, setDanmakuList] = useState<DanmakuObj[]>([]);
   const [loadingDanmaku, setLoadingDanmaku] = useState(false);
-
+  const [showDanmakuReport, setShowDanmakuReport] = useState(false);
+  const [selectedDanmaku, setSelectedDanmaku] = useState<DanmakuObj | null>(null);
   const handleVideoClick = (videoId: number) => {
     if (videoId > 0) {
       navigateVideo(videoId);
@@ -189,22 +195,27 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                         <span>{danmaku.content}</span>
                       </div>
                       <button
-                        className="danmaku-report-btn"
-                        style={{
-                          display: 'none',
-                          background: 'none',
-                          border: 'none',
-                          color: '#ff4d4f',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReportDanmaku(danmaku);
-                        }}
-                      >
-                        举报
-                      </button>
+                      className="danmaku-report-btn"
+                      style={{
+                        display: 'none',
+                        background: 'none',
+                        border: 'none',
+                        color: '#ff4d4f',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isLoggedIn) {
+                          setSelectedDanmaku(danmaku);
+                          setShowDanmakuReport(true);
+                        } else {
+                          setShowLoginModal(true);
+                        }
+                      }}
+                    >
+                      举报
+                    </button>
                     </li>
                   ))
                 )}
@@ -260,6 +271,13 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
           </div>
         ))}
       </div>
+      {showDanmakuReport && selectedDanmaku && (
+        <DanmakuReportModal
+          visible={showDanmakuReport}
+          onCancel={() => setShowDanmakuReport(false)}
+          danmakuID={selectedDanmaku.danmakuID}
+        />
+      )}
     </div>
   );
 };

@@ -661,8 +661,10 @@ const VideoPage: React.FC = () => {
           userInfo={userInfo}
           isFollowing={isFollowing}
           upstat={upstat}
+          isLoggedIn={isLoggedIn}
           followUp={followUp}
           navigateToUser={navigateToUser}
+          setShowLoginModal={setShowLoginModal}
           recommendedVideos={recommendvideosInfo}
         />
       </div>

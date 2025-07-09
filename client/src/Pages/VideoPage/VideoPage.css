@@ -84,7 +84,72 @@
 .video-comment-input-wrapper input:focus {
     border-color: #00a1d6;
 }
+/* Comment options */
+.video-comment-options,
+.video-reply-options {
+  position: relative;
+  cursor: pointer;
+  margin-left: auto;
+}
 
+.video-options-icon {
+  width: 20px;
+  height: 20px;
+  color: #999;
+  transition: color 0.2s;
+}
+
+.video-comment-item:hover .video-options-icon,
+.video-reply-item:hover .video-options-icon {
+  color: #666;
+}
+
+.video-options-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  min-width: 80px;
+  overflow: hidden;
+}
+
+.video-options-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.video-options-menu button:hover {
+  background-color: #f5f5f5;
+}
+
+.video-report-btn {
+  color: #ff4d4f;
+}
+
+.video-delete-btn {
+  color: #666;
+}
+
+/* Like icon */
+.video-like-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+}
+
+.video-like-btn.liked .video-like-icon {
+  color: #00a1d6;
+}
 /* Bottom Comment Bar */
 .video-bottom-comment-bar {
     position: fixed;

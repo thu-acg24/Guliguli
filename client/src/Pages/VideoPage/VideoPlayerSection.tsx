@@ -6,6 +6,7 @@ import { formatTime, formatCount } from 'Components/Formatter';
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus"
 import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
+import { VideoReportModal } from "./ReportComponents";
 import { LikeIcon, FavoriteIcon, ReportIcon,PlayCountIcon } from 'Images/Icons';
 
 interface VideoPlayerSectionProps {
@@ -32,7 +33,7 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const danmakuRef = useRef<Danmaku | null>(null);
-
+  const [showVideoReport, setShowVideoReport] = useState(false);
   const toggleDescription = () => {
     setIsDescriptionExpanded(!isDescriptionExpanded);
   };
@@ -87,7 +88,7 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
           </div>
           <div 
             className="video-report-container"
-            // onClick={() => isLoggedIn ? favoriteVideo() : setShowLoginModal(true)}
+            onClick={() => isLoggedIn ? setShowVideoReport(true) : setShowLoginModal(true)}
           >
             <ReportIcon className="video-icon" />
             <span>举报</span>
@@ -125,6 +126,13 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
           </span>
         ))}
       </div>
+    {showVideoReport && (
+      <VideoReportModal
+        visible={showVideoReport}
+        onCancel={() => setShowVideoReport(false)}
+        videoID={Number(video_id)}
+      />
+    )}
     </div>
   );
 };

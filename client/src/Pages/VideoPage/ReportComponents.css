@@ -1,0 +1,47 @@
+/* ReportComponents.css */
+.reportcomponents-modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.reportcomponents-reasons-container {
+  margin-bottom: 20px;
+}
+
+.reportcomponents-reasons-title {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.reportcomponents-checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.reportcomponents-checkbox-item {
+  margin: 0 !important;
+}
+
+.reportcomponents-other-reason {
+  margin-top: 16px;
+}
+
+.reportcomponents-textarea {
+  margin-top: 8px;
+}
+
+.reportcomponents-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.reportcomponents-submit-btn {
+  background-color: #1890ff;
+}
