@@ -66,8 +66,10 @@ const MessagePage: React.FC = () => {
   return (
     <div className="message-page">
       <Header />
+      <div className="message-backcontainer">
       <div className="message-container">
         <div className="message-sidebar">
+        <div className="sidebar-title">消息中心</div>
           <div
             className={`sidebar-item ${activeTab === MessagePageTab.whisper ? 'active' : ''}`}
             onClick={() => navigateMessageTab(MessagePageTab.whisper)}
@@ -90,6 +92,7 @@ const MessagePage: React.FC = () => {
         <div className="message-content">
           <Outlet />
         </div>
+      </div>
       </div>
     </div>
   );
