@@ -8,6 +8,7 @@ import { getRecommendedVideos, SimpleVideo } from "Components/RecommendVideoServ
 import { dateformatTime } from "Components/Formatter";
 import DefaultCover from "Images/DefaultCover.jpg";
 import Advertisement from "Images/Advertisement.jpg"
+import { RefreshIcon } from "Images/Icons";
 import "./MainPage.css";
 
 
@@ -27,20 +28,34 @@ const MainPage: React.FC = () => {
     const [categoryTitle, setCategoryTitle] = useState("");
     const [recommendvideosInfo, setRecommendvideosInfo] = useState<SimpleVideo[]>([]);
     const [categoryContent, setCategoryContent] = useState("");
-    const [videosisloading, setVideosisloading] = useState(true);
+    const [videosisloading, setVideosisloading] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const userToken = useUserToken();
 
-    useEffect(() => {
-        setVideosisloading(true);
-        getRecommendedVideos(userToken ? userToken : null, null, 15).then(setRecommendvideosInfo).then(() => { setVideosisloading(false) });
-    }, [userToken]);
+    
 
     const loadCategoryContent = (categoryName: string, categoryId: string) => {
         setCategoryTitle(categoryName);
         setCategoryContent(`正在加载${categoryName}分区的内容...`);
         setShowCategoryModal(true);
     };
-
+    useEffect(() => {
+      handleRefresh()
+    }, []);
+    const handleRefresh = useCallback(async () => {
+        if(videosisloading)return;
+        setIsRefreshing(true);
+        setTimeout(() => {
+            setIsRefreshing(false);
+        }, 500);
+        try {
+            setVideosisloading(true);
+            const videos = await getRecommendedVideos(userToken ? userToken : null, null, 16);
+            setRecommendvideosInfo(videos);
+        } finally {
+            setVideosisloading(false);
+        }
+    }, [userToken]);
     const loadHotContent = () => {
         setCategoryTitle("热门视频");
         setCategoryContent("正在加载热门视频...");
@@ -101,7 +116,7 @@ const MainPage: React.FC = () => {
                     ))}
                 </ul>
             </div>
-
+<div className="main-refresh-wrapper">
             <div className="main-video-container">
                 <div className="main-video-row main-video-row-2x5">
                     <div className="main-large-ad main-large-ad-small">
@@ -147,7 +162,7 @@ const MainPage: React.FC = () => {
                 </div>
 
                 <div className="main-normal-video-list">
-                    {Array.from({ length: 10 }, (_, i) => i + 4).map((i) => (
+                    {Array.from({ length: 10 }, (_, i) => i + 6).map((i) => (
                         <div key={i} className="main-video-item" data-video-id={recommendvideosInfo[i]?.videoID} onClick={(e) => {
                             if (!(e.target as HTMLElement).classList.contains('video-author') && recommendvideosInfo[i]?.videoID) {
                                 handleVideoClick(recommendvideosInfo[i].videoID);
@@ -184,9 +199,18 @@ const MainPage: React.FC = () => {
                         </div>
                     ))}
                 </div>
-
             </div>
-
+            
+            <div className="main-refresh-container">
+                <div 
+                    className={`main-refresh-btn ${isRefreshing ? 'spinning' : ''}`}
+                    onClick={handleRefresh}
+                >
+                    <RefreshIcon />
+                    <span className="main-refresh-text">换一批</span>
+                </div>
+            </div>
+            </div>
             {showCategoryModal && (
                 <div className="main-modal" onClick={() => setShowCategoryModal(false)}>
                     <div className="main-modal-content" onClick={(e) => e.stopPropagation()}>
