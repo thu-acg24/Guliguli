@@ -3,6 +3,7 @@
 
 import { NavigateFunction } from 'react-router-dom';
 import { getUserInfo, getUserID, getUserToken, getUserStat, setUserInfo, setUserID, setUserToken, clearUserData } from './GlobalStore';
+import * as Navigate from 'Globals/Navigate';
 
 // 全局开发者工具对象
 interface DevTools {
@@ -10,6 +11,9 @@ interface DevTools {
     setNavigate: (navigate: NavigateFunction) => void;
     
     // 导航相关
+    goToAudit: () => void;
+    goToMember: () => void;
+    goToMessage: () => void;
     goToHome: (userId: string) => void;
     goToVideo: (videoId: string) => void;
     goToMainPage: () => void;
@@ -41,9 +45,40 @@ const devTools: DevTools = {
     },
     
     // 快捷导航方法
+    goToAudit() {
+        if (this.navigate) {
+            const { navigateAudit } = Navigate.useNavigateAudit();
+            navigateAudit();
+            console.log('📍 Navigated to audit page');
+        } else {
+            console.warn('❌ Navigate function not available');
+        }
+    },
+
+    goToMember() {
+        if (this.navigate) {
+            const { navigateMember } = Navigate.useNavigateMember();
+            navigateMember();
+            console.log('📍 Navigated to member page');
+        } else {
+            console.warn('❌ Navigate function not available');
+        }
+    },
+
+    goToMessage() {
+        if (this.navigate) {
+            const { navigateMessage } = Navigate.useNavigateMessage();
+            navigateMessage();
+            console.log('📍 Navigated to message page');
+        } else {
+            console.warn('❌ Navigate function not available');
+        }
+    },
+    
     goToHome(userId: string) {
         if (this.navigate) {
-            this.navigate(`/home/${userId}`);
+            const { navigateHome } = Navigate.useNavigateHome();
+            navigateHome(userId);
             console.log(`📍 Navigated to home page for user: ${userId}`);
         } else {
             console.warn('❌ Navigate function not available');
@@ -52,7 +87,8 @@ const devTools: DevTools = {
     
     goToVideo(videoId: string) {
         if (this.navigate) {
-            this.navigate(`/video/${videoId}`);
+            const { navigateVideo } = Navigate.useNavigateVideo();
+            navigateVideo(videoId);
             console.log(`📍 Navigated to video: ${videoId}`);
         } else {
             console.warn('❌ Navigate function not available');
@@ -61,7 +97,8 @@ const devTools: DevTools = {
     
     goToMainPage() {
         if (this.navigate) {
-            this.navigate('/');
+            const { navigateMain } = Navigate.useNavigateMain();
+            navigateMain();
             console.log('📍 Navigated to main page');
         } else {
             console.warn('❌ Navigate function not available');

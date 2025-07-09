@@ -5,7 +5,7 @@ import Header from "Components/Header/Header";
 import MainPicSrc from "Images/MainPic.jpg";
 import { useUserToken } from "Globals/GlobalStore";
 import { getRecommendedVideos, SimpleVideo } from "Components/RecommendVideoService";
-import { dateformatTime } from "Components/GetTime";
+import { dateformatTime } from "Components/Formatter";
 import DefaultCover from "Images/DefaultCover.jpg";
 import Advertisement from "Images/Advertisement.jpg"
 import "./MainPage.css";

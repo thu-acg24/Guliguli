@@ -9,9 +9,9 @@ import { ReportVideo } from "Plugins/ReportService/Objects/ReportVideo";
 import { ReportStatus } from "Plugins/ReportService/Objects/ReportStatus";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
-import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
+import { formatTime, formatDuration } from "Components/Formatter";
 
 const VideoReportManagement: React.FC = () => {
     interface ReportWithVideo {
@@ -108,16 +108,6 @@ const VideoReportManagement: React.FC = () => {
         navigateVideo(videoID);
     };
 
-    const formatDate = (timestamp: number): string => {
-        return new Date(timestamp).toLocaleString('zh-CN');
-    };
-
-    const formatDuration = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
     if (loading) {
         return (
             <div className="report-management">
@@ -174,7 +164,7 @@ const VideoReportManagement: React.FC = () => {
                                     {item.video.description || " "}
                                 </div>
                                 <div className="audit-video-meta">
-                                    上传时间: {formatDate(item.video.uploadTime)}
+                                    上传时间: {formatTime(item.video.uploadTime, false)}
                                 </div>
                                 {item.video.tag && item.video.tag.length > 0 && (
                                     <div className="audit-video-tags">
@@ -191,7 +181,7 @@ const VideoReportManagement: React.FC = () => {
                                     <strong>举报原因：</strong>{item.report.reason}
                                 </div>
                                 <div className="danmaku-report-meta">
-                                    举报时间: {formatDate(item.report.timestamp)}
+                                    举报时间: {formatTime(item.report.timestamp, false)}
                                 </div>
                             </div>
                             <div className="danmaku-report-actions">

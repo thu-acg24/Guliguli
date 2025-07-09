@@ -6,9 +6,9 @@ import { QueryPendingVideosMessage } from "Plugins/VideoService/APIs/QueryPendin
 import { ChangeVideoStatusMessage } from "Plugins/VideoService/APIs/ChangeVideoStatusMessage";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
-import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
+import { formatTime, formatDuration } from "Components/Formatter";
 
 const VideoAudit: React.FC = () => {
     const { navigateVideo } = useNavigateVideo();
@@ -61,16 +61,6 @@ const VideoAudit: React.FC = () => {
 
     const handleViewVideo = (videoID: number) => {
         navigateVideo(videoID);
-    };
-
-    const formatDuration = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const formatDate = (timestamp: number): string => {
-        return new Date(timestamp).toLocaleString('zh-CN');
     };
 
     if (loading) {
@@ -127,7 +117,7 @@ const VideoAudit: React.FC = () => {
                                     {video.description || " "}
                                 </div>
                                 <div className="audit-video-meta">
-                                    上传时间: {formatDate(video.uploadTime)}
+                                    上传时间: {formatTime(video.uploadTime, false)}
                                 </div>
                                 {video.tag && video.tag.length > 0 && (
                                     <div className="audit-video-tags">

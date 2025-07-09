@@ -4,6 +4,8 @@ import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
 import { useNavigateMain } from "Globals/Navigate";
 import "./MessagePage.css";
+import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
+import { message } from "antd";
 
 // 消息页面路径
 export const messagePagePath = "/message";
@@ -28,11 +30,18 @@ const getMessageTab = (path: string): MessagePageTab => {
 export function useNavigateMessage() {
   const navigate = useNavigate();
   const navigateMessage = useCallback(() => {
-    navigate(`${messagePagePath}/${MessagePageTab.whisper}`);
+    navigate(messagePagePath);
   }, [navigate]);
 
-  const navigateMessageTab = useCallback((tab: MessagePageTab) => {
-    navigate(`${messagePagePath}/${tab}`);
+  const navigateMessageTab = useCallback((tab: MessagePageTab, user_id?: string | number) => {
+    if (!user_id) {
+      navigate(`${messagePagePath}/${tab}`);
+    } else if (tab === MessagePageTab.whisper) {
+      console.log("Navigating to whisper tab with user_id:", user_id);
+      navigate(`${messagePagePath}/${tab}/${user_id}`);
+    } else {
+      navigateMessage();
+    }
   }, [navigate]);
 
   return { navigateMessage, navigateMessageTab };

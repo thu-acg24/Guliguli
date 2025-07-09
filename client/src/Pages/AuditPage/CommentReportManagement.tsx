@@ -9,6 +9,7 @@ import { QueryCommentReportsMessage } from "Plugins/ReportService/APIs/QueryComm
 import { ProcessCommentReportMessage } from "Plugins/ReportService/APIs/ProcessCommentReportMessage";
 import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
+import { formatTime } from "Components/Formatter";
 
 const CommentReportManagement: React.FC = () => {
     interface ReportWithComment {
@@ -79,10 +80,6 @@ const CommentReportManagement: React.FC = () => {
         }
     };
 
-    const formatDate = (timestamp: number): string => {
-        return new Date(timestamp).toLocaleString('zh-CN');
-    };
-
     const handleViewVideo = (videoID: number) => {
         navigateVideo(videoID);
     };
@@ -125,7 +122,7 @@ const CommentReportManagement: React.FC = () => {
                                     <strong>举报原因：</strong>{item.report.reason}
                                 </div>
                                 <div className="danmaku-report-meta">
-                                    举报时间：{formatDate(item.report.timestamp)}
+                                    举报时间：{formatTime(item.report.timestamp, false)}
                                 </div>
                             </div>
 

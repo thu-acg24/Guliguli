@@ -5,7 +5,7 @@ import { useUserToken } from "Globals/GlobalStore";
 import { QueryVideoDanmakuMessage } from "Plugins/DanmakuService/APIs/QueryVideoDanmakuMessage";
 import { DeleteDanmakuMessage } from "Plugins/DanmakuService/APIs/DeleteDanmakuMessage";
 import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
-import { memberPagePath } from "./MemberPage";
+import { formatTime, formatDuration } from "Components/Formatter";
 
 interface Danmaku {
     danmakuID: number;
@@ -90,16 +90,6 @@ const MemberDanmakuManagement: React.FC = () => {
         }
     };
 
-    const formatTime = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleString();
-    };
-
     if (loading) {
         return (
             <div className="member-loading">
@@ -133,13 +123,13 @@ const MemberDanmakuManagement: React.FC = () => {
                                 <div className="member-danmaku-text">{danmaku.content}</div>
                                 <div className="member-danmaku-info">
                                     <span className="member-danmaku-time">
-                                        {formatTime(danmaku.time)}
+                                        {formatDuration(danmaku.time)}
                                     </span>
                                     <span className="member-danmaku-user">
                                         {danmaku.user.username}
                                     </span>
                                     <span className="member-danmaku-date">
-                                        {formatDate(danmaku.createdAt)}
+                                        {formatTime(danmaku.createdAt)}
                                     </span>
                                 </div>
                             </div>

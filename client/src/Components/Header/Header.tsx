@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateAudit, useNavigateMain, useNavigateHome, HomePageTab, useNavigateMember, useNavigateMessage } from "Globals/Navigate";
 import iconSrc from "Images/LOGO.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
@@ -10,12 +10,12 @@ import { PersonCenterIcon, LogoutIcon } from "./Icons";
 import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
 import "./Header.css";
 
-import { mainPagePath } from "Pages/MainPage/MainPage";
-import { messagePagePath } from "Pages/MessagePage/MessagePage";
-import { memberPagePath } from "Pages/MemberPage/MemberPage";
-
 const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({ usetransparent = false, transparent = false }) => {
-    const navigate = useNavigate();
+    const { navigateAudit } = useNavigateAudit();
+    const { navigateMain } = useNavigateMain();
+    const { navigateHome, navigateHomeTab } = useNavigateHome();
+    const { navigateMember } = useNavigateMember();
+    const { navigateMessage } = useNavigateMessage();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [showUserPanel, setShowUserPanel] = useState(false);
@@ -26,10 +26,11 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
     const { userRole } = useUserRole();
     // 跳转函数
     const handleAvatarClick = async () => {
-        navigate(`/home/${userID}`);
+        navigateHome(userID);
     }
+    // 审核中心跳转暂保留原 navigate，或根据业务需求补充封装
     const handleAuditClick = async () => {
-        navigate(`/audit`);
+        navigateAudit();
     }
 
     // 处理头像鼠标悬浮
@@ -43,16 +44,16 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
 
 
     const handleMsgClick = async () => {
-        navigate(messagePagePath);
+        navigateMessage();
     };
     const handleFavClick = async () => {
-        navigate(`/home/${userID}/favorites`);
+        navigateHomeTab(userID, HomePageTab.favorites);
     };
     const handleHistoryClick = async () => {
-        navigate(`/home/${userID}/history`);
+        navigateHomeTab(userID, HomePageTab.history);
     };
     const handleUploadClick = async () => {
-        navigate(`${memberPagePath}/upload`);
+        navigateMember();
     };
 
     // 处理登出
@@ -80,7 +81,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
     return (
         <header className={`header-header ${usetransparent ? 'usetransparent' : ''} ${transparent ? 'transparent' : ''}`}>
             <div className="header-logo" onClick={() => {
-                navigate(mainPagePath);
+                navigateMain();
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }}>
                 <img src={iconSrc} alt="GULIGULI" className="header-logo-icon" />

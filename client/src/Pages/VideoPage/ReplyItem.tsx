@@ -1,16 +1,16 @@
 
 import React from "react";
 import "./VideoPage.css";
-import { CommentWithUserInfo} from './VideoPage'
+import { CommentWithUserInfo } from './VideoPage'
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { Video } from "Plugins/VideoService/Objects/Video";
-import { formatTime } from 'Components/GetTime';
+import { formatTime } from 'Components/Formatter';
 
 interface ReplyItemProps {
   reply: CommentWithUserInfo;
   isLoggedIn: boolean;
   userInfo: UserInfo;
-  videoInfo:Video;
+  videoInfo: Video;
   handleLikeComment: (id: number) => void;
   handleDeleteComment: (id: number) => void;
   navigateToUser: (id: number) => void;
@@ -41,7 +41,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
       />
       <div className="video-reply-content">
         <div className="video-reply-header">
-          <span 
+          <span
             className="video-reply-username"
             onClick={() => navigateToUser(reply.authorID)}
           >
@@ -53,7 +53,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           {reply.replyToUserID && (
             <>
               回复&nbsp;
-              <span 
+              <span
                 className="video-reply-highlight"
                 onClick={() => navigateToUser(reply.replyToUserID)}
               >
@@ -77,8 +77,8 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
                 setShowLoginModal(true);
                 return;
               }
-              setReplyingTo({ 
-                id: reply.commentID, 
+              setReplyingTo({
+                id: reply.commentID,
                 username: reply.userInfo?.username || '用户',
                 content: reply.content
               });
@@ -87,7 +87,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           >
             回复
           </button>
-          {(reply.authorID === userInfo?.userID ||userInfo?.userID === videoInfo?.uploaderID)&& (
+          {(reply.authorID === userInfo?.userID || userInfo?.userID === videoInfo?.uploaderID) && (
             <button
               className="video-delete-btn"
               onClick={() => handleDeleteComment(reply.commentID)}

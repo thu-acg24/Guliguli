@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUserToken } from 'Globals/GlobalStore';
 import { QueryNotificationsMessage } from 'Plugins/MessageService/APIs/QueryNotificationsMessage';
 import { Notification } from 'Plugins/MessageService/Objects/Notification';
-import { formatTime } from 'Components/GetTime';
+import { formatTime } from 'Components/Formatter';
 import './MessagePage.css';
 import './SystemTab.css';
 
@@ -23,20 +23,20 @@ const SystemTab: React.FC = () => {
           (info: string) => {
             try {
               const data = JSON.parse(info);
-              setNotices(data); 
+              setNotices(data);
             } catch (e) {
-              reject(new Error("通知解析失败")); 
+              reject(new Error("通知解析失败"));
             }
           },
           (e: string) => {
-            reject(new Error(e)); 
+            reject(new Error(e));
           }
         );
       });
       console.log('Notifications:', notifications);
     } catch (error) {
       console.log('加载通知失败');
-      throw new Error('加载通知失败'); 
+      throw new Error('加载通知失败');
     }
   };
 
@@ -57,8 +57,8 @@ const SystemTab: React.FC = () => {
       </div>
       <div className="system-list">
         {notices.map((notice, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className={`system-item`}
             onClick={() => handleNoticeClick(notice)}
           >

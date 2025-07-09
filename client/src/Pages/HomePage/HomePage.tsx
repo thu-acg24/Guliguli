@@ -12,7 +12,7 @@ import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideo
 import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage";
 import { ChangeFollowStatusMessage } from "Plugins/UserService/APIs/ChangeFollowStatusMessage";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
-import { WhisperTabpath } from "Pages/MessagePage/WhisperTab"
+import { MessagePageTab, useNavigateMessage } from "Globals/Navigate";
 import back from "Images/back.jpg";
 import "./HomePage.css";
 
@@ -42,11 +42,7 @@ export function useNavigateHome() {
     }, [navigate]);
 
     const navigateHomeTab = useCallback((user_id: string | number, tab: HomePageTab) => {
-        if (tab === HomePageTab.videos) {
-            navigateHome(user_id);
-        } else {
-            navigate(`${homePagePath.replace(":user_id", String(user_id))}/${tab}`);
-        }
+        navigate(`${homePagePath.replace(":user_id", String(user_id))}/${tab}`);
     }, [navigate, navigateHome]);
 
     return { navigateHome, navigateHomeTab };
@@ -54,8 +50,8 @@ export function useNavigateHome() {
 
 const HomePage: React.FC = () => {
     const { user_id } = useParams<{ user_id: string }>();
-    const navigate = useNavigate();
     const { navigateHomeTab } = useNavigateHome();
+    const { navigateMessageTab } = useNavigateMessage();
     const location = useLocation();
     const userToken = useUserToken();
     const { userID: currentUserID } = useUserID();
@@ -284,7 +280,7 @@ const HomePage: React.FC = () => {
     // 处理私信按钮点击
     const handleMessageClick = () => {
         console.log(`点击私信按钮，目标用户ID: ${user_id}`);
-        navigate(`${WhisperTabpath}/${user_id}`);
+        navigateMessageTab(MessagePageTab.whisper, user_id);
     };
 
     // 通过路由获取当前激活tab

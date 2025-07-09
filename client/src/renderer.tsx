@@ -42,7 +42,7 @@ const RouterContent = () => {
             <Route path={messagePagePath} element={<MessagePage />}>
                 <Route index element={<WhisperTab />} />
                 <Route path="whisper" element={<WhisperTab />} />
-                <Route path={`whisper/:userid`} element={<WhisperTab />} />
+                <Route path="whisper/:userid" element={<WhisperTab />} />
                 <Route path="reply" element={<ReplyTab />} />
                 <Route path="system" element={<SystemTab />} />
             </Route>
@@ -57,6 +57,7 @@ const RouterContent = () => {
             </Route>
             <Route path={memberPagePath} element={<MemberPage />}>
                 <Route index element={<MemberOverview />} />
+                <Route path="overview" element={<MemberOverview />} />
                 <Route path="upload" element={<MemberUpload />} />
                 <Route path="edit/:videoID" element={<MemberVideoEdit />} />
                 <Route path="danmaku/:videoID" element={<MemberDanmakuManagement />} />

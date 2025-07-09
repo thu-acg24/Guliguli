@@ -2,23 +2,23 @@ import React from "react";
 import ReplyItem from "./ReplyItem";
 import "./VideoPage.css";
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
-import {CommentWithUserInfo} from './VideoPage'
-import {Video} from 'Plugins/VideoService/Objects/Video';
-import { formatTime } from 'Components/GetTime';
+import { CommentWithUserInfo } from './VideoPage'
+import { Video } from 'Plugins/VideoService/Objects/Video';
+import { formatTime } from 'Components/Formatter';
 
 interface CommentItemProps {
   comment: CommentWithUserInfo;
   isLoggedIn: boolean;
   userInfo: UserInfo;
-  videoInfo:Video;
+  videoInfo: Video;
   handleLikeComment: (id: number) => void;
   handleDeleteComment: (id: number) => void;
   navigateToUser: (id: number) => void;
   setReplyingTo: (value: { id: number, username: string, content: string } | null) => void;
   setShowReplyModal: (value: boolean) => void;
   setShowLoginModal: (value: boolean) => void;
-  handleToggleReplies: (comment: CommentWithUserInfo)=>void;
-  handleLoadMoreReplies: (comment: CommentWithUserInfo)=>void;
+  handleToggleReplies: (comment: CommentWithUserInfo) => void;
+  handleLoadMoreReplies: (comment: CommentWithUserInfo) => void;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -46,7 +46,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         />
         <div className="video-comment-content">
           <div className="video-comment-header">
-            <span 
+            <span
               className="video-comment-username"
               onClick={() => navigateToUser(comment.authorID)}
             >
@@ -69,8 +69,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   setShowLoginModal(true);
                   return;
                 }
-                setReplyingTo({ 
-                  id: comment.commentID, 
+                setReplyingTo({
+                  id: comment.commentID,
                   username: comment.userInfo?.username || '用户',
                   content: comment.content
                 });
@@ -79,7 +79,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             >
               回复
             </button>
-            {(comment.authorID === userInfo?.userID||userInfo?.userID === videoInfo?.uploaderID) && (
+            {(comment.authorID === userInfo?.userID || userInfo?.userID === videoInfo?.uploaderID) && (
               <button
                 className="video-delete-btn"
                 onClick={() => handleDeleteComment(comment.commentID)}
@@ -133,19 +133,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
               <div className="video-reply-actions">
                 {comment.replyCount > 0 && (
-                  <span 
-                    className="video-view-replies" 
+                  <span
+                    className="video-view-replies"
                     onClick={() => handleToggleReplies(comment)}
                   >
-                    {comment.showAllReplies ? '收起' : ((comment.replies?.length|0)>2?`查看剩余${comment.replyCount-2}条回复`:``)}
+                    {comment.showAllReplies ? '收起' : ((comment.replies?.length | 0) > 2 ? `查看剩余${comment.replyCount - 2}条回复` : ``)}
                   </span>
                 )}
                 {comment.showAllReplies && comment.hasMoreReplies && (//展开了后
-                  <span 
-                    className="video-load-more-replies" 
+                  <span
+                    className="video-load-more-replies"
                     onClick={() => handleLoadMoreReplies(comment)}
                   >
-                    查看剩余{comment.replyCount-comment.replies.length}条回复
+                    查看剩余{comment.replyCount - comment.replies.length}条回复
                   </span>
                 )}
               </div>

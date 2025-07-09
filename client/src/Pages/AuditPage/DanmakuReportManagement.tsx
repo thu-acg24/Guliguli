@@ -8,8 +8,8 @@ import { QueryDanmakuByIDMessage } from "Plugins/DanmakuService/APIs/QueryDanmak
 import { ReportDanmaku } from "Plugins/ReportService/Objects/ReportDanmaku";
 import { Danmaku } from "Plugins/DanmakuService/Objects/Danmaku";
 import { ReportStatus } from "Plugins/ReportService/Objects/ReportStatus";
-import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
+import { formatTime, formatDuration } from "Components/Formatter";
 
 const DanmakuReportManagement: React.FC = () => {
     interface ReportWithDanmaku {
@@ -80,16 +80,6 @@ const DanmakuReportManagement: React.FC = () => {
         }
     };
 
-    const formatDuration = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const formatDate = (timestamp: number): string => {
-        return new Date(timestamp).toLocaleString('zh-CN');
-    };
-
     const handleViewVideo = (videoID: number) => {
         navigateVideo(videoID);
     };
@@ -135,7 +125,7 @@ const DanmakuReportManagement: React.FC = () => {
                                     <strong>举报原因：</strong>{item.report.reason}
                                 </div>
                                 <div className="danmaku-report-meta">
-                                    举报时间：{formatDate(item.report.timestamp)}
+                                    举报时间：{formatTime(item.report.timestamp, false)}
                                 </div>
                             </div>
 

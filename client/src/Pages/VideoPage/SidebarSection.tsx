@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useNavigateHome, useNavigateVideo } from "Globals/Navigate";
 import DefaultCover from "Images/DefaultCover.jpg";
 import { SimpleVideo } from "Components/RecommendVideoService";
-
+import { formatCount } from "Components/Formatter";
 
 interface SidebarSectionProps {
   uploaderInfo: UserInfo;
@@ -78,7 +78,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
             className={`video-follow-btn ${isFollowing ? 'following' : ''}`}
             onClick={() => followUp(uploaderInfo.userID)}
           >
-            {isFollowing ? '已关注' : '关注'}&nbsp;{upstat.followerCount}
+            {isFollowing ? '已关注' : '关注'}&nbsp;{formatCount(upstat.followerCount)}
           </button>
         )}
       </div>
@@ -111,8 +111,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                 UP主: {video.uploaderInfo?.username || "未知用户"}
               </div>
               <div className="video-recommended-meta">
-                <span>点赞: {video.likes || 0}</span>
-                <span>收藏: {video.favorites || 0}</span>
+                <span>点赞: {formatCount(video.likes) || 0}</span>
+                <span>收藏: {formatCount(video.favorites) || 0}</span>
               </div>
             </div>
           </div>

@@ -1,9 +1,9 @@
 // Update VideoPlayerSection.tsx
-import React,{ useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import HlsVideoPlayerWrapper from "./HlsVideoPlayerWrapper";
 import "./VideoPage.css";
 import { Video } from 'Plugins/VideoService/Objects/Video';
-import { formatTime } from 'Components/GetTime';
+import { formatTime, formatCount } from 'Components/Formatter';
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus"
 import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
@@ -36,42 +36,42 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
       <h1 className="video-video-title">{videoInfo.title}</h1>
 
       <div className="video-video-meta">
-        <span>播放: {videoInfo.views}</span>
-        <span>投稿时间: {formatTime(videoInfo.uploadTime,false)}</span>
+        <span>播放: {formatCount(videoInfo.views)}</span>
+        <span>投稿时间: {formatTime(videoInfo.uploadTime, false)}</span>
       </div>
 
       <div className="video-video-player-container">
-        <HlsVideoPlayerWrapper 
-          videoID={Number(video_id)} 
-          videoInfo={videoInfo} 
+        <HlsVideoPlayerWrapper
+          videoID={Number(video_id)}
+          videoInfo={videoInfo}
           onTimeUpdate={setCurrentTime}
           danmakuRef={danmakuRef}
         />
       </div>
-      {videoInfo.status === VideoStatus.approved &&(
-      < DanmakuInput 
-        videoID={Number(video_id)} 
-        isLoggedIn={isLoggedIn} 
-        setShowLoginModal={setShowLoginModal}
-        currentTime={currentTime}
-        danmakuRef={danmakuRef}
-      />)}
-      {videoInfo.status === VideoStatus.approved &&(
-      <div className="video-video-actions">
-        <button
-          className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
-          onClick={() => likeVideo()}
-        >
-          {isLiked ? '点赞' : '点赞'}&nbsp;{videoInfo.likes}
-        </button>
-        <button
-          className={`video-videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
-          onClick={() => favoriteVideo()}
-        >
-          {isFavorited ? '收藏' : '收藏'}&nbsp;{videoInfo.favorites}
-        </button>
-      </div>)}
-      
+      {videoInfo.status === VideoStatus.approved && (
+        < DanmakuInput
+          videoID={Number(video_id)}
+          isLoggedIn={isLoggedIn}
+          setShowLoginModal={setShowLoginModal}
+          currentTime={currentTime}
+          danmakuRef={danmakuRef}
+        />)}
+      {videoInfo.status === VideoStatus.approved && (
+        <div className="video-video-actions">
+          <button
+            className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
+            onClick={() => likeVideo()}
+          >
+            {isLiked ? '点赞' : '点赞'}&nbsp;{formatCount(videoInfo.likes)}
+          </button>
+          <button
+            className={`video-videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
+            onClick={() => favoriteVideo()}
+          >
+            {isFavorited ? '收藏' : '收藏'}&nbsp;{formatCount(videoInfo.favorites)}
+          </button>
+        </div>)}
+
 
       <div className="video-video-tags">
         {videoInfo.tag?.map(ttag => (

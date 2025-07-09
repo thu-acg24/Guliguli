@@ -13,7 +13,7 @@ import { QueryLikedBatchMessage } from 'Plugins/CommentService/APIs/QueryLikedBa
 import { UpdateLikeCommentMessage } from 'Plugins/CommentService/APIs/UpdateLikeCommentMessage';
 import { DeleteCommentMessage } from 'Plugins/CommentService/APIs/DeleteCommentMessage';
 import ReplyModal from 'Components/ReplyModal/ReplyModal';
-import { formatTime } from 'Components/GetTime';
+import { formatTime } from 'Components/Formatter';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { Video } from 'Plugins/VideoService/Objects/Video';
 import { QueryVideoInfoMessage } from 'Plugins/VideoService/APIs/QueryVideoInfoMessage';

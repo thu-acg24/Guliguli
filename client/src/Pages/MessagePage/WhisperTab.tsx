@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate,useParams  } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useNavigateHome } from "Globals/Navigate";
 import { useUserToken } from 'Globals/GlobalStore';
 import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget';
@@ -10,12 +10,11 @@ import { QueryUserInContactMessage } from 'Plugins/MessageService/APIs/QueryUser
 import { Message } from 'Plugins/MessageService/Objects/Message';
 import { UserInfoWithMessage } from 'Plugins/MessageService/Objects/UserInfoWithMessage';
 import { useUserInfo } from 'Globals/GlobalStore';
-import { formatTime } from 'Components/GetTime';
+import { formatTime } from 'Components/Formatter';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo'
 import { fetchOtherUserInfo } from 'Globals/UserService';
+import { useNavigateMessage } from 'Globals/Navigate';
 import "./MessagePage.css";
-
-export const WhisperTabpath = "/message/whisper";
 
 const WhisperTab: React.FC = () => {
   const { userid } = useParams<{ userid: string | null }>();
@@ -23,10 +22,10 @@ const WhisperTab: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState('');
-  const [whispertoUserinfo, setWhispertoUserinfo] = useState<UserInfo|null>(null);
+  const [whispertoUserinfo, setWhispertoUserinfo] = useState<UserInfo | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userToken = useUserToken();
-  const navigate = useNavigate();
+  const { navigateMessageTab } = useNavigateMessage();
   const { navigateHome } = useNavigateHome();
   // 在组件顶部添加新状态保存刷新前选中的用户
   const [refreshFlag, setRefreshFlag] = useState(false);
@@ -34,23 +33,24 @@ const WhisperTab: React.FC = () => {
 
 
   // 添加useEffect处理刷新
-  useEffect(()=>{
-    if(userid){
+  useEffect(() => {
+    if (userid) {
       setSelectedUser(Number(userid));
-      navigate(WhisperTabpath);
     } else setSelectedUser(null);
-  },[userid]);
+  }, [userid]);
 
   useEffect(() => {
-    fetchConversations();
-    if (selectedUser){
-      fetchMessages(selectedUser);
-      fetchOtherUserInfo(selectedUser).then(setWhispertoUserinfo);
-    }else{
-      setWhispertoUserinfo(null);
+    if (userToken) {
+      fetchConversations();
+      if (selectedUser) {
+        fetchMessages(selectedUser);
+        fetchOtherUserInfo(selectedUser).then(setWhispertoUserinfo);
+      } else {
+        setWhispertoUserinfo(null);
+      }
     }
-  }, [refreshFlag,selectedUser]);
-  
+  }, [refreshFlag, selectedUser]);
+
   useEffect(() => {
     console.log("WhisperTab mounted or userToken changed:", userToken);
     if (userToken) {
@@ -59,17 +59,19 @@ const WhisperTab: React.FC = () => {
       // 用户登出时清空所有消息相关状态
 
     }
-    setConversations([]);
-    setMessages([]);
-    setSelectedUser(null);
-    setMessageInput('');
+    return () => {
+      setConversations([]);
+      setMessages([]);
+      setSelectedUser(null);
+      setMessageInput('');
+    }
   }, [userToken]);
 
   useEffect(() => {
     if (selectedUser) {
       const loadData = async () => {
         if (selectedUser) {
-          await fetchMessages(selectedUser).then(()=>fetchConversations()); // 等待完成
+          await fetchMessages(selectedUser).then(() => fetchConversations()); // 等待完成
         }
       };
       loadData();
@@ -102,9 +104,9 @@ const WhisperTab: React.FC = () => {
     }
   };
 
-    // 跳转函数
-  const handleAvatarClick = async (userID:number) => {
-        navigateHome(userID);
+  // 跳转函数
+  const handleAvatarClick = async (userID: number) => {
+    navigateHome(userID);
   }
   const fetchMessages = async (userID: number): Promise<void> => {
     try {
@@ -202,10 +204,10 @@ const WhisperTab: React.FC = () => {
             <div className="message-header">
               <div className="message-user-info">
                 <div className="user-avatar" >
-                    <img src={whispertoUserinfo.avatarPath} alt="头像" onClick={() => handleAvatarClick(whispertoUserinfo.userID)}/>
+                  <img src={whispertoUserinfo.avatarPath} alt="头像" onClick={() => handleAvatarClick(whispertoUserinfo.userID)} />
                 </div>
                 <div className="user-name" onClick={() => handleAvatarClick(whispertoUserinfo.userID)}>
-                  {whispertoUserinfo.username }
+                  {whispertoUserinfo.username}
                   {whispertoUserinfo.isBanned && (
                     <span className="banned-tag">(已封禁)</span>
                   )}

@@ -6,7 +6,7 @@ import { ReplyNotice } from 'Plugins/MessageService/Objects/ReplyNotice';
 import { useUserInfo } from 'Globals/GlobalStore';
 import { fetchOtherUserInfo } from 'Globals/UserService';
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
-import { formatTime } from 'Components/GetTime';
+import { formatTime } from 'Components/Formatter';
 import ReplyModal from 'Components/ReplyModal/ReplyModal';
 import "./MessagePage.css";
 import "./ReplyTab.css";
@@ -59,7 +59,7 @@ const ReplyTab: React.FC = () => {
   };
 
   const handleOriginalClick = (videoid: number) => {
-      navigateVideo(videoid);
+    navigateVideo(videoid);
   };
 
   return (

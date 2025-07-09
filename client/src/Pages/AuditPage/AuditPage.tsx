@@ -12,9 +12,9 @@ export const auditPagePath = "/audit";
 // 定义审核页面标签枚举
 export enum AuditPageTab {
     video = "video",
-    reportVideo = "report-video",
-    reportDanmaku = "report-danmaku",
-    reportComment = "report-comment",
+    reportVideo = "report/video",
+    reportDanmaku = "report/danmaku",
+    reportComment = "report/comment",
 }
 
 // 根据路径获取当前标签
@@ -40,26 +40,11 @@ export function useNavigateAudit() {
     const navigate = useNavigate();
 
     const navigateAudit = useCallback(() => {
-        navigate(auditPagePath + "/video");
+        navigate(auditPagePath);
     }, [navigate]);
 
     const navigateAuditTab = useCallback((tab: AuditPageTab) => {
-        switch (tab) {
-            case AuditPageTab.video:
-                navigate(`${auditPagePath}/video`);
-                break;
-            case AuditPageTab.reportVideo:
-                navigate(`${auditPagePath}/report/video`);
-                break;
-            case AuditPageTab.reportDanmaku:
-                navigate(`${auditPagePath}/report/danmaku`);
-                break;
-            case AuditPageTab.reportComment:
-                navigate(`${auditPagePath}/report/comment`);
-                break;
-            default:
-                navigate(`${auditPagePath}/video`);
-        }
+        navigate(`${auditPagePath}/${tab}`);
     }, [navigate]);
 
     return { navigateAudit, navigateAuditTab };

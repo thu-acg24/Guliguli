@@ -11,11 +11,13 @@ export const memberPagePath = "/member";
 export enum MemberPageTab {
     overview = "overview",
     upload = "upload",
+    edit = "edit",
+    danmaku = "danmaku",
 }
 
-const getMemberTab = (path: string): MemberPageTab => {
+const getTab = (path: string): MemberPageTab => {
     const parts = path.split("/");
-    if (parts.length < 3 || parts[2] === "" || parts[2] === undefined) return MemberPageTab.overview;
+    if (parts.length < 3) return MemberPageTab.overview;
     if (parts[2] === "upload") return MemberPageTab.upload;
     return MemberPageTab.overview;
 };
@@ -24,20 +26,19 @@ export function useNavigateMember() {
     const navigate = useNavigate();
 
     const navigateMember = useCallback(() => {
-        navigate(memberPagePath);
+        navigate(memberPagePath)
     }, [navigate]);
 
-    const navigateMemberTab = useCallback((tab: MemberPageTab) => {
-        switch (tab) {
-            case MemberPageTab.overview:
-                navigate(memberPagePath);
-                break;
-            case MemberPageTab.upload:
-                navigate(`${memberPagePath}/upload`);
-                break;
-            default:
-                navigate(memberPagePath);
+    const navigateMemberTab = useCallback((tab: MemberPageTab, video_id?: string | number) => {
+        if (tab === MemberPageTab.overview || tab === MemberPageTab.upload) {
+            navigate(`${memberPagePath}/${tab}`);
+            return;
         }
+        if ((tab === MemberPageTab.edit || tab === MemberPageTab.danmaku) && video_id) {
+            navigate(`${memberPagePath}/${tab}/${video_id}`);
+            return;
+        }
+        navigateMember();
     }, [navigate]);
 
     return { navigateMember, navigateMemberTab };
@@ -59,7 +60,7 @@ const MemberPage: React.FC = () => {
         }
     }, [userToken, navigateMemberTab]);
 
-    const activeTab = getMemberTab(location.pathname);
+    const activeTab = getTab(location.pathname);
 
     if (!userToken) {
         return (

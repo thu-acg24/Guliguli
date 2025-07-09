@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useNavigateMember, useNavigateVideo } from "Globals/Navigate";
+import { MemberPageTab, useNavigateMember, useNavigateVideo } from "Globals/Navigate";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
 import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
-import { memberPagePath } from "./MemberPage";
-import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import DefaultCover from "Images/DefaultCover.jpg";
+import { formatDuration, formatCount } from "Components/Formatter";
 
 const MemberOverview: React.FC = () => {
     const navigate = useNavigate();
-    const { navigateMember } = useNavigateMember();
+    const { navigateMemberTab } = useNavigateMember();
     const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const { userID } = useUserID();
@@ -46,19 +45,6 @@ const MemberOverview: React.FC = () => {
         }
     };
 
-    const formatDuration = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const formatCount = (count: number): string => {
-        if (count >= 10000) {
-            return `${(count / 10000).toFixed(1)}万`;
-        }
-        return count.toString();
-    };
-
     const getStatusColor = (status: string): string => {
         switch (status) {
             case VideoStatus.approved:
@@ -77,11 +63,12 @@ const MemberOverview: React.FC = () => {
     };
 
     const handleEditVideo = (videoID: number) => {
-        navigate(`${memberPagePath}/edit/${videoID}`);
+        navigateMemberTab(MemberPageTab.edit, videoID);
+
     };
 
     const handleManageDanmaku = (videoID: number) => {
-        navigate(`${memberPagePath}/danmaku/${videoID}`);
+        navigateMemberTab(MemberPageTab.danmaku, videoID);
     };
 
     const handleManageComments = (videoID: number) => {
@@ -110,7 +97,7 @@ const MemberOverview: React.FC = () => {
                     <div className="member-empty-text">您还没有上传任何视频</div>
                     <button
                         className="member-upload-btn"
-                        onClick={() => navigate(`${memberPagePath}/upload`)}
+                        onClick={() => navigateMemberTab(MemberPageTab.upload)}
                     >
                         立即上传
                     </button>
