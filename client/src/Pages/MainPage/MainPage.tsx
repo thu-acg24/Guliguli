@@ -78,9 +78,6 @@ const MainPage: React.FC = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isAtTop]);
 
-    if (videosisloading) {
-        return <div></div>;
-    }
 
     return (
         <div className="main-main-page">
