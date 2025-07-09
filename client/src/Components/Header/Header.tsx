@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigateAudit, useNavigateMain, useNavigateHome, HomePageTab, useNavigateMember, useNavigateMessage } from "Globals/Navigate";
+import { useNavigateAudit, useNavigateMain, useNavigateHome, HomePageTab, useNavigateMember, useNavigateMessage, useNavigateSearch } from "Globals/Navigate";
 import iconSrc from "Images/LOGO.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
@@ -11,12 +11,13 @@ import DEFAULT_AVATAR from "Images/DefaultAvatar.jpg";
 import { SendIcon, HollowFavoriteIcon, HistoryIcon, UploadIcon,SearchIcon } from "Images/Icons";
 import "./Header.css";
 
-const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({ usetransparent = false, transparent = false }) => {
+const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSearch?: boolean }> = ({ usetransparent = false, transparent = false, hideSearch = false }) => {
     const { navigateAudit } = useNavigateAudit();
     const { navigateMain } = useNavigateMain();
     const { navigateHome, navigateHomeTab } = useNavigateHome();
     const { navigateMember } = useNavigateMember();
     const { navigateMessage } = useNavigateMessage();
+    const { navigateSearch } = useNavigateSearch();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [showUserPanel, setShowUserPanel] = useState(false);
@@ -73,10 +74,8 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
     };
 
     const performSearch = () => {
-        if (searchKeyword.trim()) {
-            // 这里可以弹窗或跳转
-            alert(`搜索：${searchKeyword}`);
-        }
+        navigateSearch(searchKeyword);
+        setSearchKeyword("");
     };
 
     return (
@@ -87,21 +86,23 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
             }}>
                 <img src={iconSrc} alt="GULIGULI" className="header-logo-icon" />
             </div>
-            <div className="header-search-container">
-                <div className="header-search-box">
-                    <input
-                        type="text"
-                        className="header-search-input"
-                        placeholder="搜索视频、UP主"
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && performSearch()}
-                    />
-                    <button className="header-search-btn" onClick={performSearch}>
-                        <SearchIcon className="header-search-icon" />
-                    </button>
+            {!hideSearch &&
+                <div className="header-search-container">
+                    <div className="header-search-box">
+                        <input
+                            type="text"
+                            className="header-search-input"
+                            placeholder="搜索视频、UP主"
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && performSearch()}
+                        />
+                        <button className="header-search-btn" onClick={performSearch}>
+                            <SearchIcon className="header-search-icon" />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            }
             {userInfo ? (
                 <div className="header-header-actions">
                     <div

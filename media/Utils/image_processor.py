@@ -93,6 +93,8 @@ def async_image_processing(token, id, file_name, task, target_ip):
     try:
         # 从MinIO下载文件
         minio_client.fget_object("temp", file_name, local_path)
+
+        image_bp.logger.info(f"Download of {file_name} finished, localpath: {local_path}\n")
         
         # 处理图片
         image_path = process_image(id, local_path, file_name, task)

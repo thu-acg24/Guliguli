@@ -244,6 +244,8 @@ def handle_video():
     try:
         # 从MinIO下载文件
         minio_client.fget_object("temp", file_name, local_path)
+
+        video_bp.logger.info(f"Download of {file_name} finished, localpath: {local_path}\n")
         
         # 验证视频文件
         duration = validate_video(local_path)
