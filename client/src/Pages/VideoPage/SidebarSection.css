@@ -6,15 +6,14 @@
     border-radius: 6px;
     margin-bottom: 20px;
     display: flex;
-    flex-direction: column; /* 改为垂直排列 */
-    gap: 12px; /* 上下间距 */
+    flex-direction: column;
+    gap: 12px;
 }
 
-/* 头像和名字/签名在同一行 */
 .video-up-top-row {
     display: flex;
-    align-items: flex-start; /* 顶部对齐 */
-    gap: 15px; /* 头像和名字之间的间距 */
+    align-items: flex-start;
+    gap: 15px;
 }
 
 .video-up-avatar {
@@ -54,8 +53,8 @@
 }
 
 .video-follow-btn {
-    padding: 8px 0; /* 宽度自动填充 */
-    width: 100%; /* 按钮占满整行 */
+    padding: 8px 0;
+    width: 100%;
     background-color: #fb7299;
     color: white;
     border: none;
@@ -73,6 +72,9 @@
     background-color: white;
     padding: 15px;
     border-radius: 6px;
+    margin-top:10px;
+    margin-bottom:10px;
+
 }
 
 .video-recommended-big-title {
@@ -116,16 +118,29 @@
     overflow: hidden;
     height: 40px;
 }
+.video-recommended-title:hover {
+    color:#00a1d6;
+}
+
+
 
 .video-recommended-author {
     font-size: 12px;
     color: #666;
     margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+.video-recommended-author:hover{
+    color:#fb7299;
 }
 
 .video-recommended-meta {
     font-size: 11px;
     color: #999;
+    display: flex;
+    align-items: flex-end;
+    gap:7px;
 }
 
 .video-recommended-meta span {
@@ -133,7 +148,37 @@
 }
 
 .video-video-sidebar {
-    width: 300px;
+    width: 350px;
+}
+
+/* Danmaku list styles */
+.video-danmaku-list {
+    margin-bottom: 15px;
+}
+
+.video-danmaku-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.video-danmaku-list li {
+    transition: background-color 0.2s;
+}
+
+.video-danmaku-list li:hover {
+    background-color: #f9f9f9;
+}
+
+.video-recommended-icon{
+    width: 16px;
+    height: 16px;
+    margin-right:5px;
+    color: inherit;
+    fill: currentColor;
+}
+.video-icon-meta{
+    display: flex;
 }
 /* Responsive Design */
 @media (max-width: 768px) {

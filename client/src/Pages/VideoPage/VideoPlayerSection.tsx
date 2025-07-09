@@ -39,7 +39,7 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
 
   return (
     <div className="video-video-player-section">
-      <h1 className="video-video-title">{videoInfo.title}</h1>
+      <div className="video-video-title">{videoInfo.title}</div>
 
       <div className="video-video-meta">
         <span>播放: {formatCount(videoInfo.views)}</span>
