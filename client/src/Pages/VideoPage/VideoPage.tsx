@@ -68,6 +68,7 @@ const VideoPage: React.FC = () => {
   const [showBottomCommentBar, setShowBottomCommentBar] = useState(false);
   const [comments, setComments] = useState<CommentWithUserInfo[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const commentsFetchedRef = useRef(false);
   const [noMoreComments, setNoMoreComments] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ id: number, username: string, content: string } | null>(null);
   const [showReplyModal, setShowReplyModal] = useState(false);
@@ -92,6 +93,7 @@ const VideoPage: React.FC = () => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
     window.scrollTo(0, 0);
+    commentsFetchedRef.current = false;
     fetchVideoInfo();
   }, [video_id]);
   useEffect(() => {
@@ -100,8 +102,10 @@ const VideoPage: React.FC = () => {
     setNoMoreComments(false);
     setCommentInput("");
     setReplyingTo(null);
-    fetchComments();
   }, [userToken, video_id]);
+  useEffect(() => {
+    if (!commentsFetchedRef.current) fetchComments();
+  }, [userToken, video_id, loadingComments, noMoreComments]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -192,6 +196,7 @@ const VideoPage: React.FC = () => {
   }
   const fetchComments = async (lastComment?: CommentWithUserInfo) => {
     if (loadingComments || noMoreComments) return;
+    commentsFetchedRef.current = true;
     setLoadingComments(true);
     try {
       const lastTime = lastComment ? lastComment.timestamp : "9999-12-31 23:59:59";
