@@ -248,7 +248,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               </div>
               <div className="video-recommended-meta">
                 <div className="video-icon-meta">
-                  <HollowLikeIcon className="video-recommended-icon" />
+                  <HollowLikeIcon className="video-recommended-like-icon" />
                   {formatCount(video.likes) || 0}
                 </div>
                 <div className="video-icon-meta">

@@ -87,8 +87,13 @@
     display: flex;
     margin-bottom: 15px;
     cursor: pointer;
-}
+    border-radius: 6px;
 
+}
+.video-recommended-video:hover{
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
 .video-recommended-cover {
     width: 160px;
     height: 90px;
@@ -177,8 +182,18 @@
     color: inherit;
     fill: currentColor;
 }
+.video-recommended-like-icon{
+    width: 16px;
+    height: 16px;
+    margin-right:5px;
+    padding-bottom: 1px;
+    color: inherit;
+    fill: currentColor;
+}
 .video-icon-meta{
     display: flex;
+    align-items: flex-end;
+
 }
 /* Responsive Design */
 @media (max-width: 768px) {

@@ -9,6 +9,9 @@ import { dateformatTime } from "Components/Formatter";
 import DefaultCover from "Images/DefaultCover.jpg";
 import Advertisement from "Images/Advertisement.jpg"
 import { RefreshIcon } from "Images/Icons";
+import {UpUserIcon} from "Images/Icons"
+import { PlayCountIcon, LikeIcon } from "Images/Icons";
+import { formatCount, formatDuration } from "Components/Formatter";
 import "./MainPage.css";
 
 
@@ -124,7 +127,7 @@ const MainPage: React.FC = () => {
                     </div>
                     {/* 右侧2行3列视频，整体2行5列，广告占1-2列6格视频占3-5列 */}
                     {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="main-video-item main-video-item-2x5" data-video-id={recommendvideosInfo[i]?.videoID} onClick={(e) => {
+                        <div key={i} className="main-video-item" data-video-id={recommendvideosInfo[i]?.videoID} onClick={(e) => {
                             if (!(e.target as HTMLElement).classList.contains('video-author') && recommendvideosInfo[i]?.videoID) {
                                 handleVideoClick(recommendvideosInfo[i].videoID);
                             }
@@ -136,11 +139,25 @@ const MainPage: React.FC = () => {
                                     className="main-video-cover"
                                     onError={(e) => { e.currentTarget.src = DefaultCover; }}
                                 />
+                                {/* 底部信息栏 */}
+                                <div className="main-video-bottom-bar">
+                                    <div className="main-video-meta-item">
+                                        <PlayCountIcon className="main-video-meta-icon" />
+                                        <span>{formatCount(recommendvideosInfo[i]?.views || 0)}</span>
+                                    </div>
+                                    <div className="main-video-meta-item">
+                                        <LikeIcon className="main-video-meta-icon" />
+                                        <span>{formatCount(recommendvideosInfo[i]?.likes || 0)}</span>
+                                    </div>
+                                    <div className="main-video-duration">
+                                        {formatDuration(recommendvideosInfo[i]?.duration || 0)}
+                                    </div>
+                                </div>
                             </div>
                             <div className="main-video-info">
                                 <div className="main-video-title">{recommendvideosInfo[i]?.title || "暂无视频"}</div>
                                 <div className="main-video-meta">
-                                    <span
+                                    <div
                                         className="main-video-author"
                                         data-user-id={recommendvideosInfo[i]?.uploaderID}
                                         onClick={(e) => {
@@ -150,8 +167,9 @@ const MainPage: React.FC = () => {
                                             }
                                         }}
                                     >
-                                        UP主：{recommendvideosInfo[i]?.uploaderInfo?.username || "未知用户"}
-                                    </span>
+                                        <UpUserIcon className="main-video-icon" />
+                                        {recommendvideosInfo[i]?.uploaderInfo?.username || "未知用户"}
+                                    </div>
                                     <span className="main-video-time">
                                         {recommendvideosInfo[i]?.uploadTime ? dateformatTime(recommendvideosInfo[i].uploadTime) : ""}
                                     </span>
@@ -175,11 +193,25 @@ const MainPage: React.FC = () => {
                                     className="main-video-cover"
                                     onError={(e) => { e.currentTarget.src = DefaultCover; }}
                                 />
+                                {/* 底部信息栏 */}
+                                <div className="main-video-bottom-bar">
+                                    <div className="main-video-meta-item">
+                                        <PlayCountIcon className="main-video-meta-icon" />
+                                        <span>{formatCount(recommendvideosInfo[i]?.views || 0)}</span>
+                                    </div>
+                                    <div className="main-video-meta-item">
+                                        <LikeIcon className="main-video-meta-icon" />
+                                        <span>{formatCount(recommendvideosInfo[i]?.likes || 0)}</span>
+                                    </div>
+                                    <div className="main-video-duration">
+                                        {formatDuration(recommendvideosInfo[i]?.duration || 0)}
+                                    </div>
+                                </div>
                             </div>
                             <div className="main-video-info">
                                 <div className="main-video-title">{recommendvideosInfo[i]?.title || "暂无视频"}</div>
                                 <div className="main-video-meta">
-                                    <span
+                                    <div
                                         className="main-video-author"
                                         data-user-id={recommendvideosInfo[i]?.uploaderID}
                                         onClick={(e) => {
@@ -189,8 +221,9 @@ const MainPage: React.FC = () => {
                                             }
                                         }}
                                     >
-                                        UP主：{recommendvideosInfo[i]?.uploaderInfo?.username || "未知用户"}
-                                    </span>
+                                        <UpUserIcon className="main-video-icon" />
+                                        {recommendvideosInfo[i]?.uploaderInfo?.username || "未知用户"}
+                                    </div>
                                     <span className="main-video-time">
                                         {recommendvideosInfo[i]?.uploadTime ? dateformatTime(recommendvideosInfo[i].uploadTime) : ""}
                                     </span>

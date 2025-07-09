@@ -273,9 +273,19 @@
     padding-bottom: 56.25%;
     overflow: hidden;
     border-radius: 4px;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 
+.home-video-item {
+    background-color: white;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+}
+.home-video-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
 .home-video-cover {
     position: absolute;
     top: 0;
@@ -285,8 +295,12 @@
     object-fit: cover;
 }
 
+.home-video-item:hover .home-video-title {
+    color: #00a1d6;
+}
 .home-video-info {
     padding: 10px 0;
+    padding:5px;
 }
 
 .home-video-title {
