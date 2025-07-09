@@ -5,25 +5,18 @@ import APIs.UserService.GetUIDByTokenMessage
 import APIs.RecommendationService.UpdateVideoInfoMessage
 import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
-import APIs.VideoService.ChangeVideoStatusMessage
 import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.decodeDateTime
-import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
 import Objects.VideoService.VideoStatus
-import Objects.RecommendationService.VideoInfo
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
 import io.circe.Json
 import io.circe._
 import io.circe.generic.auto._
-import io.circe.syntax._
-import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 case class ChangeVideoStatusMessagePlanner(
@@ -56,7 +49,7 @@ case class ChangeVideoStatusMessagePlanner(
           val sql = s"SELECT uploader_id FROM $schemaName.video_table WHERE video_id = ?;"
           readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
             case Some(json) =>
-              if (decodeField[Int](json, "uploader_id") != userID) then
+              if (decodeField[Int](json, "uploader_id") != userID && role != UserRole.Auditor) then
                 IO.raiseError(InvalidInputException("权限不足"))
               else IO.unit
             case None => throw InvalidInputException("找不到视频")

@@ -1,18 +1,17 @@
 package Impl
 
 import APIs.UserService.GetUIDByTokenMessage
-import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
+import Utils.VideoAuth.validateVideoStatus
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
 import org.slf4j.LoggerFactory
 
 case class QueryLikeMessagePlanner(
@@ -29,7 +28,7 @@ case class QueryLikeMessagePlanner(
       _ <- IO(logger.info(s"UserID: $userID"))
 
       // Step 2: Validate videoID existence
-      _ <- validateVideoExistence(videoID)
+      _ <- validateVideoStatus(videoID)
       
       // Step 3: Check if user likes this video
       isLiked <- checkLikeStatus(userID, videoID)
@@ -40,17 +39,6 @@ case class QueryLikeMessagePlanner(
   private def validateToken()(using PlanContext): IO[Int] = {
     IO(logger.info("[validateToken] Validating token")) >>
     GetUIDByTokenMessage(token).send
-  }
-
-  private def validateVideoExistence(videoID: Int)(using PlanContext): IO[Unit] = {
-    IO(logger.info("[validateVideoExistence] Validating videoID existence")) >>
-    {
-      val sql = s"SELECT video_id FROM $schemaName.video_table WHERE video_id = ? AND status = 'Approved';"
-      readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
-        case Some(_) => ()
-        case None => throw InvalidInputException("找不到视频")
-      }
-    }
   }
 
   private def checkLikeStatus(userID: Int, videoID: Int)(using PlanContext): IO[Boolean] = {

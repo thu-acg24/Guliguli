@@ -76,4 +76,18 @@ case object VideoAuth {
       }
     } yield ()
   }
+
+  // Check if video exists and is public
+  def validateVideoStatus(videoID: Int)(using PlanContext): IO[Json] = {
+    IO(logger.info("[validateVideoStatus] Validating videoID existence and status")) >>
+      {
+        val sql = s"SELECT status FROM $schemaName.video_table WHERE video_id = ?;"
+        readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
+          case Some(json) =>
+            val status = decodeField[String](json, "status")
+            if (status == "Approved") json else throw InvalidInputException("没有访问视频的权限")
+          case None => throw InvalidInputException("找不到视频")
+        }
+      }
+  }
 }

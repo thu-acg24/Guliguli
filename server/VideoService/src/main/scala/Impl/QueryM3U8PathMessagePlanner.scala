@@ -1,31 +1,23 @@
 package Impl
 
 import APIs.RecommendationService.RecordWatchDataMessage
-import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
 import Common.DBAPI.*
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Global.GlobalVariables.{m3u8Cache, minioClient, readLines, sessions}
-import Objects.UploadSession
-import Objects.VideoService.UploadPath
+import Global.GlobalVariables.{m3u8Cache, minioClient, readLines}
 import Utils.VideoAuth.{validateToken, validateVideoID}
 import cats.effect.IO
-import cats.effect.std.Random
 import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
-import io.circe.syntax.*
 import io.minio.{GetPresignedObjectUrlArgs, PutObjectArgs}
 import io.minio.http.Method
-import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 import java.io.ByteArrayInputStream
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import scala.util.matching.Regex
 
 case class QueryM3U8PathMessagePlanner(
@@ -91,29 +83,27 @@ case class QueryM3U8PathMessagePlanner(
     } yield result
   }
 
-  // 生成形如 tsprefix_00000.ts 的 ts 文件名
-  def generateTsKeys(tsprefix: String, sliceCount: Int): List[String] = {
-    (0 until sliceCount).map(i => f"${tsprefix}_$i%05d.ts").toList
+  // 生成形如 tsPrefix_00000.ts 的 ts 文件名
+  private def generateTsKeys(tsPrefix: String, sliceCount: Int): List[String] = {
+    (0 until sliceCount).map(i => f"${tsPrefix}_$i%05d.ts").toList
   }
 
   private val bucket = "video-server"
 
   // 为每个 ts 文件生成签名 URL
-  def generatePresignedUrls(tsKeys: List[String]): IO[List[String]] = IO {
-    tsKeys.map { key =>
-      minioClient.getPresignedObjectUrl(
+  private def generatePresignedUrls(tsKeys: List[String]): IO[List[String]] = IO.parTraverseN(10)(tsKeys) { key =>
+      IO{minioClient.getPresignedObjectUrl(
         GetPresignedObjectUrlArgs.builder()
           .method(Method.GET)
           .bucket(bucket)
           .`object`(key)
           .expiry(7 * 24 * 60 * 60) // 一周有效
           .build()
-      )
-    }
+      )}
   }
 
   // 替换 m3u8 模板文件中的 segment_[number].ts 占位符
-  def replaceSegments(templateLines: List[String], tsUrls: List[String]): List[String] = {
+  private def replaceSegments(templateLines: List[String], tsUrls: List[String]): List[String] = {
     val tsPlaceholderPattern: Regex = raw"segment_(\d{5})\.ts".r
 
     templateLines.map { line =>
@@ -131,27 +121,28 @@ case class QueryM3U8PathMessagePlanner(
   }
 
     // 上传新的 m3u8 内容并生成分享链接
-  def uploadNewM3U8(content: String, targetKey: String): IO[String] = IO.blocking {
+  private def uploadNewM3U8(content: String, targetKey: String): IO[String] = {
     val inputStream = new ByteArrayInputStream(content.getBytes("UTF-8"))
-    minioClient.putObject(
+    IO.fromCompletableFuture(IO(minioClient.putObject(
       PutObjectArgs.builder()
         .bucket(bucket)
         .`object`(targetKey)
         .stream(inputStream, content.length, -1)
         .contentType("application/vnd.apple.mpegurl")
         .build()
-    )
-    minioClient.getPresignedObjectUrl(
-      GetPresignedObjectUrlArgs.builder()
-        .method(Method.GET)
-        .bucket(bucket)
-        .`object`(targetKey)
-        .expiry(7 * 24 * 60 * 60)
-        .build()
-    )
+    ))) >> IO.blocking {
+      minioClient.getPresignedObjectUrl(
+        GetPresignedObjectUrlArgs.builder()
+          .method(Method.GET)
+          .bucket(bucket)
+          .`object`(targetKey)
+          .expiry(7 * 24 * 60 * 60)
+          .build()
+      )
+    }
   }
 
-  def updateViewInfo(token: String, videoID: Int)(using PlanContext): IO[Unit] = {
+  private def updateViewInfo(token: String, videoID: Int)(using PlanContext): IO[Unit] = {
     for {
       recordable <- RecordWatchDataMessage(token, videoID).send
       _ <- if (recordable) writeDB(
