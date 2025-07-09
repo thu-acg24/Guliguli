@@ -10,7 +10,7 @@ import shutil
 import sys
 import logging
 
-from common_unsafe import minio_client, CALLBACK_VIDEO_API_NAME
+from common import minio_client, CALLBACK_VIDEO_API_NAME
 
 video_bp = Blueprint('video_bp', __name__)
     
@@ -92,7 +92,7 @@ def process_video_async(video_id, token, file_name, local_path, duration, target
             "-hwaccel_output_format", "cuda",   # 设置输出格式
             "-i", local_path,
             "-c:v", "h264_nvenc",               # 使用NVIDIA H.264编码器
-            "-preset", "p4",                  # Win-p4, Linux下推荐使用slow/medium/fast等预设
+            "-preset", "medium",                  # Win-p4, Linux下推荐使用slow/medium/fast等预设
             "-profile:v", "main",               # H.264 profile
             "-level", "4.1",                    # H.264 level
             "-b:v", "5M",                       # 视频码率
@@ -214,9 +214,26 @@ def handle_video():
     video_id = request.json.get('id')
     token = request.json.get('token')
     file_name = request.json.get('file_name')
-    target_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    # target_ip = request.headers.get('X-Real-IP', request.remote_addr)
+    # for key, value in request.headers.items():
+    #     video_bp.logger.info(f"{key}: {value}")
+    forwarded_for = request.headers.get('X-Forwarded-For')
+    if forwarded_for:
+        # 获取第一个 IP 地址
+        client_ip = forwarded_for.split(',')[0].strip()
+        video_bp.logger.info(f"Your client IP address is: {client_ip}")
+        target_ip = client_ip
+    else:
+        # 如果没有 X-Forwarded-For 头部，尝试获取 X-Real-IP
+        real_ip = request.headers.get('X-Real-IP')
+        if real_ip:
+            target_ip = real_ip
+            video_bp.logger.info(f"Your real IP address is: {real_ip}")
+        else:
+            # 如果都没有，返回默认值
+            return jsonify({"status": "failure", "message": "Unable to determine your IP address."}), 400
 
-    video_bp.logger.info(f"token: {token}, video_id: {video_id}, file_name: {file_name}\n")
+    video_bp.logger.info(f"token: {token}, video_id: {video_id}, file_name: {file_name}, target_ip: {target_ip}\n")
     
     if not all([video_id, token, file_name]):
         return jsonify({"status": "failure", "message": "Missing parameters: token, id, file_name are required"}), 400

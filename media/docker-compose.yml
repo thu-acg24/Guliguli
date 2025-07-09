@@ -4,27 +4,26 @@ services:
   #   volumes:
   #     - ./nginx.conf:/etc/nginx/nginx.conf
   #   ports:
-  #     - "80:80"
-  #     - "443:443"
+  #     - "5003:5003"
+  #   depends_on:
+  #     - minio
+  #     # - media_processor
+  #   networks:
+  #     - media-network
+  # cloudflared:
+  #   image: cloudflare/cloudflared
+  #   volumes:
+  #     - ./tunnels.yml:/etc/cloudflared/config.yml
+  #     - ${CREDENTIALS_JSON}:/etc/cloudflared/credentials.json
+  #     - ../../cloudflared/tunnel_cert.pem:/etc/cloudflared/cert.pem
+  #   # environment:
+  #   #   - TUNNEL_ORIGIN_CERT=/etc/cloudflared/cert.pem
+  #   command: tunnel --config /etc/cloudflared/config.yml --origincert=/etc/cloudflared/cert.pem run
   #   depends_on:
   #     - minio
   #     - media_processor
   #   networks:
   #     - media-network
-  cloudflared:
-    image: cloudflare/cloudflared
-    volumes:
-      - ./tunnels.yml:/etc/cloudflared/config.yml
-      - ${CREDENTIALS_JSON}:/etc/cloudflared/credentials.json
-      - ../../cloudflared/tunnel_cert.pem:/etc/cloudflared/cert.pem
-    # environment:
-    #   - TUNNEL_ORIGIN_CERT=/etc/cloudflared/cert.pem
-    command: tunnel --config /etc/cloudflared/config.yml --origincert=/etc/cloudflared/cert.pem run
-    depends_on:
-      - minio
-      - media_processor
-    networks:
-      - media-network
   media_processor:
     build:
       context: .
@@ -35,6 +34,7 @@ services:
       - .env
     ports:
       - "4850:4850"
+      
     tmpfs:
       - /tmp
     deploy:
@@ -48,19 +48,20 @@ services:
       - minio
     networks:
       - media-network
+    # network_mode: host
 
   minio:
     image: minio/minio
     container_name: minio
-    command: server /data --console-address ":5004" --address ":5003"
+    command: server /data --console-address ":9001" --address ":9000"
     env_file:
       - .env
     volumes:
       - minio-data:/data
       - minio-config:/root/.minio
     ports:
-      - "5003:5003"
-      - "5004:5004"
+      - "9000:9000"
+      - "9001:9001"
     networks:
       - media-network
 
