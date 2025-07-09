@@ -172,38 +172,41 @@ const FollowingTab: React.FC = () => {
     };
 
     return (
-        <div className="home-following-tab">
-            <div className="home-user-list">
-                {following.map((followingUser, index) => (
-                    <div key={followingUser.userInfo.userID} className="home-user-item">
-                        <div className="home-user-avatar" onClick={() => handleUserClick(followingUser.userInfo.userID)}>
-                            <img src={followingUser.userInfo.avatarPath} alt="用户头像" />
-                        </div>
-                        <div className="home-user-info">
-                            <div className="home-user-name" onClick={() => handleUserClick(followingUser.userInfo.userID)}>
-                                {followingUser.userInfo.username}
+        <>
+            <div className="home-tab-title">关注列表</div>
+            <div className="home-following-tab">
+                <div className="home-user-list">
+                    {following.map((followingUser, index) => (
+                        <div key={followingUser.userInfo.userID} className="home-user-item">
+                            <div className="home-user-avatar" onClick={() => handleUserClick(followingUser.userInfo.userID)}>
+                                <img src={followingUser.userInfo.avatarPath} alt="用户头像" />
                             </div>
-                            <div className="home-user-bio">{followingUser.userInfo.bio}</div>
+                            <div className="home-user-info">
+                                <div className="home-user-name" onClick={() => handleUserClick(followingUser.userInfo.userID)}>
+                                    {followingUser.userInfo.username}
+                                </div>
+                                <div className="home-user-bio">{followingUser.userInfo.bio}</div>
+                            </div>
+                            {/* 只有当前用户已登录且不是自己时才显示关注按钮 */}
+                            {currentUserID && currentUserID !== followingUser.userInfo.userID && (
+                                <button
+                                    className={`home-follow-btn ${followingUser.following ? 'following' : ''}`}
+                                    onClick={() => handleFollowToggle(index)}
+                                >
+                                    {followingUser.following ? '已关注' : '关注'}
+                                </button>
+                            )}
                         </div>
-                        {/* 只有当前用户已登录且不是自己时才显示关注按钮 */}
-                        {currentUserID && currentUserID !== followingUser.userInfo.userID && (
-                            <button
-                                className={`home-follow-btn ${followingUser.following ? 'following' : ''}`}
-                                onClick={() => handleFollowToggle(index)}
-                            >
-                                {followingUser.following ? '已关注' : '关注'}
-                            </button>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            {hasMore && (
-                <div className="home-load-more" onClick={handleLoadMore}>
-                    {loading ? "加载中..." : "加载更多"}
+                    ))}
                 </div>
-            )}
-        </div>
+
+                {hasMore && (
+                    <div className="home-load-more" onClick={handleLoadMore}>
+                        {loading ? "加载中..." : "加载更多"}
+                    </div>
+                )}
+            </div>
+        </>
     );
 };
 

@@ -9,6 +9,7 @@ import { QueryFollowMessage } from "Plugins/UserService/APIs/QueryFollowMessage"
 import { ChangeFollowStatusMessage } from "Plugins/UserService/APIs/ChangeFollowStatusMessage";
 import { useUserIDValue, useUserToken } from "Globals/GlobalStore";
 import "./HomePage.css";
+import { setRef } from "@mui/material";
 
 const perpage = 10; // 每次新显示的粉丝数量
 
@@ -32,16 +33,12 @@ const FollowersTab: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [refreshTag, setRefreshTag] = useState(false);
 
     useEffect(() => {
         // 重置状态
-        setFollowers([]);
         setPage(1);
-        setHasMore(true);
-        setLoading(true);
-
-        // 立即加载第一页数据
-        fetchFollowers(1);
+        setRefreshTag(prev => !prev);
     }, [isFollowing, userID]);
 
     // 获取用户的粉丝
@@ -106,7 +103,11 @@ const FollowersTab: React.FC = () => {
 
             const hasMore = newFollowers.length === perpage;
 
-            setFollowers(prev => [...prev, ...newFollowers]);
+            if (page === 1) {
+                setFollowers(newFollowers);
+            } else {
+                setFollowers(prev => [...prev, ...newFollowers]);
+            }
             setHasMore(hasMore);
         } catch (error) {
             console.error("获取粉丝列表失败", error);
@@ -116,10 +117,8 @@ const FollowersTab: React.FC = () => {
     };
 
     useEffect(() => {
-        if (page > 1) {
-            fetchFollowers(page);
-        }
-    }, [page]);
+        fetchFollowers(page);
+    }, [page, refreshTag]);
 
     const handleLoadMore = () => {
         setPage(prev => prev + 1);
@@ -186,38 +185,41 @@ const FollowersTab: React.FC = () => {
     };
 
     return (
-        <div className="home-followers-tab">
-            <div className="home-user-list">
-                {followers.map((follower, index) => (
-                    <div key={follower.userInfo.userID} className="home-user-item">
-                        <div className="home-user-avatar" onClick={() => handleUserClick(follower.userInfo.userID)}>
-                            <img src={follower.userInfo.avatarPath} alt="用户头像" />
-                        </div>
-                        <div className="home-user-info">
-                            <div className="home-user-name" onClick={() => handleUserClick(follower.userInfo.userID)}>
-                                {follower.userInfo.username}
+        <>
+            <div className="home-tab-title">粉丝列表</div>
+            <div className="home-followers-tab">
+                <div className="home-user-list">
+                    {followers.map((follower, index) => (
+                        <div key={follower.userInfo.userID} className="home-user-item">
+                            <div className="home-user-avatar" onClick={() => handleUserClick(follower.userInfo.userID)}>
+                                <img src={follower.userInfo.avatarPath} alt="用户头像" />
                             </div>
-                            <div className="home-user-bio">{follower.userInfo.bio}</div>
+                            <div className="home-user-info">
+                                <div className="home-user-name" onClick={() => handleUserClick(follower.userInfo.userID)}>
+                                    {follower.userInfo.username}
+                                </div>
+                                <div className="home-user-bio">{follower.userInfo.bio}</div>
+                            </div>
+                            {/* 只有当前用户已登录且不是自己时才显示关注按钮 */}
+                            {currentUserID && currentUserID !== follower.userInfo.userID && (
+                                <button
+                                    className={`home-follow-btn ${follower.following ? 'following' : ''}`}
+                                    onClick={() => handleFollowToggle(index)}
+                                >
+                                    {follower.following ? '已关注' : '关注'}
+                                </button>
+                            )}
                         </div>
-                        {/* 只有当前用户已登录且不是自己时才显示关注按钮 */}
-                        {currentUserID && currentUserID !== follower.userInfo.userID && (
-                            <button
-                                className={`home-follow-btn ${follower.following ? 'following' : ''}`}
-                                onClick={() => handleFollowToggle(index)}
-                            >
-                                {follower.following ? '已关注' : '关注'}
-                            </button>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            {hasMore && (
-                <div className="home-load-more" onClick={handleLoadMore}>
-                    {loading ? "加载中..." : "加载更多"}
+                    ))}
                 </div>
-            )}
-        </div>
+
+                {hasMore && (
+                    <div className="home-load-more" onClick={handleLoadMore}>
+                        {loading ? "加载中..." : "加载更多"}
+                    </div>
+                )}
+            </div>
+        </>
     );
 };
 

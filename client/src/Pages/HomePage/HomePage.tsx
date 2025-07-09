@@ -248,15 +248,6 @@ const HomePage: React.FC = () => {
 
                 {/* 主内容区域 */}
                 <div className="home-main-content">
-                    <div className="home-tab-title">
-                        {activeTab === HomePageTab.videos && "发布的视频"}
-                        {activeTab === HomePageTab.following && "关注列表"}
-                        {activeTab === HomePageTab.followers && "粉丝列表"}
-                        {activeTab === HomePageTab.favorites && "收藏的视频"}
-                        {activeTab === HomePageTab.history && "观看历史"}
-                        {activeTab === HomePageTab.settings && "个人设置"}
-                    </div>
-
                     {/* 检查是否有权限访问私人内容 */}
                     {!isCurrentUser && (activeTab === HomePageTab.favorites || activeTab === HomePageTab.history || activeTab === HomePageTab.settings) ? (
                         <div className="home-error-message">您没有权限访问此内容</div>

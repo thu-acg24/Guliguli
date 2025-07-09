@@ -47,30 +47,33 @@ const VideoTab: React.FC<{ userID?: number }> = (props) => {
     }, [userID]);
 
     return (
-        <div className="home-video-tab">
-            {loading ? (
-                <div className="home-loading">
-                    <div className="home-loading-text">加载中...</div>
-                </div>
-            ) : (
-                <div className="home-video-list">
-                    {videos.map(video => (
-                        <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
-                            <div className="home-video-cover-container">
-                                <img src={video.cover || DefaultCover} alt="视频封面" className="home-video-cover" />
-                            </div>
-                            <div className="home-video-info">
-                                <div className="home-video-title">{video.title}</div>
-                                <div className="home-video-meta">
-                                    <span>{video.views} 播放</span>
-                                    <span>{video.likes} 点赞</span>
+        <>
+            <div className="home-tab-title">发布的视频</div>
+            <div className="home-video-tab">
+                {loading ? (
+                    <div className="home-loading">
+                        <div className="home-loading-text">加载中...</div>
+                    </div>
+                ) : (
+                    <div className="home-video-list">
+                        {videos.map(video => (
+                            <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
+                                <div className="home-video-cover-container">
+                                    <img src={video.cover || DefaultCover} alt="视频封面" className="home-video-cover" />
+                                </div>
+                                <div className="home-video-info">
+                                    <div className="home-video-title">{video.title}</div>
+                                    <div className="home-video-meta">
+                                        <span>{video.views} 播放</span>
+                                        <span>{video.likes} 点赞</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </>
     );
 };
 

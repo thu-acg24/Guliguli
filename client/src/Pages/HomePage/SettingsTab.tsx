@@ -12,13 +12,16 @@ const SettingsTab: React.FC = () => {
     const refreshHomePageUserInfo = outlet.refreshUserInfo;
 
     return (
-        <div className="home-settings-tab">
-            <UserInfoForm
-                userInfo={userInfo}
-                refreshHomePageUserInfo={refreshHomePageUserInfo}
-            />
-            <PasswordForm />
-        </div>
+        <>
+            <div className="home-tab-title">个人设置</div>
+            <div className="home-settings-tab">
+                <UserInfoForm
+                    userInfo={userInfo}
+                    refreshHomePageUserInfo={refreshHomePageUserInfo}
+                />
+                <PasswordForm />
+            </div>
+        </>
     );
 };
 
