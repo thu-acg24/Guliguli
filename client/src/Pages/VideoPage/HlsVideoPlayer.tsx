@@ -139,7 +139,10 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo
         })
       })
       danmakuRef.current = danmaku;
-      container.addEventListener('resize', () => {danmaku.resize()});
+      const resizeObserver = new ResizeObserver((_) => {
+        danmaku.resize();
+      });
+      resizeObserver.observe(container);
 
       return () => {
         if (hlsRef.current) {
@@ -157,6 +160,7 @@ const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo
         container.removeEventListener('mousemove', handleMouseMove);
         container.removeEventListener('mouseleave', handleMouseLeave);
         clearTimeout(controlsTimeoutRef.current);
+        resizeObserver.disconnect();
       };
     }
   }, [videoUrl]);
