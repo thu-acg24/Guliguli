@@ -7,6 +7,7 @@ import { useDevTools } from 'Globals/useDevTools';
 import './Styles/index.css';
 import MainPage, { mainPagePath } from "Pages/MainPage/MainPage";
 import VideoPage, { videoPagePath } from 'Pages/VideoPage/VideoPage';
+import SearchPage from 'Pages/SearchPage/SearchPage';
 import MessagePage, { messagePagePath } from 'Pages/MessagePage/MessagePage';
 import WhisperTab from 'Pages/MessagePage/WhisperTab';
 import ReplyTab from 'Pages/MessagePage/ReplyTab';
@@ -39,6 +40,7 @@ const RouterContent = () => {
             <Route path="/" element={<MainPage />} />
             <Route path={mainPagePath} element={<MainPage />} />
             <Route path={videoPagePath} element={<VideoPage />} />
+            <Route path={"/search/:str"} element={<SearchPage />} />
             <Route path={messagePagePath} element={<MessagePage />}>
                 <Route index element={<WhisperTab />} />
                 <Route path="whisper" element={<WhisperTab />} />
@@ -69,8 +71,7 @@ const RouterContent = () => {
                 <Route path="report/danmaku" element={<DanmakuReportManagement />} />
                 <Route path="report/comment" element={<CommentReportManagement />} />
             </Route>
-            {/*<Route path={managementPagePath} element={<ManagementPage />} />
-            <Route path={searchPagePath} element={<SearchPage />} /> */}
+            {/*<Route path={managementPagePath} element={<ManagementPage />} />*/}
         </Routes>
     );
 };
