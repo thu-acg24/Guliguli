@@ -6,8 +6,8 @@ import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from 
 import { useUserRole } from "Hooks/useUserRole";
 import { UserRole } from "Plugins/UserService/Objects/UserRole";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
-import { PersonCenterIcon, LogoutIcon } from "./Icons";
-import { DEFAULT_AVATAR } from "Components/DefaultAvatar";
+import { PersonCenterIcon, LogoutIcon } from "Images/Icons";
+import DEFAULT_AVATAR from "Images/DefaultAvatar.jpg";
 import "./Header.css";
 
 const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({ usetransparent = false, transparent = false }) => {
