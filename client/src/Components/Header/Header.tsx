@@ -114,17 +114,17 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
                         </div>
                         {showUserPanel && (
                             <div className="header-user-panel-popover">
+                                {/* 新增放大头像容器 */}
+                                <div className="header-zoomed-avatar">
+                                    <img
+                                        src={userInfo?.avatarPath || DEFAULT_AVATAR}
+                                        alt="用户头像"
+                                    />
+                                </div>
                                 <div className="header-user-panel-content">
-                                    <div className="header-user-basic-info">
-                                        <div className="header-user-avatar-large">
-                                            <img
-                                                src={userInfo?.avatarPath || DEFAULT_AVATAR}
-                                                alt="用户头像"
-                                            />
-                                        </div>
-                                        <div className="header-user-nickname">
-                                            {userInfo?.username || "用户"}
-                                        </div>
+                                    {/* 移除原大头像区域，昵称居中 */}
+                                    <div className="header-user-nickname">
+                                        {userInfo?.username || "用户"}
                                     </div>
 
                                     <div className="header-user-stats">
