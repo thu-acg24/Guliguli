@@ -180,6 +180,7 @@
 .video-video-actions {
     display: flex;
     margin-bottom: 15px;
+    margin-top: 15px;
 }
 
 .video-videopage-action-btn {
