@@ -8,6 +8,7 @@ import { UserRole } from "Plugins/UserService/Objects/UserRole";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
 import { PersonCenterIcon, LogoutIcon } from "Images/Icons";
 import DEFAULT_AVATAR from "Images/DefaultAvatar.jpg";
+import { SendIcon, HollowFavoriteIcon, HistoryIcon, UploadIcon,SearchIcon } from "Images/Icons";
 import "./Header.css";
 
 const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({ usetransparent = false, transparent = false }) => {
@@ -96,7 +97,9 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
                         onChange={(e) => setSearchKeyword(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && performSearch()}
                     />
-                    <button className="header-search-btn" onClick={performSearch}>搜索</button>
+                    <button className="header-search-btn" onClick={performSearch}>
+                        <SearchIcon className="header-search-icon" />
+                    </button>
                 </div>
             </div>
             {userInfo ? (
@@ -170,10 +173,24 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean }> = ({
                             </div>
                         )}
                     </div>
-                    <div className="header-header-action-btn" onClick={handleMsgClick}>消息</div>
-                    <div className="header-header-action-btn" onClick={handleFavClick}>收藏</div>
-                    <div className="header-header-action-btn" onClick={handleHistoryClick}>历史</div>
-                    <div className="header-header-upload-btn" onClick={handleUploadClick}>投稿</div>
+                        <div className="header-header-actions">
+                            <div className="header-header-action-btn" onClick={handleMsgClick}>
+                                <SendIcon className="header-action-icon" />
+                                <span>消息</span>
+                            </div>
+                            <div className="header-header-action-btn" onClick={handleFavClick}>
+                                <HollowFavoriteIcon className="header-action-icon" />
+                                <span>收藏</span>
+                            </div>
+                            <div className="header-header-action-btn" onClick={handleHistoryClick}>
+                                <HistoryIcon className="header-action-icon" />
+                                <span>历史</span>
+                            </div>
+                            <div className="header-header-upload-btn" onClick={handleUploadClick}>
+                                <UploadIcon className="header-action-icon" />
+                                <span>投稿</span>
+                            </div>
+                        </div>
                 </div>
             ) : (
                 <div className="header-header-actions">
