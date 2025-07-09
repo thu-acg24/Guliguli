@@ -8,17 +8,24 @@ import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
 import { QueryHistoryMessage } from "Plugins/HistoryService/APIs/QueryHistoryMessage";
-import { videoPagePath } from "Pages/VideoPage/VideoPage";
 import "./HomePage.css";
+import { HistoryRecord } from "Plugins/HistoryService/Objects/HistoryRecord";
+import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
+import { dateformatTime } from "Components/Formatter";
 
 const perpage = 10; // 每次新显示的历史记录数量
+
+interface HistoryWithVideo {
+    history: HistoryRecord;
+    video: Video;
+}
 
 const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     const outlet = useOutletContext<{ userID: number, isCurrentUser: boolean }>();
     const userToken = useUserToken();
     const { navigateVideo } = useNavigateVideo();
 
-    const [videos, setVideos] = useState<Video[]>([]);
+    const [videos, setVideos] = useState<HistoryWithVideo[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -27,12 +34,18 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     const fetchHistory = async (page: number) => {
         setLoading(true);
         try {
-            const newVideosID = await new Promise<number[]>((resolve, reject) => {
-                new QueryHistoryMessage(userToken, (page - 1) * perpage + 1, page * perpage).send(
-                    (info: string) => {
-                        const historyList = JSON.parse(info);
-                        resolve(historyList.map((record: any) => record.videoID));
-                    },
+            const historyList = await new Promise<HistoryRecord[]>((resolve, reject) => {
+                new QueryHistoryMessage(
+                    userToken,
+                    videos.length === 0
+                        ? 99999999999999
+                        : videos[videos.length - 1].history.timestamp,
+                    videos.length === 0
+                        ? 9999
+                        : videos[videos.length - 1].history.videoID,
+                    perpage
+                ).send(
+                    (info: string) => resolve(JSON.parse(info) as HistoryRecord[]),
                     (error: any) => {
                         console.error("获取历史记录失败", error);
                         reject(error);
@@ -40,10 +53,10 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
                 );
             });
 
-            const newVideos = await Promise.all(
-                newVideosID.map(async (id) => {
-                    return await new Promise<Video>((resolve, reject) => {
-                        new QueryVideoInfoMessage(userToken, id).send(
+            const newHistoryWithVideos = await Promise.all(
+                historyList.map(async (record: HistoryRecord) => {
+                    const video = await new Promise<Video>((resolve, reject) => {
+                        new QueryVideoInfoMessage(userToken, record.videoID).send(
                             (info: string) => {
                                 resolve(JSON.parse(info) as Video);
                             },
@@ -66,10 +79,11 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
                             }
                         );
                     });
+                    return { history: record, video } as HistoryWithVideo;
                 })
             );
 
-            const hasMore = newVideos.length === perpage;
+            const hasMore = newHistoryWithVideos.length === perpage;
 
             // 模拟数据
             // const newVideos = Array.from({ length: 10 }, (_, i) =>
@@ -91,10 +105,11 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
             // );
             // const hasMore = true
 
-            setVideos(prev => [...prev, ...newVideos]);
+            setVideos(prev => [...prev, ...newHistoryWithVideos]);
             setHasMore(hasMore);
         } catch (error) {
             console.error("获取历史记录失败", error);
+            materialAlertError("获取历史记录失败，请稍后重试。");
         } finally {
             setLoading(false);
         }
@@ -116,16 +131,15 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
     return (
         <div className="home-history-tab">
             <div className="home-video-list">
-                {videos.map(video => (
-                    <div key={video.videoID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
+                {videos.map(({ history, video }) => (
+                    <div key={history.historyID} className="home-video-item" onClick={() => handleVideoClick(video.videoID)}>
                         <div className="home-video-cover-container">
                             <img src={video.cover || DefaultCover} alt="视频封面" className="home-video-cover" />
                         </div>
                         <div className="home-video-info">
                             <div className="home-video-title">{video.title}</div>
                             <div className="home-video-meta">
-                                <span>{video.views} 播放</span>
-                                <span>{video.likes} 点赞</span>
+                                <span>观看时间：{dateformatTime(video.views)}</span>
                             </div>
                         </div>
                     </div>
