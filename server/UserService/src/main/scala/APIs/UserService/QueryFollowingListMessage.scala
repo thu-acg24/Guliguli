@@ -21,7 +21,7 @@ import scala.util.Try
 
 /**
  * QueryFollowingListMessage
- * desc: 查询某用户的关注列表，返回他们关注的用户信息。
+ * desc: 查询某用户的关注列表，返回他们关注的用户信息，左闭右开。
  * @param userID: Int (当前需要查询关注列表的目标用户ID。)
  * @param rangeL: Int (关注列表数据中提取的起始位置索引。)
  * @param rangeR: Int (关注列表数据中提取的结束位置索引。)
