@@ -1,13 +1,14 @@
 package Impl
 
 
+import APIs.MessageService.SendNotificationMessage
 import APIs.UserService.GetUIDByTokenMessage
 import APIs.RecommendationService.UpdateVideoInfoMessage
 import Common.APIException.InvalidInputException
 import APIs.UserService.QueryUserRoleMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
@@ -15,8 +16,8 @@ import Objects.VideoService.VideoStatus
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.generic.auto.*
 import org.slf4j.LoggerFactory
 
 case class ChangeVideoStatusMessagePlanner(
@@ -45,14 +46,16 @@ case class ChangeVideoStatusMessagePlanner(
 
       // Step 2: 验证视频ID的存在性和状态
       _ <- IO(logger.info("[validateVideoStatus] Validating videoID existence and status"))
-      _ <- {
-          val sql = s"SELECT uploader_id FROM $schemaName.video_table WHERE video_id = ?;"
-          readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).map {
+      (uploaderID, title) <- {
+          val sql = s"SELECT uploader_id, title FROM $schemaName.video_table WHERE video_id = ?;"
+          readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).flatMap {
             case Some(json) =>
-              if (decodeField[Int](json, "uploader_id") != userID && role != UserRole.Auditor) then
+              val uploaderID = decodeField[Int](json, "uploader_id")
+              val title = decodeField[String](json, "title")
+              if (uploaderID != userID && role != UserRole.Auditor) then
                 IO.raiseError(InvalidInputException("权限不足"))
-              else IO.unit
-            case None => throw InvalidInputException("找不到视频")
+              else IO.pure((uploaderID, title))
+            case None => IO.raiseError(InvalidInputException("找不到视频"))
           }
         }
       
@@ -63,6 +66,14 @@ case class ChangeVideoStatusMessagePlanner(
       // Step 4: 通知 RecommendationService 更新视频可见性
       _ <- IO(logger.info(s"[notifyRecommendationService] Notifying RecommendationService: videoID=$videoID"))
       _ <- UpdateVideoInfoMessage(token, videoID).send
+
+      _ <- role match {
+        case UserRole.Auditor =>
+          if (status == VideoStatus.Approved) then
+            SendNotificationMessage(token, uploaderID, "你的视频已通过审核", s"你的视频状态已被更改为$status").send
+          else IO.unit
+        case _ => IO.unit
+      }
 
     } yield ()
   }
