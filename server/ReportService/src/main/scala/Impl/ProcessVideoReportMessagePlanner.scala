@@ -50,12 +50,12 @@ case class ProcessVideoReportMessagePlanner(
       _ <- SendNotificationMessage(token, reporterID,
         s"举报处理通知",
         s"您举报的视频 $videoTitle 已被处理").send
-      _ <- status match {
-        case ReportStatus.Resolved => SendNotificationMessage(token, uploaderID,
-          s"视频违规通知",
-          s"您的视频 $videoTitle 被举报并已被审核员下架").send
-        case _ => IO.unit
-      }
+      // _ <- status match {
+      //   case ReportStatus.Resolved => SendNotificationMessage(token, uploaderID,
+      //     s"视频违规通知",
+      //     s"您的视频 $videoTitle 被举报并已被审核员下架").send
+      //   case _ => IO.unit
+      // }
     } yield ()
   }
 

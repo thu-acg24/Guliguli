@@ -70,7 +70,9 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- role match {
         case UserRole.Auditor =>
           if (status == VideoStatus.Approved) then
-            SendNotificationMessage(token, uploaderID, "你的视频已通过审核", s"你的视频状态已被更改为$status").send
+            SendNotificationMessage(token, uploaderID, "你的视频已通过审核", s"恭喜，你的视频(标题：$title)已经通过审核！").send
+          else if (status == VideoStatus.Rejected) then
+            SendNotificationMessage(token, uploaderID, "你的视频未通过审核，已被下架", s"很抱歉，您的视频(标题：$title)经过审核后确认存在不合规内容，请进行整改后重新上传。").send
           else IO.unit
         case _ => IO.unit
       }
