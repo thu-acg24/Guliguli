@@ -1,12 +1,12 @@
-// Update VideoPlayerSection.tsx
 import React, { useState, useRef } from "react";
 import HlsVideoPlayerWrapper from "./HlsVideoPlayerWrapper";
-import "./VideoPage.css";
+import "./VideoPlayerSection.css";
 import { Video } from 'Plugins/VideoService/Objects/Video';
 import { formatTime, formatCount } from 'Components/Formatter';
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus"
 import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
+import { LikeIcon, FavoriteIcon, ReportIcon } from 'Images/Icons';
 
 interface VideoPlayerSectionProps {
   video_id: string;
@@ -30,7 +30,13 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
   setShowLoginModal,
 }) => {
   const [currentTime, setCurrentTime] = useState(0);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const danmakuRef = useRef<Danmaku | null>(null);
+
+  const toggleDescription = () => {
+    setIsDescriptionExpanded(!isDescriptionExpanded);
+  };
+
   return (
     <div className="video-video-player-section">
       <h1 className="video-video-title">{videoInfo.title}</h1>
@@ -48,30 +54,61 @@ const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
           danmakuRef={danmakuRef}
         />
       </div>
+      
       {videoInfo.status === VideoStatus.approved && (
-        < DanmakuInput
+        <DanmakuInput
           videoID={Number(video_id)}
           isLoggedIn={isLoggedIn}
           setShowLoginModal={setShowLoginModal}
           currentTime={currentTime}
           danmakuRef={danmakuRef}
-        />)}
+        />
+      )}
+
       {videoInfo.status === VideoStatus.approved && (
         <div className="video-video-actions">
-          <button
-            className={`video-videopage-action-btn ${isLiked ? 'liked' : ''}`}
-            onClick={() => likeVideo()}
+          <div
+            className={`video-action-container ${isLiked ? 'liked' : ''}`}
+            onClick={() => isLoggedIn ? likeVideo() : setShowLoginModal(true)}
           >
-            {isLiked ? '点赞' : '点赞'}&nbsp;{formatCount(videoInfo.likes)}
-          </button>
-          <button
-            className={`video-videopage-action-btn ${isFavorited ? 'favorited' : ''}`}
-            onClick={() => favoriteVideo()}
+            <LikeIcon className="video-icon" />
+            <span>{formatCount(videoInfo.likes)}</span>
+          </div>
+          <div
+            className={`video-action-container ${isFavorited ? 'favorited' : ''}`}
+            onClick={() => isLoggedIn ? favoriteVideo() : setShowLoginModal(true)}
           >
-            {isFavorited ? '收藏' : '收藏'}&nbsp;{formatCount(videoInfo.favorites)}
-          </button>
-        </div>)}
+            <FavoriteIcon className="video-icon" />
+            <span>{formatCount(videoInfo.favorites)}</span>
+          </div>
+          <div 
+            className="video-report-container"
+            // onClick={() => isLoggedIn ? favoriteVideo() : setShowLoginModal(true)}
+          >
+            <ReportIcon className="video-icon" />
+            <span>举报</span>
+          </div>
+        </div>
+      )}
 
+      {/* 视频描述区域 */}
+      {videoInfo.description && (
+        <div className="video-description-container">
+          <div 
+            className={`video-description ${isDescriptionExpanded ? 'expanded' : ''}`}
+          >
+            {videoInfo.description}
+          </div>
+          {videoInfo.description.split('\n').length > 5 && (
+            <button 
+              className="video-description-toggle"
+              onClick={toggleDescription}
+            >
+              {isDescriptionExpanded ? '收起' : '展开更多'}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="video-video-tags">
         {videoInfo.tag?.map(ttag => (
