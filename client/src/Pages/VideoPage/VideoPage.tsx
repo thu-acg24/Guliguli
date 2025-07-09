@@ -568,10 +568,10 @@ const VideoPage: React.FC = () => {
     if (likeisprocessing) return; // 防止重复点击
     if (videoInfo.status !== VideoStatus.approved) return;
     setLikeisprocessing(true);
-    videoInfo.likes = isLiked ? videoInfo.likes - 1 : videoInfo.likes + 1;
     new ChangeLikeMessage(userToken, Number(video_id), !isLiked).send(
       () => {
         console.log("视频点赞状态更新成功");
+        videoInfo.likes = isLiked ? videoInfo.likes - 1 : videoInfo.likes + 1;
         setIsLiked(!isLiked);
         setLikeisprocessing(false);
       },
@@ -591,10 +591,10 @@ const VideoPage: React.FC = () => {
     if (favoriteisprocessing) return; // 防止重复点击
     if (videoInfo.status !== VideoStatus.approved) return;
     setFavoriteisprocessing(true);
-    videoInfo.favorites = isFavorited ? videoInfo.favorites - 1 : videoInfo.favorites + 1;
     new ChangeFavoriteMessage(userToken, Number(video_id), !isFavorited).send(
       () => {
         console.log("视频收藏状态更新成功");
+        videoInfo.favorites = isFavorited ? videoInfo.favorites - 1 : videoInfo.favorites + 1;
         setIsFavorited(!isFavorited);
         setFavoriteisprocessing(false);
       },

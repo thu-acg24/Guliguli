@@ -13,3 +13,4 @@
 **/db-manager
 **/__pycache__
 package-lock.json
+server-config.ts

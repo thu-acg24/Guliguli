@@ -1,0 +1,172 @@
+
+/* Sidebar styles */
+.video-up-info {
+    background-color: white;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column; /* 改为垂直排列 */
+    gap: 12px; /* 上下间距 */
+}
+
+/* 头像和名字/签名在同一行 */
+.video-up-top-row {
+    display: flex;
+    align-items: flex-start; /* 顶部对齐 */
+    gap: 15px; /* 头像和名字之间的间距 */
+}
+
+.video-up-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.video-up-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-up-details {
+    flex: 1;
+}
+
+.video-up-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+.video-up-name:hover {
+    color: #00a1d6;
+}
+.video-up-description {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.video-follow-btn {
+    padding: 8px 0; /* 宽度自动填充 */
+    width: 100%; /* 按钮占满整行 */
+    background-color: #fb7299;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.video-follow-btn.following {
+    background-color: #f4f4f4;
+    color: #666;
+}
+
+.video-recommended-videos {
+    background-color: white;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.video-recommended-big-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.video-recommended-video {
+    display: flex;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.video-recommended-cover {
+    width: 160px;
+    height: 90px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.video-recommended-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-recommended-info {
+    flex: 1;
+}
+
+.video-recommended-title {
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 40px;
+}
+
+.video-recommended-author {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.video-recommended-meta {
+    font-size: 11px;
+    color: #999;
+}
+
+.video-recommended-meta span {
+    margin-right: 10px;
+}
+
+.video-video-sidebar {
+    width: 300px;
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+    .video-video-page-container {
+        flex-direction: column;
+    }
+
+    .video-video-main-content {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .video-video-sidebar {
+        width: 100%;
+    }
+
+    .video-comments-container {
+        padding: 15px;
+    }
+    
+    .video-comment-input-area {
+        gap: 10px;
+    }
+    
+    .video-replies-section {
+        padding-left: 0px;
+    }
+    
+    .video-bottom-comment-bar {
+        padding: 8px 12px;
+    }
+    
+    .video-modal-content {
+        max-width: 90%;
+    }
+}

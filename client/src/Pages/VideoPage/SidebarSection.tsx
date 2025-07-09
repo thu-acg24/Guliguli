@@ -1,5 +1,5 @@
 import React from "react";
-import "./VideoPage.css";
+import "./SidebarSection.css";
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { Video } from 'Plugins/VideoService/Objects/Video';
 import { UserStat } from 'Plugins/UserService/Objects/UserStat';
@@ -84,7 +84,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       </div>
 
       <div className="video-recommended-videos">
-        <h3 className="video-recommended-title">推荐视频</h3>
+        <div className="video-recommended-big-title">推荐视频</div>
         {recommendedVideos.map(video => (
           <div key={video.videoID} className="video-recommended-video">
             <div

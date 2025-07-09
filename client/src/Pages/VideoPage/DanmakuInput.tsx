@@ -110,14 +110,8 @@ const DanmakuInput: React.FC<DanmakuInputProps> = ({
   return (
     <div className="danmaku-input-container">
       <div className="danmaku-input-wrapper">
-        <input
-          type="text"
-          placeholder="发个弹幕吧~"
-          value={danmakuContent}
-          onChange={(e) => setDanmakuContent(e.target.value)}
-          onKeyPress={handleKeyPress}
-          className="danmaku-text-input"
-        />
+        <div className="danmaku-text-input">
+          
         <div className="color-picker-container" ref={colorPickerRef}>
           <button
             className="color-preview"
@@ -138,7 +132,7 @@ const DanmakuInput: React.FC<DanmakuInputProps> = ({
                 />
               ))}
               <div className="custom-color-input">
-                <span>自定义:</span>
+                <span>颜色:</span>
                 <input
                   type="color"
                   value={danmakuColor}
@@ -148,6 +142,15 @@ const DanmakuInput: React.FC<DanmakuInputProps> = ({
             </div>
           )}
         </div>
+          <input
+            type="text"
+            placeholder="发个弹幕吧~"
+            value={danmakuContent}
+            onChange={(e) => setDanmakuContent(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="danmaku-text-input-word"
+          />
+          </div>
         <button
           className="send-danmaku-btn"
           onClick={handleSendDanmaku}
