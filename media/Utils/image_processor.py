@@ -11,7 +11,7 @@ import requests
 import sys
 import logging
 
-from common_unsafe import minio_client, CALLBACK_AVATAR_API_NAME, CALLBACK_COVER_API_NAME
+from common import minio_client, CALLBACK_AVATAR_API_NAME, CALLBACK_COVER_API_NAME
 
 image_bp = Blueprint('image_bp', __name__)
 
@@ -130,9 +130,26 @@ def handle_image():
     id = request.json.get('id')
     file_name = request.json.get('file_name')
     task = request.json.get('task')
-    target_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    # target_ip = request.headers.get('X-Real-IP', request.remote_addr)
+    for key, value in request.headers.items():
+        image_bp.logger.info(f"{key}: {value}")
+    forwarded_for = request.headers.get('X-Forwarded-For')
+    if forwarded_for:
+        # 获取第一个 IP 地址
+        client_ip = forwarded_for.split(',')[0].strip()
+        image_bp.logger.info(f"Your client IP address is: {client_ip}")
+        target_ip = client_ip
+    else:
+        # 如果没有 X-Forwarded-For 头部，尝试获取 X-Real-IP
+        real_ip = request.headers.get('X-Real-IP')
+        if real_ip:
+            target_ip = real_ip
+            image_bp.logger.info(f"Your real IP address is: {real_ip}")
+        else:
+            # 如果都没有，返回默认值
+            return jsonify({"status": "failure", "message": "Unable to determine your IP address."}), 400
 
-    image_bp.logger.info(f"token: {token}, id: {id}, file_name: {file_name}, task: {task}\n")
+    image_bp.logger.info(f"token: {token}, id: {id}, file_name: {file_name}, task: {task}, target_ip: {target_ip}\n")
     
     # 验证参数
     if not all([token, id, file_name, task]):
