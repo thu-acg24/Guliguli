@@ -79,7 +79,7 @@ case class GetRecommendedVideosMessagePlanner(
          |  SELECT video_id, view_count, embedding <#> ? AS neg_dot_product
          |  FROM $schemaName.video_info_table
          |  WHERE visible = true
-         |  ORDER neg_dot_product ASC
+         |  ORDER BY neg_dot_product ASC
          |  LIMIT 200
          |)
          |SELECT video_id,
@@ -105,7 +105,7 @@ case class GetRecommendedVideosMessagePlanner(
       ).normalize)
       resultIDs <-
         readDBRows(sql,
-          List(SqlParameter("Vector", queryVector.toString)))
+          List(SqlParameter("Vector", queryVector.toString))
         ).map(_.map(json => decodeField[Int](json, "video_id")))
     } yield resultIDs
   }

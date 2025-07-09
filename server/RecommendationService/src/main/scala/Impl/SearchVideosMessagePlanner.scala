@@ -90,8 +90,7 @@ case class SearchVideosMessagePlanner(
         ).normalize
       _ <- IO(logger.info("Started searching videos..."))
       likeParams = words.map(w => SqlParameter("String", s"%$w%")).toList
-      queryParamVector = List(SqlParameter("Vector", queryVector.toString))
-      allParams = queryParamVector ++ likeParams ++ queryParamVector
+      allParams = SqlParameter("Vector", queryVector.toString) +: likeParams
 
       resultIDs <- readDBRows(sql, allParams).map(_.map(json => decodeField[Int](json, "video_id")))
     } yield resultIDs
