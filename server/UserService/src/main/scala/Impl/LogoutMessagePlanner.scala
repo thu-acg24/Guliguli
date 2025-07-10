@@ -23,7 +23,7 @@ case class LogoutMessagePlanner(
 
   override def plan(using PlanContext): IO[Unit] = {
     val checkTokenSQL =
-      s"SELECT token FROM $schemaName.token_table WHERE token = ?"
+      s"SELECT 1 FROM $schemaName.token_table WHERE token = ?"
     val deleteTokenSQL =
       s"DELETE FROM $schemaName.token_table WHERE token = ?"
     val checkTokenParams = List(SqlParameter("String", token))
@@ -35,7 +35,7 @@ case class LogoutMessagePlanner(
       tokenExists <- readDBBoolean(checkTokenSQL, checkTokenParams)
       _ <- if (!tokenExists) {
         IO(logger.warn(s"Token '$token' does not exist in TokenTable.")) *>
-          IO.raiseError(new InvalidInputException("登出失败，已登出"))
+          IO.raiseError(InvalidInputException("登出失败，已登出"))
       } else IO.unit
       _ <- IO(logger.info(s"Token '$token' exists. Proceeding with deletion..."))
       _ <- writeDB(deleteTokenSQL, deleteTokenParams).attempt.flatMap {
