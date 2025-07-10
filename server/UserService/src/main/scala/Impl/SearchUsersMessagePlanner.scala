@@ -23,9 +23,9 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 case class SearchUsersMessagePlanner(
-    searchString: String,
-    override val planContext: PlanContext
-) extends Planner[List[UserInfo]] {
+                                      searchString: String,
+                                      override val planContext: PlanContext
+                                    ) extends Planner[List[UserInfo]] {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[List[UserInfo]] = {
@@ -44,7 +44,7 @@ case class SearchUsersMessagePlanner(
   private def queryUsersWithSearchString(searchString: String)(using PlanContext): IO[List[Json]] = {
     val sql =
       s"""
-         |SELECT user_id, username, avatar_path, is_banned
+         |SELECT user_id, username, avatar_path, bio, is_banned
          |FROM $schemaName.user_table
          |WHERE username ILIKE ?
          |ORDER BY username ASC
@@ -63,10 +63,10 @@ case class SearchUsersMessagePlanner(
   private def parseAndSortUserRecords(usersList: List[Json])(using PlanContext): IO[List[UserInfo]] = {
     for {
       _ <- IO(logger.info("[Step 2.1] 开始解析数据库返回的用户列表"))
-      
+
       // Convert each user record to UserInfo
       userInfoList <- usersList.traverse(userJson => parseUserRecord(userJson))
-      
+
       _ <- IO(logger.info(s"[Step 2.2] 成功解析${userInfoList.length}个用户信息"))
     } yield userInfoList
   }
@@ -77,7 +77,7 @@ case class SearchUsersMessagePlanner(
       userID <- IO(decodeField[Int](userJson, "user_id"))
       username <- IO(decodeField[String](userJson, "username"))
       avatarPath <- IO(decodeField[String](userJson, "avatar_path"))
-      bio <- IO(decodeField[String](userJson, "bios"))
+      bio <- IO(decodeField[String](userJson, "bio"))
       isBanned <- IO(decodeField[Boolean](userJson, "is_banned"))
 
       // Get presigned URL for avatar
