@@ -10,7 +10,11 @@ export const searchPagePath = "/search/:str";
 export function useNavigateSearch() {
     const navigate = useNavigate();
     const navigateSearch = useCallback((keyword: string) => {
-        navigate(`/search/${encodeURIComponent(keyword.trim())}`);
+        const trim = keyword.trim();
+        if (!trim) {
+            return;
+        }
+        navigate(`/search/${encodeURIComponent(trim)}`);
     }, [navigate]);
     return { navigateSearch };
 }
@@ -47,6 +51,7 @@ const SearchPage: React.FC = () => {
                 <div className="search-bar">
                     <input
                         type="text"
+                        className="search-bar-input"
                         value={searchInput}
                         onChange={e => setSearchInput(e.target.value)}
                         onKeyDown={handleInputKeyDown}
