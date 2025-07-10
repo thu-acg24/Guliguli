@@ -6,7 +6,7 @@ import { formatTime, formatCount } from 'Components/Formatter';
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus"
 import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
-import { LikeIcon, FavoriteIcon, ReportIcon } from 'Images/Icons';
+import { LikeIcon, FavoriteIcon, ReportIcon,PlayCountIcon } from 'Images/Icons';
 
 const VideoPlayerSection: React.FC<{
   video_id: string;
@@ -37,10 +37,14 @@ const VideoPlayerSection: React.FC<{
 
   return (
     <div className="video-video-player-section">
-      <h1 className="video-video-title">{videoInfo.title}</h1>
+      <div className="video-video-title">{videoInfo.title}</div>
 
       <div className="video-video-meta">
-        <span>播放: {formatCount(videoInfo.views)}</span>
+        
+        <div className="video-icon-meta">
+          <PlayCountIcon className="video-playcount-icon" />
+          {formatCount(videoInfo.views) || 0}
+        </div>
         <span>投稿时间: {formatTime(videoInfo.uploadTime, false)}</span>
       </div>
 

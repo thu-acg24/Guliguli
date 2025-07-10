@@ -13,6 +13,7 @@ export interface SimpleVideo {
   uploaderID: number;
   likes: number;
   favorites: number;
+  views: number;
   uploadTime: string;
   uploaderInfo?: UserInfo;
 }
@@ -60,6 +61,7 @@ export async function getRecommendedVideos(
               uploaderID: 0,
               likes: 0,
               favorites: 0,
+              views:0,
               uploadTime: new Date().toISOString()
             });
           }

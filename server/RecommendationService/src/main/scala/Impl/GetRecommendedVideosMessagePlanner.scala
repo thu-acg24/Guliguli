@@ -76,16 +76,16 @@ case class GetRecommendedVideosMessagePlanner(
     val sql =
       s"""
          |WITH nearest_candidates AS (
-         |  SELECT video_id, view_count, embedding <#> ? AS dot_product
+         |  SELECT video_id, view_count, embedding <#> ? AS neg_dot_product
          |  FROM $schemaName.video_info_table
          |  WHERE visible = true
-         |  ORDER BY embedding <#> ? DESC
+         |  ORDER BY neg_dot_product ASC
          |  LIMIT 200
          |)
          |SELECT video_id,
-         |       dot_product + (0.05 * log(10, GREATEST(view_count, 1))) AS combined_score
+         |       neg_dot_product - (0.05 * log(10, GREATEST(view_count, 1))) AS neg_combined_score
          |FROM nearest_candidates
-         |ORDER BY combined_score DESC
+         |ORDER BY neg_combined_score ASC
          |LIMIT $fetchLimit;
          |""".stripMargin
     for {
@@ -105,7 +105,7 @@ case class GetRecommendedVideosMessagePlanner(
       ).normalize)
       resultIDs <-
         readDBRows(sql,
-          List(SqlParameter("Vector", queryVector.toString)).flatMap(x => List(x, x))
+          List(SqlParameter("Vector", queryVector.toString))
         ).map(_.map(json => decodeField[Int](json, "video_id")))
     } yield resultIDs
   }

@@ -93,10 +93,10 @@ const VideoPage: React.FC = () => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
     window.scrollTo(0, 0);
-    commentsFetchedRef.current = false;
     fetchVideoInfo();
   }, [video_id]);
   useEffect(() => {
+    commentsFetchedRef.current = false;
     setIsLoggedIn(!!userToken);
     setComments([]);
     setNoMoreComments(false);
