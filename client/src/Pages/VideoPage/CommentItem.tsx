@@ -114,7 +114,64 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
           {comment.replyCount > 0 && (
             <div className="video-replies-section">
-              {/* ... rest of the reply section remains the same ... */}
+              {!comment.showAllReplies && comment.replies && comment.replies.length > 0 && (
+
+                <div className="video-replies-list">
+
+                  {comment.replies.slice(0, 2).map(reply => (
+                    <ReplyItem
+                      key={reply.commentID}
+                      reply={reply}
+                      isLoggedIn={isLoggedIn}
+                      userInfo={userInfo}
+                      videoInfo={videoInfo}
+                      handleLikeComment={handleLikeComment}
+                      handleDeleteComment={handleDeleteComment}
+                      navigateToUser={navigateToUser}
+                      setReplyingTo={setReplyingTo}
+                      setShowReplyModal={setShowReplyModal}
+                      setShowLoginModal={setShowLoginModal}
+                    />
+                  ))}
+                </div>
+              )}
+              {comment.showAllReplies && comment.replies && comment.replies.length > 0 && (
+                <div className="video-replies-list">
+                  {comment.replies.map(reply => (
+                    <ReplyItem
+                      key={reply.commentID}
+                      reply={reply}
+                      isLoggedIn={isLoggedIn}
+                      userInfo={userInfo}
+                      videoInfo={videoInfo}
+                      handleLikeComment={handleLikeComment}
+                      handleDeleteComment={handleDeleteComment}
+                      navigateToUser={navigateToUser}
+                      setReplyingTo={setReplyingTo}
+                      setShowReplyModal={setShowReplyModal}
+                      setShowLoginModal={setShowLoginModal}
+                    />
+                  ))}
+                </div>
+              )}
+              <div className="video-reply-actions">
+                {comment.replyCount > 0 && (
+                  <span
+                    className="video-view-replies"
+                    onClick={() => handleToggleReplies(comment)}
+                  >
+                    {comment.showAllReplies ? '收起' : ((comment.replies?.length | 0) > 2 ? `查看剩余${comment.replyCount - 2}条回复` : ``)}
+                  </span>
+                )}
+                {comment.showAllReplies && comment.hasMoreReplies && (//展开了后
+                  <span
+                    className="video-load-more-replies"
+                    onClick={() => handleLoadMoreReplies(comment)}
+                  >
+                    查看剩余{comment.replyCount - comment.replies.length}条回复
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
