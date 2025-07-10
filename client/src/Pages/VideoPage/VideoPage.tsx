@@ -88,7 +88,7 @@ const VideoPage: React.FC = () => {
   useEffect(() => {
     setVideosisloading(true);
     getRecommendedVideos(userToken ? userToken : null, (videoInfo?.status === VideoStatus.approved ? Number(video_id) : null), 4).then(setRecommendvideosInfo).then(() => { setVideosisloading(false) });
-  }, [userToken]);
+  }, [userToken,video_id]);
   useLayoutEffect(() => {
     console.log("现在正在看的是", video_id);
     setVideoinfoIsLoading(true);
