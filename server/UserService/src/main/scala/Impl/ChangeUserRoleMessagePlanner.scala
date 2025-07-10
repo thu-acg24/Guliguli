@@ -84,7 +84,7 @@ case class ChangeUserRoleMessagePlanner(
   }
 
   // Step 4 Helper: 更新数据库中的用户角色
-  private def updateUserRoleInDB()(using PlanContext): IO[Unit] = {
+  private def updateUserRoleInDB()(using PlanContext): IO[String] = {
     val updateSQL =
       s"""
          |UPDATE $schemaName.user_table
@@ -99,11 +99,6 @@ case class ChangeUserRoleMessagePlanner(
     )
 
     // 执行更新操作并处理结果
-    readDBInt(updateSQL, params)
-      .map { updatedRows =>
-        if (updatedRows <= 0)
-          IO(logger.info(s"未更新任何记录，可能用户不存在(userID=$userID)")) *>
-            IO.raiseError(new InvalidInputException(s"未更新任何记录，可能用户不存在"))
-      }
+    writeDB(updateSQL, params)
   }
 }

@@ -5,3 +5,4 @@ export { MemberPageTab, useNavigateMember } from "Pages/MemberPage/MemberPage";
 export { MessagePageTab, useNavigateMessage } from "Pages/MessagePage/MessagePage";
 export { useNavigateVideo } from "Pages/VideoPage/VideoPage";
 export { useNavigateSearch } from "Pages/SearchPage/SearchPage";
+export { useNavigateAdmin } from "Pages/AdminPage/AdminPage";
