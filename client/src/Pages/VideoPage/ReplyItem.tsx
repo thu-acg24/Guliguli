@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";  // 确保包含 useState
 import "./VideoPage.css";
 import { CommentWithUserInfo } from './VideoPage'
+import { CommentReportModal } from "./ReportComponents";
 import { UserInfo } from 'Plugins/UserService/Objects/UserInfo';
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { formatTime } from 'Components/Formatter';
@@ -32,6 +33,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
   setShowLoginModal,
 }) => {
   const [showOptions, setShowOptions] = React.useState(false);
+  const [showCommentReport, setShowCommentReport] = useState(false);
 
   return (
     <div className="video-reply-item">
@@ -101,7 +103,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
               <div className="video-options-menu">
                 <button 
                   className="video-report-btn"
-                  onClick={() => alert(`举报回复: ${reply.content}`)}
+                  onClick={() => isLoggedIn ? setShowCommentReport(true) : setShowLoginModal(true)}
                 >
                   举报
                 </button>
@@ -118,6 +120,13 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           </div>
         </div>
       </div>
+      {showCommentReport && (
+        <CommentReportModal
+          visible={showCommentReport}
+          onCancel={() => setShowCommentReport(false)}
+          commentID={reply.commentID}
+        />
+      )}
     </div>
   );
 };
