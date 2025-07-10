@@ -36,7 +36,7 @@ export async function commonSend(
         backdropCall()
     }
     const url = infoMessage.getURL()
-    console.log('请求的url ------> ' + url)
+    console.log('请求的url ------> ' + url+'请求时间'+Date.now())
 
     const clearTokenTimeOut = () => {
         const timer = setTimeout(() => {
