@@ -5,19 +5,20 @@ import APIs.UserService.GetUIDByTokenMessage
 import APIs.VideoService.QueryVideoInfoMessage
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Global.GlobalVariables.semaphores
 import Objects.VideoService.Video
 import Objects.VideoService.VideoStatus
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import cats.implicits.*
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -29,16 +30,18 @@ case class AddBrowseHistoryMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[Unit] = {
-    for {
-      _ <- IO(logger.info("Step 1: Validate user token and retrieve user ID"))
-      userID<- getUserIDByToken()
-      _ <-IO(logger.info(s"Validated user token, userID: $userID"))
-      _ <-IO(logger.info("Step 2: Validate videoID and retrieve video information"))
-      video<-getVideoInfo(videoID)
-      _ <-IO(logger.info(s"Video validated successfully: videoID=${video.videoID}, title=${video.title}"))
-      _ <-IO(logger.info("Step 3: Add browse history to the database"))
-      _ <-addOrUpdateHistory(userID, video.videoID).map(_ => ())
-    } yield ()
+    semaphores.withPermit(token) {
+      for {
+        _ <- IO(logger.info("Step 1: Validate user token and retrieve user ID"))
+        userID <- getUserIDByToken()
+        _ <- IO(logger.info(s"Validated user token, userID: $userID"))
+        _ <- IO(logger.info("Step 2: Validate videoID and retrieve video information"))
+        video <- getVideoInfo(videoID)
+        _ <- IO(logger.info(s"Video validated successfully: videoID=${video.videoID}, title=${video.title}"))
+        _ <- IO(logger.info("Step 3: Add browse history to the database"))
+        _ <- addOrUpdateHistory(userID, video.videoID).map(_ => ())
+      } yield ()
+    }
   }
 
   private def getUserIDByToken()(using PlanContext): IO[Int] = {

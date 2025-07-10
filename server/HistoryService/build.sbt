@@ -87,7 +87,7 @@ libraryDependencies ++= Seq(
 
   // 其他库
   "joda-time" % "joda-time" % "2.12.7",
-  "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.0.202109080827-r",
+  "org.eclipse.jgit" % "org.eclipse.jgit" % "7.3.0.202506031305-r",
   "com.zaxxer" % "HikariCP" % "5.1.0",
   "org.postgresql" % "postgresql" % "42.7.2",
 
@@ -101,3 +101,5 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies += "com.typesafe" % "config" % "1.4.3"
+
+libraryDependencies += "com.github.ben-manes.caffeine" % "caffeine" % "3.2.1"
