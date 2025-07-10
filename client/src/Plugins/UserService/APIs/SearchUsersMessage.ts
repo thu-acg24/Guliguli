@@ -9,7 +9,7 @@ import { ServerAddr } from '../../../server-config';
 
 
 
-export class QueryUsersMessage extends TongWenMessage {
+export class SearchUsersMessage extends TongWenMessage {
     constructor(
         public  searchString: string
     ) {

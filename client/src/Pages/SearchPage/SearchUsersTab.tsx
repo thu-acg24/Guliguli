@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { QueryUsersMessage } from "Plugins/UserService/APIs/QueryUsersMessage";
+import { SearchUsersMessage } from "Plugins/UserService/APIs/SearchUsersMessage";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { useNavigateHome } from "Globals/Navigate";
 
@@ -19,7 +19,7 @@ const SearchUsersTab: React.FC<{
             }
             setLoading(true);
             const users = await new Promise<UserInfo[]>((resolve, reject) => {
-                new QueryUsersMessage(keyword).send(
+                new SearchUsersMessage(keyword).send(
                     (info: string) => resolve(JSON.parse(info) as UserInfo[]),
                     (error: string) => reject(new Error(error))
                 );
