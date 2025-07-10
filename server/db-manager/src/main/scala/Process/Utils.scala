@@ -1,7 +1,7 @@
 package Process
 
 import Common.API.{PlanContext, TraceID}
-import Global.{DBConfig, ServerConfig, ServerConfigDecoder}
+import Global.{DBConfig, DBConfigDecoder}
 import cats.effect.{IO, Resource}
 import io.circe.*
 import io.circe.derivation.Configuration
@@ -15,7 +15,7 @@ import scala.io.{BufferedSource, Source}
 
 object ConfigUtils {
   /** 读取config文件 */
-  def readConfig(filePath: String): IO[ServerConfig] = {
+  def readConfig(filePath: String): IO[DBConfig] = {
     // Define a resource for managing the file
     val fileResource: Resource[IO, BufferedSource] = Resource.make {
       IO(Source.fromFile(filePath)) // Acquire the resource
@@ -28,7 +28,7 @@ object ConfigUtils {
     fileResource.use { source =>
       IO {
         val fileContents = source.getLines().mkString
-        ServerConfigDecoder.parser(fileContents) match {
+        DBConfigDecoder.parser(fileContents) match {
           case Right(config) => {
             config
           }
@@ -50,20 +50,6 @@ object ConfigUtils {
       }
       updatedJson.toString
     }
-  }
-
-  def server2DB(serviceConfig: ServerConfig): DBConfig = {
-    DBConfig(
-      jdbcUrl = serviceConfig.jdbcUrl, 
-      username = serviceConfig.username, 
-      password = serviceConfig.password, 
-      schemaName = Common.ServiceUtils.schemaName, 
-      prepStmtCacheSize = serviceConfig.prepStmtCacheSize, 
-      prepStmtCacheSqlLimit = serviceConfig.prepStmtCacheSqlLimit, 
-      maximumPoolSize = serviceConfig.maximumPoolSize, 
-      connectionLiveMinutes = serviceConfig.connectionLiveMinutes, 
-      maximumServerConnection = serviceConfig.maximumServerConnection
-    )
   }
 
 }

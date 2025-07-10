@@ -4,7 +4,7 @@ import { Video } from "Plugins/VideoService/Objects/Video";
 import { useOutletContext } from "react-router-dom";
 import { useNavigateVideo } from "Globals/Navigate";
 import { QueryFavoriteVideosMessage } from "Plugins/VideoService/APIs/QueryFavoriteVideosMessage";
-import { videoPagePath } from "Pages/VideoPage/VideoPage";
+import { formatCount } from "Components/Formatter";
 import DefaultCover from "Images/DefaultCover.jpg";
 import "./HomePage.css";
 
@@ -64,8 +64,8 @@ const FavoritesTab: React.FC<{ userID?: number }> = (props) => {
                                 <div className="home-video-info">
                                     <div className="home-video-title" onClick={() => handleVideoClick(video.videoID)}>{video.title}</div>
                                     <div className="home-video-meta">
-                                        <span>{video.views} 播放</span>
-                                        <span>{video.likes} 点赞</span>
+                                        <span>{formatCount(video.views)} 播放</span>
+                                        <span>{formatCount(video.likes)} 点赞</span>
                                     </div>
                                 </div>
                             </div>

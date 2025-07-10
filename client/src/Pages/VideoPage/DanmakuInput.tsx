@@ -5,15 +5,13 @@ import { PublishDanmakuMessage } from "Plugins/DanmakuService/APIs/PublishDanmak
 import "./DanmakuInput.css";
 import Danmaku from 'danmaku';
 
-interface DanmakuInputProps {
+const DanmakuInput: React.FC<{
   videoID: number;
   isLoggedIn: boolean;
   setShowLoginModal: (value: boolean) => void;
   currentTime: number;
   danmakuRef: React.RefObject<Danmaku>;
-}
-
-const DanmakuInput: React.FC<DanmakuInputProps> = ({
+}> = ({
   videoID,
   isLoggedIn,
   setShowLoginModal,

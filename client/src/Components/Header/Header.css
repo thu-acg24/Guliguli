@@ -52,6 +52,7 @@
     width: 100%;
     height: 40px;
     display: flex;
+    border-radius: 8px 8px 8px 8px;
 }
 
 .header-search-input {
@@ -67,7 +68,7 @@
     transition: all 0.3s ease;
 }
 
-.header-search-input:hover {
+.header-search-box:hover .header-search-input {
     background-color: white;
 }
 

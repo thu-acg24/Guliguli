@@ -40,13 +40,14 @@ case class DBConfig(
 
                      /** 服务器最多能够同时接受多少请求，这个数字可以大一点防止成为并发的瓶颈 */
                      maximumServerConnection: Int = 20000,
+
+                     /** 最大的同时往内部微服务发送的请求个数，原则上和最大连接数相同 */
+                     maximumClientConnection: Int = 20000,
                    )
 
-case object DBConfig{
+case object DBConfig {
   import Common.Serialize.CustomColumnTypes.*
-  
 
-  
   // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[DBConfig] = deriveEncoder
   private val circeDecoder: Decoder[DBConfig] = deriveDecoder
@@ -70,8 +71,11 @@ case object DBConfig{
   given dbConfigDecoder: Decoder[DBConfig] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
+}
+object DBConfigDecoder {
+  implicit val serverConfigDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
 
-
-
-
+  def parser(jsonString: String): Either[io.circe.Error, DBConfig] = {
+    io.circe.parser.decode[DBConfig](jsonString)
+  }
 }

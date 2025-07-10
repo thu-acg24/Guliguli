@@ -5,7 +5,6 @@ import { useUserToken } from "Globals/GlobalStore";
 import { ModifyVideoMessage } from "Plugins/VideoService/APIs/ModifyVideoMessage";
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
 import { materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
-import { memberPagePath } from "./MemberPage";
 import { VideoBasicInfo, VideoUpload, CoverUpload } from "./VideoEdit";
 
 const MemberVideoEdit: React.FC = () => {

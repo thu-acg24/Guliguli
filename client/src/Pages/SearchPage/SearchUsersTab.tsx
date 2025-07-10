@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { QueryUsersMessage } from "Plugins/UserService/APIs/QueryUsersMessage";
+import { SearchUsersMessage } from "Plugins/UserService/APIs/SearchUsersMessage";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { useNavigateHome } from "Globals/Navigate";
-import { set } from "lodash";
 
-interface SearchUsersTabProps {
+const SearchUsersTab: React.FC<{
     keyword: string;
-}
-
-const SearchUsersTab: React.FC<SearchUsersTabProps> = ({ keyword }) => {
+}> = ({ keyword }) => {
     const [userResults, setUserResults] = useState<UserInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const { navigateHome } = useNavigateHome();
@@ -22,7 +19,7 @@ const SearchUsersTab: React.FC<SearchUsersTabProps> = ({ keyword }) => {
             }
             setLoading(true);
             const users = await new Promise<UserInfo[]>((resolve, reject) => {
-                new QueryUsersMessage(keyword).send(
+                new SearchUsersMessage(keyword).send(
                     (info: string) => resolve(JSON.parse(info) as UserInfo[]),
                     (error: string) => reject(new Error(error))
                 );

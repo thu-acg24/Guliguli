@@ -4,16 +4,15 @@ import { Comment } from 'Plugins/CommentService/Objects/Comment';
 import { PublishCommentMessage } from 'Plugins/CommentService/APIs/PublishCommentMessage';
 import './ReplyModal.css';
 
-interface ReplyModalProps {
+//只需要commentID, videoID, content
+const ReplyModal: React.FC<{
   commentID: number;
   videoID: number;
   replyingToContent:string|null;
   content: string;
   onClose: () => void;
   onSuccess?: (newComment: Comment) => void;
-}
-//只需要commentID, videoID, content
-const ReplyModal: React.FC<ReplyModalProps> = ({ commentID, videoID, replyingToContent,content, onClose, onSuccess }) => {
+}> = ({ commentID, videoID, replyingToContent,content, onClose, onSuccess }) => {
   const [replyContent, setReplyContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userToken = useUserToken();

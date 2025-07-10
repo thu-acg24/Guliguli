@@ -63,16 +63,16 @@ case class SearchVideosMessagePlanner(
     val sql =
       s"""
          |WITH filtered_candidates AS (
-         |  SELECT video_id, view_count, embedding <#> ? AS dot_product
+         |  SELECT video_id, view_count, embedding <#> ? AS neg_dot_product
          |  FROM $schemaName.video_info_table
          |  WHERE visible = true AND $whereFilterClause
-         |  ORDER BY embedding <#> ? DESC
+         |  ORDER BY neg_dot_product ASC
          |  LIMIT 200
          |)
          |SELECT video_id,
-         |       dot_product + (0.05 * log(10, GREATEST(view_count, 1))) AS combined_score
+         |       neg_dot_product - (0.05 * log(10, GREATEST(view_count, 1))) AS neg_combined_score
          |FROM filtered_candidates
-         |ORDER BY combined_score DESC
+         |ORDER BY neg_combined_score ASC
          |LIMIT $fetchLimit;
          |""".stripMargin
 
@@ -90,8 +90,7 @@ case class SearchVideosMessagePlanner(
         ).normalize
       _ <- IO(logger.info("Started searching videos..."))
       likeParams = words.map(w => SqlParameter("String", s"%$w%")).toList
-      queryParamVector = List(SqlParameter("Vector", queryVector.toString))
-      allParams = queryParamVector ++ likeParams ++ queryParamVector
+      allParams = SqlParameter("Vector", queryVector.toString) +: likeParams
 
       resultIDs <- readDBRows(sql, allParams).map(_.map(json => decodeField[Int](json, "video_id")))
     } yield resultIDs

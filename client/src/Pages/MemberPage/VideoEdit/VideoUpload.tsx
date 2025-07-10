@@ -7,13 +7,11 @@ import { ValidateVideoMessage } from "Plugins/VideoService/APIs/ValidateVideoMes
 import { sendCover } from "./CoverUpload";
 import { extractFirstFrameFromVideo } from "./VideoFrameExtractor";
 
-interface VideoUploadProps {
+const VideoUpload: React.FC<{
     isCreating: boolean;
     videoID: number;
     onVideoUploaded?: () => void;
-}
-
-const VideoUpload: React.FC<VideoUploadProps> = ({
+}> = ({
     isCreating,
     videoID,
     onVideoUploaded

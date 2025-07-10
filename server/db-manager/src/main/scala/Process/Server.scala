@@ -29,7 +29,7 @@ object Server extends IOApp:
     }
 
   def run(args: List[String]): IO[ExitCode] =
-    ConfigUtils.readConfig(args.headOption.getOrElse("server_config.json"))
+    ConfigUtils.readConfig(args.headOption.getOrElse("db_config.json"))
       .flatMap { config =>
         createDataSource(config, init = false).use { dataSource =>
           (for {

@@ -8,7 +8,7 @@ import { Video } from 'Plugins/VideoService/Objects/Video';
 import { formatTime } from 'Components/Formatter';
 import { ThreeDotsIcon, LikeIcon } from 'Images/Icons';
 
-interface CommentItemProps {
+const CommentItem: React.FC<{
   comment: CommentWithUserInfo;
   isLoggedIn: boolean;
   userInfo: UserInfo;
@@ -21,9 +21,7 @@ interface CommentItemProps {
   setShowLoginModal: (value: boolean) => void;
   handleToggleReplies: (comment: CommentWithUserInfo) => void;
   handleLoadMoreReplies: (comment: CommentWithUserInfo) => void;
-}
-
-const CommentItem: React.FC<CommentItemProps> = ({
+}> = ({
   comment,
   isLoggedIn,
   userInfo,

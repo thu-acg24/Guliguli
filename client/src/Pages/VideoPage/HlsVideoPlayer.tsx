@@ -5,15 +5,13 @@ import { Danmaku as DanmakuObj } from 'Plugins/DanmakuService/Objects/Danmaku'
 import './HlsVideoPlayer.css';
 import { Video } from 'Plugins/VideoService/Objects/Video';
 
-interface MinioVideoPlayerProps {
+const MinioVideoPlayer: React.FC<{
   videoUrl: string;
   videoInfo: Video;
   danmakuList: DanmakuObj[];
   onTimeUpdate?: (time: number) => void; 
   danmakuRef: React.RefObject<Danmaku>
-}
-
-const MinioVideoPlayer: React.FC<MinioVideoPlayerProps> = ({ videoUrl, videoInfo, danmakuList, onTimeUpdate, danmakuRef  }) => {
+}> = ({ videoUrl, videoInfo, danmakuList, onTimeUpdate, danmakuRef  }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);

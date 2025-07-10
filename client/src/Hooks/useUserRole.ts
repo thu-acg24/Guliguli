@@ -3,16 +3,7 @@ import { useUserToken } from 'Globals/GlobalStore';
 import { QueryUserRoleMessage } from 'Plugins/UserService/APIs/QueryUserRoleMessage';
 import { UserRole } from 'Plugins/UserService/Objects/UserRole';
 
-interface UseUserRoleReturn {
-    userRole: UserRole | null;
-    loading: boolean;
-    error: string | null;
-    isAdmin: boolean;
-    isAuditor: boolean;
-    isNormal: boolean;
-}
-
-export const useUserRole = (): UseUserRoleReturn => {
+export const useUserRole = () => {
     const userToken = useUserToken();
     const [userRole, setUserRole] = useState<UserRole | null>(null);
     const [loading, setLoading] = useState(true);

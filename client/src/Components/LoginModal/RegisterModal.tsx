@@ -3,12 +3,10 @@ import { RegisterMessage } from "Plugins/UserService/APIs/RegisterMessage";
 import { validateUsername, validateEmail, validatePassword } from "./ValidateUserInfo";
 import "./Modal.css";
 
-interface RegisterModalProps {
+const RegisterModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-}
-
-const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
+}> = ({ isOpen, onClose }) => {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
