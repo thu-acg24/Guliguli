@@ -119,10 +119,8 @@ const MemberDanmakuManagement: React.FC = () => {
                             <div className="member-danmaku-content">
                                 <div className="member-danmaku-text">{danmaku.content}</div>
                                 <div className="member-danmaku-info">
-                                    <span className="member-danmaku-time">{formatDuration(danmaku.time)}</span>
+                                    <span className="member-danmaku-time">{formatDuration(danmaku.timeInVideo)}</span>
                                     <span className="member-danmaku-user">{user ? user.username : '未知用户'}</span>
-                                    <span className="member-danmaku-date">{formatTime(danmaku.createdAt)}</span>
-                                    {user?.isBanned && <span className="member-danmaku-banned">（已封禁）</span>}
                                 </div>
                             </div>
                             <button

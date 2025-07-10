@@ -108,7 +108,6 @@ const MemberUpload: React.FC = () => {
         <div className="member-upload-step-content">
             <CoverUpload
                 videoID={videoID!}
-                refreshKey={refreshKey}
             />
             <div className="member-cover-upload" style={{ marginTop: '20px' }}>
                 <button
