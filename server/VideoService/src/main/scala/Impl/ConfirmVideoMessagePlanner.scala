@@ -43,14 +43,14 @@ case class ConfirmVideoMessagePlanner(
       }
       _ <- IO(sessions.invalidate(session.token))
       _ <- status match {
-        case "success" => updateVideoInDB(session.videoID, sliceCount)
+        case "success" => updateVideoInDB(session.token, session.videoID, sliceCount)
         case "failure" => failureControl(session.videoID)
         case _ => IO.raiseError(InvalidInputException(s"status必须是success或failure中的一个"))
       }
     } yield ()
   }
 
-  private def updateVideoInDB(videoID: Int, sliceCount: Int)(using PlanContext): IO[Unit] = {
+  private def updateVideoInDB(token: String, videoID: Int, sliceCount: Int)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
            UPDATE $schemaName.video_table
@@ -69,7 +69,7 @@ case class ConfirmVideoMessagePlanner(
     for {
       _ <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams"))
       updateResponse <- writeDB(querySQL, queryParams)
-      _ <- checkVideoStatus(videoID)
+      _ <- checkVideoStatus(token, videoID)
     } yield ()
   }
 

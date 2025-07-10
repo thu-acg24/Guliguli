@@ -1,5 +1,6 @@
 package Utils
 
+import APIs.RecommendationService.UpdateVideoInfoMessage
 import Common.API.PlanContext
 import Common.APIException.InvalidInputException
 import Common.DBAPI.*
@@ -89,7 +90,7 @@ case object VerifyProcess {
       }
     }
   }
-  def checkVideoStatus(videoID: Int)(using PlanContext): IO[String] = {
+  def checkVideoStatus(token: String, videoID: Int)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
          |UPDATE $schemaName.video_table
@@ -100,6 +101,7 @@ case object VerifyProcess {
          |  AND cover IS NOT NULL
          |  AND cover NOT LIKE '0/%'
        """.stripMargin
-    writeDB(querySQL, List(SqlParameter("Int", videoID.toString)))
+    writeDB(querySQL, List(SqlParameter("Int", videoID.toString))) >>
+      UpdateVideoInfoMessage(token, videoID).send
   }
 }
