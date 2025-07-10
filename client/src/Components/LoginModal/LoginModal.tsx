@@ -4,12 +4,10 @@ import { LoginMessage } from "Plugins/UserService/APIs/LoginMessage";
 import RegisterModal from "./RegisterModal";
 import "./Modal.css"
 
-interface LoginModalProps {
+const LoginModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-}
-
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
+}> = ({ isOpen, onClose }) => {
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");

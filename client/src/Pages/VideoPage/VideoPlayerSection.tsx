@@ -8,7 +8,7 @@ import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
 import { LikeIcon, FavoriteIcon, ReportIcon } from 'Images/Icons';
 
-interface VideoPlayerSectionProps {
+const VideoPlayerSection: React.FC<{
   video_id: string;
   videoInfo: Video;
   isLiked: boolean;
@@ -17,9 +17,7 @@ interface VideoPlayerSectionProps {
   favoriteVideo: () => void;
   isLoggedIn: boolean;
   setShowLoginModal: (value: boolean) => void;
-}
-
-const VideoPlayerSection: React.FC<VideoPlayerSectionProps> = ({
+}> = ({
   video_id,
   videoInfo,
   isLiked,

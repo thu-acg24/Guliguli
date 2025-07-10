@@ -4,51 +4,57 @@ import { useNavigateMember } from "Globals/Navigate";
 import { useUserToken } from "Globals/GlobalStore";
 import { QueryVideoDanmakuMessage } from "Plugins/DanmakuService/APIs/QueryVideoDanmakuMessage";
 import { DeleteDanmakuMessage } from "Plugins/DanmakuService/APIs/DeleteDanmakuMessage";
-import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
+import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
+import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
+import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { formatTime, formatDuration } from "Components/Formatter";
+import DefaultAvatar from "Images/DefaultAvatar.jpg";
+import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
+import { Danmaku } from "Plugins/DanmakuService/Objects/Danmaku";
 
-interface Danmaku {
-    danmakuID: number;
-    content: string;
-    time: number;
-    color: string;
-    user: {
-        userID: number;
-        username: string;
-        avatarPath: string;
-    };
-    createdAt: string;
+interface DanmakuWithUser {
+    danmaku: Danmaku;
+    user: UserInfo;
 }
 
 const MemberDanmakuManagement: React.FC = () => {
     const { videoID } = useParams<{ videoID: string }>();
     const { navigateMember } = useNavigateMember();
     const userToken = useUserToken();
-
-    const [danmakus, setDanmakus] = useState<Danmaku[]>([]);
+    const [danmakus, setDanmakus] = useState<DanmakuWithUser[]>([]);
     const [loading, setLoading] = useState(true);
-    const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+    const { ToastComponent, showSuccess } = useTopSuccessToast();
 
     useEffect(() => {
         if (videoID) {
             loadDanmakus();
         }
+        // eslint-disable-next-line
     }, [videoID]);
 
     const loadDanmakus = async () => {
         if (!videoID) return;
-
         try {
             setLoading(true);
-            const response = await new Promise<string>((resolve, reject) => {
+            const danmakusData = await new Promise<Danmaku[]>((resolve, reject) => {
                 new QueryVideoDanmakuMessage(parseInt(videoID)).send(
-                    (info: string) => resolve(info),
+                    (info: string) => resolve(JSON.parse(info) as Danmaku[]),
                     (error: string) => reject(new Error(error))
                 );
             });
-
-            const danmakusData = JSON.parse(response);
-            setDanmakus(danmakusData);
+            // 获取所有弹幕的用户信息
+            const danmakusWithUser: DanmakuWithUser[] = await Promise.all(
+                danmakusData.map(async (danmaku: any) => {
+                    const user = await new Promise<UserInfo>((resolve, reject) => {
+                        new QueryUserInfoMessage(danmaku.userID).send(
+                            (info: string) => resolve(JSON.parse(info) as UserInfo),
+                            (error: string) => reject(new Error(error))
+                        );
+                    });
+                    return { danmaku, user };
+                })
+            );
+            setDanmakus(danmakusWithUser);
         } catch (error) {
             materialAlertError("加载失败", error instanceof Error ? error.message : "获取弹幕列表失败");
         } finally {
@@ -57,36 +63,17 @@ const MemberDanmakuManagement: React.FC = () => {
     };
 
     const handleDeleteDanmaku = async (danmakuID: number) => {
-        if (!userToken) {
-            materialAlertError("未登录", "请先登录");
-            return;
-        }
-
-        if (!confirm("确定要删除这条弹幕吗？")) {
-            return;
-        }
-
         try {
-            setDeletingIds(prev => new Set(prev).add(danmakuID));
-
             await new Promise<void>((resolve, reject) => {
                 new DeleteDanmakuMessage(userToken, danmakuID).send(
                     (info: string) => resolve(),
                     (error: string) => reject(new Error(error))
                 );
             });
-
-            // 从列表中移除已删除的弹幕
-            setDanmakus(prev => prev.filter(danmaku => danmaku.danmakuID !== danmakuID));
-            materialAlertSuccess("删除成功", "弹幕已被删除");
+            setDanmakus(prev => prev.filter(item => item.danmaku.danmakuID !== danmakuID));
+            showSuccess("弹幕已被删除");
         } catch (error) {
             materialAlertError("删除失败", error instanceof Error ? error.message : "删除弹幕失败");
-        } finally {
-            setDeletingIds(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(danmakuID);
-                return newSet;
-            });
         }
     };
 
@@ -100,6 +87,7 @@ const MemberDanmakuManagement: React.FC = () => {
 
     return (
         <div className="member-danmaku-management">
+            {ToastComponent}
             <div className="member-page-header">
                 <button
                     className="member-back-btn"
@@ -108,6 +96,7 @@ const MemberDanmakuManagement: React.FC = () => {
                     ← 返回
                 </button>
                 <h1 className="member-page-title">管理弹幕</h1>
+                <p className="member-page-subtitle">共有 {danmakus.length} 条弹幕</p>
             </div>
 
             {danmakus.length === 0 ? (
@@ -117,28 +106,30 @@ const MemberDanmakuManagement: React.FC = () => {
                 </div>
             ) : (
                 <div className="member-danmaku-list">
-                    {danmakus.map((danmaku) => (
+                    {danmakus.map(({ danmaku, user }) => (
                         <div key={danmaku.danmakuID} className="member-danmaku-item">
+                            <div className="member-danmaku-avatar">
+                                <img
+                                    src={user?.avatarPath || DefaultAvatar}
+                                    alt="头像"
+                                    className="member-danmaku-avatar-img"
+                                    onError={e => (e.currentTarget.src = DefaultAvatar)}
+                                />
+                            </div>
                             <div className="member-danmaku-content">
                                 <div className="member-danmaku-text">{danmaku.content}</div>
                                 <div className="member-danmaku-info">
-                                    <span className="member-danmaku-time">
-                                        {formatDuration(danmaku.time)}
-                                    </span>
-                                    <span className="member-danmaku-user">
-                                        {danmaku.user.username}
-                                    </span>
-                                    <span className="member-danmaku-date">
-                                        {formatTime(danmaku.createdAt)}
-                                    </span>
+                                    <span className="member-danmaku-time">{formatDuration(danmaku.time)}</span>
+                                    <span className="member-danmaku-user">{user ? user.username : '未知用户'}</span>
+                                    <span className="member-danmaku-date">{formatTime(danmaku.createdAt)}</span>
+                                    {user?.isBanned && <span className="member-danmaku-banned">（已封禁）</span>}
                                 </div>
                             </div>
                             <button
                                 className="member-danmaku-delete"
                                 onClick={() => handleDeleteDanmaku(danmaku.danmakuID)}
-                                disabled={deletingIds.has(danmaku.danmakuID)}
                             >
-                                {deletingIds.has(danmaku.danmakuID) ? "删除中..." : "删除"}
+                                {"删除"}
                             </button>
                         </div>
                     ))}

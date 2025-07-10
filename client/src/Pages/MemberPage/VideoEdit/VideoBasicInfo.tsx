@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useUserToken } from "Globals/GlobalStore";
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 
-interface VideoBasicInfoProps {
+const VideoBasicInfo: React.FC<{
     isCreating: boolean;
     videoID?: number;
     loadVideoInfo?: () => Promise<{ title: string; description: string; tags: string[] }>;
     onSubmit: (title: string, description: string, tags: string[]) => Promise<void>;
-}
-
-const VideoBasicInfo: React.FC<VideoBasicInfoProps> = ({
+}> = ({
     isCreating,
     videoID,
     loadVideoInfo,

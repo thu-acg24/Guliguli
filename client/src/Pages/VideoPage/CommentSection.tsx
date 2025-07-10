@@ -6,7 +6,7 @@ import {Video} from 'Plugins/VideoService/Objects/Video'
 import defaultavatar from "Images/DefaultAvatar.jpg"
 import "./VideoPage.css";
 
-interface CommentSectionProps {
+const CommentSection: React.FC<{
   comments: CommentWithUserInfo[];
   loadingComments: boolean;
   noMoreComments: boolean;
@@ -25,9 +25,7 @@ interface CommentSectionProps {
   setShowLoginModal: (value: boolean) => void;
   handleToggleReplies: (comment: CommentWithUserInfo) => void;
   handleLoadMoreReplies: (comment: CommentWithUserInfo) => void;
-}
-
-const CommentSection: React.FC<CommentSectionProps> = ({
+}> = ({
   comments,
   loadingComments,
   noMoreComments,

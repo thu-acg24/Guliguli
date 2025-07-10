@@ -70,9 +70,9 @@ const SearchPage: React.FC = () => {
             </div>
             <div className="search-results">
                 {activeTab === SearchTab.video ? (
-                    <SearchVideosTab keyword={searchInput} />
+                    <SearchVideosTab keyword={str} />
                 ) : (
-                    <SearchUsersTab keyword={searchInput} />
+                    <SearchUsersTab keyword={str} />
                 )}
             </div>
         </div>

@@ -9,12 +9,10 @@ import { ModifyUserInfoMessage } from "Plugins/UserService/APIs/ModifyUserInfoMe
 import { validateUsername } from "Components/LoginModal/ValidateUserInfo";
 import "../HomePage.css";
 
-interface UserInfoFormProps {
+const UserInfoForm: React.FC<{
     userInfo?: any;
     refreshHomePageUserInfo?: () => void;
-}
-
-const UserInfoForm: React.FC<UserInfoFormProps> = ({
+}> = ({
     userInfo,
     refreshHomePageUserInfo
 }) => {

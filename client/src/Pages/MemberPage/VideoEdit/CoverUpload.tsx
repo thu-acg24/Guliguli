@@ -6,11 +6,6 @@ import { QueryUploadCoverPathMessage } from "Plugins/VideoService/APIs/QueryUplo
 import { ValidateCoverMessage } from "Plugins/VideoService/APIs/ValidateCoverMessage";
 import DefaultCover from "Images/DefaultCover.jpg";
 
-interface CoverUploadProps {
-    videoID: number;
-    refreshKey?: number;
-}
-
 export const sendCover = async (userToken: string, videoID: number, file: File): Promise<void> => {
     const uploadPath = await new Promise<UploadPath>((resolve, reject) => {
         new QueryUploadCoverPathMessage(userToken, videoID).send(
@@ -40,7 +35,9 @@ export const sendCover = async (userToken: string, videoID: number, file: File):
     console.log("sendCover Success")
 }
 
-const CoverUpload: React.FC<CoverUploadProps> = ({ videoID, refreshKey }) => {
+const CoverUpload: React.FC<{
+    videoID: number;
+}> = ({ videoID }) => {
     const userToken = useUserToken();
     const coverInputRef = useRef<HTMLInputElement>(null);
     const [coverUploading, setCoverUploading] = useState(false);

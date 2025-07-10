@@ -2,13 +2,10 @@ import React, { useEffect, useState } from "react";
 import { QueryUsersMessage } from "Plugins/UserService/APIs/QueryUsersMessage";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { useNavigateHome } from "Globals/Navigate";
-import { set } from "lodash";
 
-interface SearchUsersTabProps {
+const SearchUsersTab: React.FC<{
     keyword: string;
-}
-
-const SearchUsersTab: React.FC<SearchUsersTabProps> = ({ keyword }) => {
+}> = ({ keyword }) => {
     const [userResults, setUserResults] = useState<UserInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const { navigateHome } = useNavigateHome();
