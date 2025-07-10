@@ -5,14 +5,14 @@ import Common.DBAPI.{initSchema, writeDB}
 import Common.ServiceUtils
 import Common.ServiceUtils.schemaName
 import DBManager.Process.DBServer.setDBServer
-import Global.ServerConfig
+import Global.DBConfig
 import cats.effect.IO
 
 import java.util.UUID
 
 object Init {
 
-  def init(config: ServerConfig): IO[Unit] = {
+  def init(config: DBConfig): IO[Unit] = {
     given PlanContext =
       PlanContext(traceID = TraceID(UUID.randomUUID().toString), 0)
 

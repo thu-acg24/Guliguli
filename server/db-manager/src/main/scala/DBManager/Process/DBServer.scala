@@ -39,36 +39,9 @@ object DBServer{
       _ = println(s"setDBServer - dbConfig = $dbConfig")
 
       _ <- Resource.eval {
-        for {
-          tempDS <- createDataSource(dbConfig, "postgres")
-          projectNameOpt <- IO {
-            val conn = tempDS.getConnection
-            val stmt = conn.createStatement()
-            stmt.execute(
-              """
-                |CREATE TABLE IF NOT EXISTS public.projectName (
-                |  name TEXT NOT NULL
-                |);
-                |""".stripMargin)
-            val rs = stmt.executeQuery("SELECT name FROM projectName LIMIT 1")
-            val result =
-              if (rs.next()) Some(rs.getString("name")) else None
-            rs.close()
-            stmt.close()
-            conn.close()
-            tempDS.close()
-            result
-          }
-
-          _ <- projectNameOpt match {
-            case Some(projectName) =>
-              println(s"Found existing projectName: $projectName, switching data source.")
-              SwitchDataSourceMessagePlanner(projectName).plan(dataSourceRef, dbConfig).void
-            case None =>
-              println("No projectName found. Proceeding without switching data source.")
-              IO.unit
-          }
-        } yield ()
+        val projectName = dbConfig.schemaName
+        IO.println(s"Found existing projectName: $projectName, switching data source.") >>
+        SwitchDataSourceMessagePlanner(projectName).plan(dataSourceRef, dbConfig).void
       }
 
 
