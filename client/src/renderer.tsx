@@ -25,6 +25,7 @@ import MemberUpload from 'Pages/MemberPage/MemberUpload';
 import MemberVideoEdit from 'Pages/MemberPage/MemberVideoEdit';
 import MemberDanmakuManagement from 'Pages/MemberPage/MemberDanmakuManagement';
 import AuditPage, { auditPagePath } from 'Pages/AuditPage/AuditPage';
+import AdminPage, { adminPagePath } from 'Pages/AdminPage/AdminPage';
 import VideoAudit from 'Pages/AuditPage/VideoAudit';
 import VideoReportManagement from 'Pages/AuditPage/VideoReportManagement';
 import DanmakuReportManagement from 'Pages/AuditPage/DanmakuReportManagement';
@@ -71,7 +72,7 @@ const RouterContent = () => {
                 <Route path="report/danmaku" element={<DanmakuReportManagement />} />
                 <Route path="report/comment" element={<CommentReportManagement />} />
             </Route>
-            {/*<Route path={managementPagePath} element={<ManagementPage />} />*/}
+            <Route path={adminPagePath} element={<AdminPage />} />
         </Routes>
     );
 };

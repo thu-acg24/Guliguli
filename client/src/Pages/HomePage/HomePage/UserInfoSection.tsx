@@ -138,7 +138,10 @@ const UserInfoSection: React.FC<{
                     <img src={userInfo.avatarPath} alt="用户头像" />
                 </div>
                 <div className="home-user-basic-info">
-                    <div className="home-profile-user-name">{userInfo.username}</div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+                        <div className="home-profile-user-name">{userInfo.username}</div>
+                        <div className="home-user-id" style={{ fontSize: '15px', color: 'white' }}>ID: {user_id}</div>
+                    </div>
                     <div className="home-user-signature">
                         {isEditingBio ? (
                             <input

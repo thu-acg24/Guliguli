@@ -5,22 +5,26 @@ import APIs.UserService.QueryUserRoleMessage
 import Common.APIException.InvalidInputException
 import Common.API.PlanContext
 import Common.API.Planner
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.ParameterList
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.decodeDateTime
 import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
+import Global.GlobalVariables.minioClient
 import Objects.UserService.UserInfo
 import Objects.UserService.UserRole
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.Json
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
+import io.minio.http.Method
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+
+import java.util.concurrent.TimeUnit
 
 case class QueryAuditorsMessagePlanner(
   token: String, 
@@ -59,7 +63,7 @@ case class QueryAuditorsMessagePlanner(
 
   /**
    * 从数据库查询所有`user_role`为`Auditor`的用户信息
-   * @return Option[List[UserInfo]] - 返回查询结果列表，满足条件的用户的所有信息
+   * @return List[UserInfo] - 返回查询结果列表，满足条件的用户的所有信息
    */
   private def fetchAuditors()(using PlanContext): IO[List[UserInfo]] = {
     val sql =
@@ -75,11 +79,23 @@ case class QueryAuditorsMessagePlanner(
       rows <- readDBRows(sql, params)
 
       // 将数据库行转为UserInfo对象
-      auditors = rows.map { row =>
-        UserInfo(
+      auditors <- rows.traverse { row =>
+        for {
+          avatarUrl <- IO.blocking {
+            minioClient.getPresignedObjectUrl(
+              io.minio.GetPresignedObjectUrlArgs.builder()
+                .method(Method.GET)
+                .bucket("avatar")
+                .`object`(decodeField[String](row, "avatar_path"))
+                .expiry(1, TimeUnit.DAYS)
+                .build()
+            )
+          }
+        }
+        yield UserInfo(
           userID = decodeField[Int](row, "user_id"),
           username = decodeField[String](row, "username"),
-          avatarPath = decodeField[Option[String]](row, "avatar_path").getOrElse(""),
+          avatarPath = avatarUrl,
           bio = decodeField[String](row, "bio"),
           isBanned = decodeField[Boolean](row, "is_banned")
         )

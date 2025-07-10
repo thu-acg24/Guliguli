@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigateAudit, useNavigateMain, useNavigateHome, HomePageTab, useNavigateMember, useNavigateMessage, useNavigateSearch } from "Globals/Navigate";
+import { useNavigateAudit, useNavigateAdmin, useNavigateMain, useNavigateHome, HomePageTab, useNavigateMember, useNavigateMessage, useNavigateSearch } from "Globals/Navigate";
 import iconSrc from "Images/LOGO.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
@@ -13,6 +13,7 @@ import "./Header.css";
 
 const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSearch?: boolean }> = ({ usetransparent = false, transparent = false, hideSearch = false }) => {
     const { navigateAudit } = useNavigateAudit();
+    const { navigateAdmin } = useNavigateAdmin();
     const { navigateMain } = useNavigateMain();
     const { navigateHome, navigateHomeTab } = useNavigateHome();
     const { navigateMember } = useNavigateMember();
@@ -25,14 +26,16 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     const { userInfo } = useUserInfo();
     const { userStat } = useUserStat();
     const { userID } = useUserID();
-    const { userRole } = useUserRole();
+    const { isAuditor, isAdmin } = useUserRole();
     // 跳转函数
     const handleAvatarClick = async () => {
         navigateHome(userID);
     }
-    // 审核中心跳转暂保留原 navigate，或根据业务需求补充封装
     const handleAuditClick = async () => {
         navigateAudit();
+    }
+    const handleAdminClick = async () => {
+        navigateAdmin();
     }
 
     // 处理头像鼠标悬浮
@@ -153,11 +156,20 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                                         </div>
                                     </div>
 
-                                    {userRole === UserRole.auditor &&
+                                    {isAuditor &&
                                         <div className="header-panel-links">
                                             <div className="header-panel-link-item" onClick={handleAuditClick}>
                                                 <PersonCenterIcon />
                                                 <span>审核中心</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    {isAdmin &&
+                                        <div className="header-panel-links">
+                                            <div className="header-panel-link-item" onClick={handleAdminClick}>
+                                                <PersonCenterIcon />
+                                                <span>管理中心</span>
                                             </div>
                                         </div>
                                     }

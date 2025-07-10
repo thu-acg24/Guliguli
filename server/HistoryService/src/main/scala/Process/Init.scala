@@ -38,7 +38,8 @@ object Init {
             history_id SERIAL NOT NULL PRIMARY KEY,
             user_id INT NOT NULL,
             video_id INT NOT NULL,
-            view_time TIMESTAMP NOT NULL
+            view_time TIMESTAMP NOT NULL,
+            UNIQUE (user_id, video_id)
         );
         """,
         List()
