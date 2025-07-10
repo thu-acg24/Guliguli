@@ -7,6 +7,7 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables.{clientResource, minioClient, minioConfig, sessions}
+import Objects.VideoService.VideoStatus
 import Objects.{CoverPayload, VideoPayload}
 import cats.effect.IO
 import cats.implicits.*
@@ -94,14 +95,14 @@ case object VerifyProcess {
     val querySQL =
       s"""
          |UPDATE $schemaName.video_table
-         |SET status = 'Pending'
+         |SET status = ?
          |WHERE video_id = ?
          |  AND m3u8_name IS NOT NULL
          |  AND m3u8_name NOT LIKE '0/%'
          |  AND cover IS NOT NULL
          |  AND cover NOT LIKE '0/%'
        """.stripMargin
-    writeDB(querySQL, List(SqlParameter("Int", videoID.toString))) >>
+    writeDB(querySQL, List(SqlParameter("String", VideoStatus.Pending.toString), SqlParameter("Int", videoID.toString))) >>
       UpdateVideoInfoMessage(token, videoID).send
   }
 }
