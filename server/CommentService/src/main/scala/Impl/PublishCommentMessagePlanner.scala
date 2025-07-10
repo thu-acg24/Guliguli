@@ -78,7 +78,7 @@ case class PublishCommentMessagePlanner(
   private def checkCommentExists(commentID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |SELECT COUNT(*) FROM $schemaName.comment_table
+         |SELECT 1 FROM $schemaName.comment_table
          |WHERE comment_id = ?;
        """.stripMargin
     readDBBoolean(sql, List(SqlParameter("Int", commentID.toString)))
