@@ -342,8 +342,9 @@ const VideoPage: React.FC = () => {
       const repliesWithUserInfo = await Promise.all(
         newReplies.map(async (reply) => {
           const userInfo = await fetchOtherUserInfo(reply.authorID);
-          let replyToUsername: string | undefined;
-          if (reply.replyToUserID) replyToUsername = (await fetchOtherUserInfo(reply.replyToUserID)).username;
+          const replyToUsername = reply.replyToUserID
+            ? (await fetchOtherUserInfo(reply.replyToUserID)).username
+            : undefined;
           return {
             ...reply,
             userInfo,

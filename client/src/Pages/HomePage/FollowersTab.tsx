@@ -73,26 +73,20 @@ const FollowersTab: React.FC = () => {
                         );
                     });
 
-                    // 获取关注状态 - 只有当当前用户已登录时才查询
-                    let following = false;
-                    if (currentUserID) {
+                    const following = currentUserID ? await new Promise<boolean> ((resolve) => {
                         try {
-                            following = await new Promise<boolean>((resolve, reject) => {
-                                new QueryFollowMessage(currentUserID, id).send(
-                                    (info: string) => {
-                                        resolve(JSON.parse(info));
-                                    },
-                                    (error: any) => {
-                                        console.error("获取关注状态失败", error);
-                                        resolve(false); // 出错时默认未关注
-                                    }
-                                );
-                            });
+                            new QueryFollowMessage(currentUserID, id).send(
+                                (info: string) => resolve(JSON.parse(info)),
+                                (error: any) => {
+                                    console.error("获取关注状态失败", error);
+                                    resolve(false); // 出错时默认未关注
+                                }
+                            );
                         } catch (error) {
                             console.error("查询关注状态失败", error);
-                            following = false;
+                            resolve(false);
                         }
-                    }
+                    }) : false;
 
                     return {
                         userInfo,
