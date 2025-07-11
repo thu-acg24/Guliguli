@@ -2,6 +2,7 @@
 **/yarn.lock
 **/.idea
 **/.vscode
+**/.bsp
 **/.webpack
 **/yarn.lock
 **/dist/
@@ -10,7 +11,9 @@
 **.css.map
 **/*.env
 **/.DS_Store
-**/db-manager
+**/target
+version.properties
+db_config.json
 **/__pycache__
 package-lock.json
 server-config.ts
