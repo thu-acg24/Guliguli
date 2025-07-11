@@ -78,8 +78,10 @@ case class PublishCommentMessagePlanner(
   private def checkCommentExists(commentID: Int)(using PlanContext): IO[Unit] = {
     val sql =
       s"""
-         |SELECT 1 FROM $schemaName.comment_table
-         |WHERE comment_id = ?;
+         |SELECT EXISTS (
+         |  SELECT COUNT(*) > 0 FROM $schemaName.comment_table
+         |  WHERE comment_id = ?;
+         |)
        """.stripMargin
     readDBBoolean(sql, List(SqlParameter("Int", commentID.toString)))
       .ensure(InvalidInputException("回复不存在"))(x => !x).void

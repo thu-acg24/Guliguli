@@ -23,7 +23,7 @@ case class LogoutMessagePlanner(
 
   override def plan(using PlanContext): IO[Unit] = {
     val checkTokenSQL =
-      s"SELECT 1 FROM $schemaName.token_table WHERE token = ?"
+      s"SELECT EXISTS (SELECT 1 FROM $schemaName.token_table WHERE token = ?)"
     val deleteTokenSQL =
       s"DELETE FROM $schemaName.token_table WHERE token = ?"
     val checkTokenParams = List(SqlParameter("String", token))

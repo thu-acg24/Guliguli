@@ -40,7 +40,8 @@ case class ChangeVideoStatusMessagePlanner(
       _ <- role match {
         case UserRole.Auditor => IO.unit
         case _ =>
-          if (status != VideoStatus.Private) then IO.raiseError(InvalidInputException("权限不足"))
+          if (status != VideoStatus.Private && status != VideoStatus.Pending) then
+            IO.raiseError(InvalidInputException("权限不足"))
           else IO.unit
       }
 
