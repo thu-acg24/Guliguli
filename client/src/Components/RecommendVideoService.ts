@@ -30,52 +30,56 @@ export async function getRecommendedVideos(
   videoID: number | null,
   count: number = 15
 ): Promise<SimpleVideo[]> {
-  return new Promise((resolve, reject) => {
-    new GetRecommendedVideosMessage(videoID, userToken, 0.2, count).send(
-      async (info: string) => {
-        try {
-          const data: SimpleVideo[] = JSON.parse(info);
-          
-          // 获取作者信息
-          const data1 = await Promise.all(data.map(async video => {
-            try {
-              const userInfo = await fetchOtherUserInfo(video.uploaderID);
-              return {
-                ...video,
-                uploaderInfo: userInfo
-              };
-            } catch (error) {
-              console.log("无法获取UP主信息", error);
-              return video; // 保持原样，没有 uploaderInfo
-            }
-          }));
+  return new Promise(async (resolve, reject) => {
+    const videos = await new Promise<SimpleVideo[]>((resolve, reject) => {
+      new GetRecommendedVideosMessage(videoID, userToken, 0.2, count).send(
+        async (info: string) => {
+          try {
+            const data: SimpleVideo[] = JSON.parse(info);
+            
+            // 获取作者信息
+            const data1 = await Promise.all(data.map(async video => {
+              try {
+                const userInfo = await fetchOtherUserInfo(video.uploaderID);
+                return {
+                  ...video,
+                  uploaderInfo: userInfo
+                };
+              } catch (error) {
+                console.log("无法获取UP主信息", error);
+                return video; // 保持原样，没有 uploaderInfo
+              }
+            }));
 
-
-          // 如果不足指定数量，填充空数据（函数式实现）
-          const fillCount = Math.max(0, count - data1.length);
-          const filledData = data1.concat(
-            Array.from({ length: fillCount }, () => ({
-              videoID: 0,
-              title: "暂无视频",
-              cover: DefaultCover,
-              duration: 0,
-              description: "",
-              uploaderID: 0,
-              likes: 0,
-              favorites: 0,
-              views: 0,
-              uploadTime: new Date().toISOString()
-            }))
-          );
-
-          resolve(filledData);
-        } catch (error) {
-          reject(error);
+            resolve(data1);
+          } catch (error) {
+            console.error("解析推荐视频数据失败", error);
+            resolve([]); // 返回空数组
+          }
+        },
+        (error: string) => {
+          console.error("获取推荐视频失败", error);
+          resolve([]); // 返回空数组
         }
-      },
-      (error: string) => {
-        reject(new Error(error));
-      }
+      );
+    });
+    
+    // 如果不足指定数量，填充空数据（函数式实现）
+    const fillCount = Math.max(0, count - videos.length);
+    const filledData = videos.concat(
+      Array.from({ length: fillCount }, () => ({
+        videoID: 0,
+        title: "暂无视频",
+        cover: DefaultCover,
+        duration: 0,
+        description: "",
+        uploaderID: 0,
+        likes: 0,
+        favorites: 0,
+        views: 0,
+        uploadTime: new Date().toISOString()
+      }))
     );
+    resolve(filledData);
   });
 }
