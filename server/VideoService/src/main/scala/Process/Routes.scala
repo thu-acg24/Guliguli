@@ -5,6 +5,7 @@ package Process
 import APIs.VideoService.ConfirmCoverMessage
 import Common.API.PlanContext
 import Common.API.TraceID
+import Common.APIException.InvalidInputException
 import Common.DBAPI.DidRollbackException
 import Common.Serialize.CustomColumnTypes.*
 import Common.Serialize.CustomColumnTypes.decodeDateTime
@@ -232,6 +233,10 @@ object Routes:
           println(s"Rollback error: $e")
           val headers = Headers("X-DidRollback" -> "true")
           BadRequest(e.getMessage.asJson.toString).map(_.withHeaders(headers))
+
+        case e: InvalidInputException =>
+          val headers = Headers("X-InvalidInput" -> "true")
+          BadRequest(e.getMessage).map(_.withHeaders(headers))
 
         case e: Throwable =>
           println(s"General error: $e")

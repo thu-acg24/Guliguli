@@ -4,6 +4,7 @@ package Process
 
 import Common.API.PlanContext
 import Common.API.TraceID
+import Common.APIException.InvalidInputException
 import Common.DBAPI.DidRollbackException
 import Common.Serialize.CustomColumnTypes.*
 import Common.Serialize.CustomColumnTypes.decodeDateTime
@@ -24,12 +25,14 @@ import io.circe.derivation.Configuration
 import io.circe.generic.auto.*
 import io.circe.parser.decode
 import io.circe.syntax.*
+
 import java.util.UUID
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.dsl.io.*
 import org.joda.time.DateTime
+
 import scala.collection.concurrent.TrieMap
 
 object Routes:
@@ -153,6 +156,10 @@ object Routes:
           println(s"Rollback error: $e")
           val headers = Headers("X-DidRollback" -> "true")
           BadRequest(e.getMessage.asJson.toString).map(_.withHeaders(headers))
+
+        case e: InvalidInputException =>
+          val headers = Headers("X-InvalidInput" -> "true")
+          BadRequest(e.getMessage).map(_.withHeaders(headers))
 
         case e: Throwable =>
           println(s"General error: $e")

@@ -247,7 +247,7 @@ object Routes:
 
         case e: InvalidInputException =>
           val headers = Headers("X-InvalidInput" -> "true")
-          BadRequest(e.getMessage.asJson.toString).map(_.withHeaders(headers))
+          BadRequest(e.getMessage).map(_.withHeaders(headers))
 
         case e: Throwable =>
           println(s"General error: $e")
