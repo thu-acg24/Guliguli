@@ -16,7 +16,6 @@ import DBAPI.ReadDBValueMessage
 import DBAPI.StartTransactionMessage
 import DBAPI.WriteDBListMessage
 import DBAPI.WriteDBMessage
-import Global.DBConfig
 import cats.effect.*
 import io.circe.Decoder
 import io.circe.Encoder

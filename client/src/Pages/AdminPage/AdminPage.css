@@ -174,7 +174,6 @@
 .admin-user-item:hover {
     box-shadow: 0 4px 16px rgba(251, 80, 120, 0.28);
     transform: translateY(-4px) scale(1.02);
-    background: linear-gradient(135deg, #fff 0%, #ffd6e8 100%);
     z-index: 1;
 }
 

@@ -26,27 +26,6 @@ case class ServerConfig(
                          /** 最大的同时往内部微服务发送的请求个数，原则上和最大连接数相同 */
                          maximumClientConnection: Int,
 
-                         /** 数据库地址，例如：jdbc:postgresql://localhost:5432/db */
-                         jdbcUrl: String,
-
-                         /** 用户名 */
-                         username: String,
-
-                         /** 密码 */
-                         password: String,
-
-                         /** 缓存的数据库statement个数 */
-                         prepStmtCacheSize: Int,
-
-                         /** 缓存的数据库语句最大长度 */
-                         prepStmtCacheSqlLimit: Int,
-
-                         /** 最多能够保持的连接数目，建议=服务器的CPU核数*2+1 */
-                         maximumPoolSize: Int,
-
-                         /** connection的最长存活时间 */
-                         connectionLiveMinutes: Int,
-
                          isTest:Boolean
                        )
 

@@ -1,7 +1,7 @@
 package Global
 
 object ServiceCenter {
-  val projectName: String = "guliguliguli"
+  val projectName: String = "Guliguli"
   val dbManagerServiceCode = "A000001"
   val tongWenDBServiceCode = "A000002"
   val tongWenServiceCode = "A000003"
