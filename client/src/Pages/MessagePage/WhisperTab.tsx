@@ -17,6 +17,7 @@ import { useNavigateMessage } from 'Globals/Navigate';
 import "./MessagePage.css";
 
 const WhisperTab: React.FC = () => {
+  console.log("load whisper tab");
   const { userid } = useParams<{ userid: string | null }>();
   const [conversations, setConversations] = useState<UserInfoWithMessage[]>([]);
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
