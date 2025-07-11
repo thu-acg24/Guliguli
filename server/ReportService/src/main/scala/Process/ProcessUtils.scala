@@ -16,9 +16,7 @@ object ProcessUtils {
     val fileResource: Resource[IO, BufferedSource] = Resource.make {
       IO(Source.fromFile(filePath)) // Acquire the resource
     } { source =>
-      IO(source.close()).handleErrorWith(e => IO {
-        e.printStackTrace()
-      }) // Release the resource, ignoring errors on close
+      IO(source.close()).handleErrorWith(e => IO{e.printStackTrace()}) // Release the resource, ignoring errors on close
     }
 
     // Use the resource
