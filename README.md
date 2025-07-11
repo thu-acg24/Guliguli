@@ -36,6 +36,8 @@ sbt run
 
 ### 客户端
 
+将 `client/src/server-config-template.ts` 复制为 `server-config.ts` 并填写各个服务的地址。
+
 在 `client` 目录下，运行
 
 ```
