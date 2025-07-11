@@ -3,19 +3,13 @@ package Utils
 
 import Common.API.PlanContext
 import Common.APIException.InvalidInputException
-import Common.API.Planner
 import Common.DBAPI._
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.decodeDateTime
-import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import cats.effect.IO
 import cats.implicits.*
-import cats.implicits._
 import io.circe.Json
 import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
 import java.util.UUID
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
@@ -74,6 +68,12 @@ case object AuthProcess {
            |FROM $schemaName.token_table
            |WHERE token = ?
          """.stripMargin
+    val checkBannedSQL =
+      s"""
+         |SELECT is_banned
+         |FROM $schemaName.user_table
+         |WHERE user_id = ?
+         """.stripMargin
     val queryParams = List(SqlParameter("String", token))
     // 日志信息，记录token校验开始
     for {
@@ -83,11 +83,13 @@ case object AuthProcess {
           case Some(record) => IO(record)
           case None =>
             IO(logger.info(s"查询的Token $token 不存在")) *>
-            IO.raiseError(new InvalidInputException(s"Token不存在"))
+            IO.raiseError(InvalidInputException(s"Token不存在"))
         }
       userID <- IO(decodeField[Int](record, "user_id"))
       expirationTime <- IO(new DateTime(decodeField[Long](record, "expiration_time")))
       now <- IO(DateTime.now())
+      isBanned <- readDBBoolean(checkBannedSQL, List(SqlParameter("Int", userID.toString)))
+      _ <- IO.raiseUnless(!isBanned)(InvalidInputException("用户被封禁"))
       result <- if (now.isBefore(expirationTime)) {
           IO(logger.info(s"Token有效，返回用户ID: $userID")).as(userID)
         } else {
@@ -101,7 +103,7 @@ case object AuthProcess {
               val errorMessage = s"Failed to delete outdated token '$token' from TokenTable: ${e.getMessage}"
               IO(logger.error(errorMessage))
           } *>
-          IO.raiseError(new InvalidInputException(s"Token已过期，请重新登录"))
+          IO.raiseError(InvalidInputException(s"Token已过期，请重新登录"))
         }
     } yield result
   }

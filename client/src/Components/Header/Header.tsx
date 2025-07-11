@@ -164,7 +164,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                 <img src={iconSrc} alt="GULIGULI" className="header-logo-icon" />
             </div>
             {!hideSearch &&
-                <div className="header-search-container">
+                <div className={`header-search-container ${userInfo ? 'with-user' : ''}`}>
                     <div className="header-search-box">
                         <input
                             type="text"

@@ -6,22 +6,27 @@ import { ModifyUserInfoMessage } from "Plugins/UserService/APIs/ModifyUserInfoMe
 import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { ChangeFollowStatusMessage } from "Plugins/UserService/APIs/ChangeFollowStatusMessage";
 import { MessagePageTab, useNavigateMessage } from "Globals/Navigate";
+import { useUserRole } from "Hooks/useUserRole";
+import { ChangeBanStatusMessage } from "Plugins/UserService/APIs/ChangeBanStatusMessage";
+import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 
 
 const UserInfoSection: React.FC<{
     user_id: string, currentUserID: number | null, userToken: string | null,
     isCurrentUser: boolean, fetchUserStat: () => void,
-    userInfo: UserInfo | null, setUserInfo: (info: UserInfo) => void,
+    userInfo: UserInfo, setUserInfo: (info: UserInfo) => void,
     isFollowing: boolean, setIsFollowing: (following: boolean) => void
 }> = ({ user_id, currentUserID, userToken, isCurrentUser, fetchUserStat, userInfo, setUserInfo, isFollowing, setIsFollowing, }) => {
     const { navigateMessageTab } = useNavigateMessage();
     const [isEditingBio, setIsEditingBio] = useState(false);
     const [tempBio, setTempBio] = useState("");
+    const { isAuditor } = useUserRole();
+    const { ToastComponent, showSuccess } = useTopSuccessToast();
 
 
     // 开始编辑个性签名
     const startEditingBio = () => {
-        setTempBio(userInfo?.bio || "");
+        setTempBio(userInfo.bio || "");
         setIsEditingBio(true);
     };
 
@@ -123,6 +128,33 @@ const UserInfoSection: React.FC<{
         navigateMessageTab(MessagePageTab.whisper, user_id);
     };
 
+    const handleChangeBannedClick = async () => {
+        const newStatus = !userInfo.isBanned;
+        try {
+            await new Promise<void>((resolve, reject) => {
+                new ChangeBanStatusMessage(userToken, userInfo.userID, newStatus).send(
+                    (info: string) => {
+                        setUserInfo(new UserInfo(
+                            userInfo.userID,
+                            userInfo.username,
+                            userInfo.avatarPath,
+                            newStatus,
+                            userInfo.bio
+                        ));
+                        resolve();
+                    },
+                    (error: string) => {
+                        reject(error);
+                    }
+                );
+            });
+            showSuccess(newStatus ? "用户已封禁" : "用户已解封");
+        } catch (error) {
+            console.error("更改封禁状态失败", error);
+            materialAlertError("操作失败", "无法更改封禁状态，请稍后再试。");
+        }
+    };
+
     return (
         <div
             className="home-user-info-section"
@@ -133,6 +165,7 @@ const UserInfoSection: React.FC<{
                 padding: "30px 40px",
             }}
         >
+            { ToastComponent}
             <div className="home-user-left">
                 <div className="home-info-user-avatar">
                     <img src={userInfo.avatarPath} alt="用户头像" />
@@ -168,17 +201,25 @@ const UserInfoSection: React.FC<{
             {/* 关注按钮 - 只有当前用户已登录且不是自己时才显示 */}
             {currentUserID && !isCurrentUser && (
                 <div className="home-user-actions">
-                    <button
-                        className="home-message-btn"
-                        onClick={handleMessageClick}
-                    >
-                        私信
-                    </button>
+                    {isAuditor &&
+                        (<button
+                            className={`home-follow-btn ${userInfo.isBanned ? 'following' : ''}`}
+                            onClick={handleChangeBannedClick}
+                        >
+                            {userInfo.isBanned ? "解封" : "封禁"}
+                        </button>)
+                    }
                     <button
                         className={`home-follow-btn ${isFollowing ? 'following' : ''}`}
                         onClick={handleFollowToggle}
                     >
                         {isFollowing ? '已关注' : '关注'}
+                    </button>
+                    <button
+                        className="home-message-btn"
+                        onClick={handleMessageClick}
+                    >
+                        私信
                     </button>
                 </div>
             )}

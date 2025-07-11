@@ -12,6 +12,7 @@ import { RefreshIcon } from "Images/Icons";
 import {UpUserIcon} from "Images/Icons"
 import { PlayCountIcon, LikeIcon } from "Images/Icons";
 import { formatCount, formatDuration } from "Components/Formatter";
+import { useNavigateSearch } from "Globals/Navigate";
 import "./MainPage.css";
 
 
@@ -33,14 +34,17 @@ const MainPage: React.FC = () => {
     const [categoryContent, setCategoryContent] = useState("");
     const [videosisloading, setVideosisloading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const { navigateSearch } = useNavigateSearch();
     const userToken = useUserToken();
 
     
 
     const loadCategoryContent = (categoryName: string, categoryId: string) => {
-        setCategoryTitle(categoryName);
-        setCategoryContent(`正在加载${categoryName}分区的内容...`);
-        setShowCategoryModal(true);
+        // setCategoryTitle(categoryName);
+        // setCategoryContent(`正在加载${categoryName}分区的内容...`);
+        // setShowCategoryModal(true);
+
+        navigateSearch(categoryName);
     };
     useEffect(() => {
       handleRefresh()
@@ -244,7 +248,7 @@ const MainPage: React.FC = () => {
                 </div>
             </div>
             </div>
-            {showCategoryModal && (
+            {/* {showCategoryModal && (
                 <div className="main-modal" onClick={() => setShowCategoryModal(false)}>
                     <div className="main-modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="main-modal-header">
@@ -266,7 +270,7 @@ const MainPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

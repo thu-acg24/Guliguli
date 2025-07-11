@@ -99,7 +99,7 @@
     cursor: pointer;
     transition: all 0.2s;
     min-width: 70px;
-    margin-right: 10px;
+    margin-left: 10px;
 }
 
 .home-user-actions .home-message-btn:hover {
@@ -431,6 +431,7 @@
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
+    margin-left: 10px;
 }
 
 .home-follow-btn:hover {
