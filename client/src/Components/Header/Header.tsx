@@ -15,6 +15,7 @@ import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMess
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
 import NewsPanel from "./NewsPanel";
 import "./Header.css";
+import { set } from "lodash";
 
 export interface VideoWithUploader {
     video: Video;
@@ -58,12 +59,15 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     // 跳转函数
     const handleAvatarClick = async () => {
         navigateHome(userID);
+        setShowUserPanel(false);
     }
     const handleAuditClick = async () => {
         navigateAudit();
+        setShowUserPanel(false);
     }
     const handleAdminClick = async () => {
         navigateAdmin();
+        setShowUserPanel(false);
     }
 
     // 处理头像鼠标悬浮
@@ -86,6 +90,18 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     };
     const handleUploadClick = async () => {
         navigateMember();
+    };
+    const handleFollowingClick = async () => {
+        navigateHomeTab(userID, HomePageTab.following);
+        setShowUserPanel(false);
+    };
+    const handleFollowerClick = async () => {
+        navigateHomeTab(userID, HomePageTab.followers);
+        setShowUserPanel(false);
+    };
+    const handleUserVideoClick = async () => {
+        navigateHomeTab(userID, HomePageTab.videos);
+        setShowUserPanel(false);
     };
 
     // 处理登出
@@ -194,15 +210,15 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                                     </div>
 
                                     <div className="header-user-stats">
-                                        <div className="header-stat-item">
+                                        <div className="header-stat-item" onClick={handleFollowingClick}>
                                             <div className="header-stat-number">{userStat?.followingCount || 0}</div>
                                             <div className="header-stat-label">关注</div>
                                         </div>
-                                        <div className="header-stat-item">
+                                        <div className="header-stat-item" onClick={handleFollowerClick}>
                                             <div className="header-stat-number">{userStat?.followerCount || 0}</div>
                                             <div className="header-stat-label">粉丝</div>
                                         </div>
-                                        <div className="header-stat-item">
+                                        <div className="header-stat-item" onClick={handleUserVideoClick}>
                                             <div className="header-stat-number">{userVideos}</div>
                                             <div className="header-stat-label">视频</div>
                                         </div>
