@@ -7,14 +7,35 @@ import Common.API.PlanContext
 import Common.API.TraceID
 import Common.DBAPI.initSchema
 import Common.DBAPI.writeDB
+import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Global.GlobalVariables
 import Global.ServerConfig
 import cats.effect.IO
 import io.circe.generic.auto.*
+import org.joda.time.DateTime
+
 import java.util.UUID
+import scala.concurrent.duration.DurationInt
 
 object Init {
+  private def cleanTokenLoop(using PlanContext): IO[Unit] = {
+    (IO.sleep(6.hours) >> cleanExpiredTokens).handleErrorWith { e =>
+      IO.println(s"[Error] 清理Token时发生错误")
+      e.printStackTrace()
+    }
+    >> cleanTokenLoop
+  }
+
+  private def cleanExpiredTokens(using PlanContext): IO[String] = {
+    for {
+      _ <- IO.println("Executing cleaning task")
+      now <- IO(DateTime.now().getMillis.toString)
+      result <- writeDB(s"""DELETE FROM "$schemaName"."token_table" WHERE expiration_time <= ?;""",
+        List(SqlParameter("DateTime", now)))
+    } yield result
+  }
+
   def init(config: ServerConfig): IO[Unit] = {
     given PlanContext = PlanContext(traceID = TraceID(UUID.randomUUID().toString), 0)
 
@@ -94,6 +115,7 @@ object Init {
         """,
         List()
       )
+      _ <- cleanTokenLoop.start
     } yield ()
 
     program.handleErrorWith(err => IO {
