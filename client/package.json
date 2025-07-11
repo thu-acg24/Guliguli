@@ -1,7 +1,9 @@
 {
-    "name": "guliguli",
+    "name": "Guliguli",
     "main": ".webpack/main",
     "version": "1.0.0",
+    "description": "A video sharing platform",
+    "author": "Guliguli",
     "scripts": {
         "start": "electron-forge start",
         "package": "electron-forge package",
@@ -95,7 +97,7 @@
         "@types/react-router-dom": "^5.3.3",
         "@typescript-eslint/eslint-plugin": "^8.35.0",
         "@typescript-eslint/parser": "^8.35.0",
-        "@vercel/webpack-asset-relocator-loader": "1.7.4",
+        "@vercel/webpack-asset-relocator-loader": "1.7.3",
         "axios": "^1.10.0",
         "css-loader": "^7.1.2",
         "electron": "37.1.0",

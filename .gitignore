@@ -3,6 +3,7 @@
 **/.idea
 **/.vscode
 **/.bsp
+**/out
 **/.webpack
 **/yarn.lock
 **/dist/
