@@ -22,7 +22,7 @@ object Init {
   private def cleanTokenLoop(using PlanContext): IO[Unit] = {
     (IO.sleep(6.hours) >> cleanExpiredTokens).handleErrorWith { e =>
       IO.println(s"[Error] 清理Token时发生错误")
-      e.printStackTrace()
+      >> IO(e.printStackTrace())
     }
     >> cleanTokenLoop
   }
