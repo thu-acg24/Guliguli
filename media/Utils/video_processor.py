@@ -152,7 +152,7 @@ def process_video_async(video_id, token, file_name, local_path, duration, target
         # 准备错误回调数据
         video_bp.logger.info(f"Video process failed: {str(e)}")
         callback_data = {
-            "token": token,
+            "sessionToken": token,
             "status": "failure",
             "m3u8Name": "",
             "tsPrefix": "",
