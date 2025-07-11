@@ -17,9 +17,12 @@ import scala.util.Try
 
 /**
  * QueryFollowingVideosMessage
- * desc: 根据用户ID获取其发布的视频。
+ * desc: 根据用户ID获取其关注用户发布的视频列表
  * @param token: String (用户Token)
- * @return video: Video:1120 (用户发布的所有视频信息)
+ * @param fetchLimit: Int (每次查询的最大视频数量)
+ * @param lastTime: DateTime (上次查询的最后一个视频的发布时间，用于分页查询)
+ * @param lastID: Int (上次查询的最后一个视频ID，用于分页查询)
+ * @return video: List[Video] (用户发布的所有视频信息)
  */
 
 case class QueryFollowingVideosMessage(
