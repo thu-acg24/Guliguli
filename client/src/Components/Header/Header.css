@@ -1,3 +1,176 @@
+/* ====================== 动态面板内容布局 ====================== */
+.news-info-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    gap: 12px;
+}
+
+.news-info__box--left {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.news-info__box--right {
+    flex: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+/* ====================== 动态下拉面板 ====================== */
+.header-news-btn-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-news-wrapper {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 380px;
+    padding-top: 8px;
+}
+
+.header-news-panel {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    z-index: 2000;
+    overflow-y: auto;
+    display: flex;
+    max-height: 440px;
+    flex-direction: column;
+    padding: 12px 0;
+}
+
+.header-news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.header-news-list-item {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.header-news-list-item:hover {
+    background: #f7f7f7;
+}
+
+.header-news-container {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.header-news__box--left {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    margin-right: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.header-news-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+}
+
+.guli-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.header-news__box--center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+.header-user-name{
+    color: #61666D;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.all-in-one-article-title {
+    font-size: 15px;
+    color: #222;
+    margin: 2px 0 4px 0;
+    max-width: 220px;
+    word-break: break-all;
+    white-space: normal;
+    overflow-wrap: break-word;
+    overflow: visible;
+    text-overflow: clip;
+    display: block;
+}
+
+.publish-time {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+}
+
+.header-news__box--right {
+    flex: none;
+    width: 92px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.cover {
+    width: 92px;
+    height: 52px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: #eee;
+}
+
+.cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.header-news-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 32px 0;
+    font-size: 15px;
+}
+
 /* ====================== 头部容器样式 ====================== */
 .header-header {
     position: sticky;
@@ -45,7 +218,7 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 400px;
+    width: 30%;
 }
 
 .header-search-box {
@@ -78,7 +251,8 @@
 }
 
 .header-search-btn {
-    width: 40px; /* 调整为适合图标的大小 */
+    width: 40px;
+    /* 调整为适合图标的大小 */
     height: 100%;
     background-color: #fb7299;
     border: none;
@@ -117,7 +291,8 @@
     gap: 6px;
     padding: 8px 12px;
     font-size: 14px;
-    color: #666; /* 默认黑色文字 */
+    color: #666;
+    /* 默认黑色文字 */
     cursor: pointer;
     border-radius: 8px;
     /* transition: all 0.3s ease; */
@@ -158,6 +333,12 @@
     transition: transform 0.2s ease;
 }
 
+.header-action-icon.news {
+    width: 24px;
+    /* 新闻图标稍大 */
+    height: 24px;
+}
+
 /* 悬停时图标轻微放大 */
 .header-header-action-btn:hover .header-action-icon,
 .header-header-upload-btn:hover .header-action-icon {
@@ -166,16 +347,19 @@
 
 /* ====================== 透明模式样式 ====================== */
 .header-header.transparent .header-header-action-btn {
-    color: white; /* 透明模式下白色文字 */
+    color: white;
+    /* 透明模式下白色文字 */
 }
 
 .header-header.transparent .header-header-action-btn:hover {
     color: white;
-    background-color: rgba(255, 255, 255, 0.2); /* 半透明白色背景 */
+    background-color: rgba(255, 255, 255, 0.2);
+    /* 半透明白色背景 */
 }
 
 .header-header.transparent .header-action-icon {
-    color: white; /* 透明模式下白色图标 */
+    color: white;
+    /* 透明模式下白色图标 */
 }
 
 /* .header-header.transparent .header-header-upload-btn {
@@ -220,6 +404,7 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     z-index: 1002;
+    cursor: pointer;
 }
 
 .header-zoomed-avatar img {
@@ -269,6 +454,7 @@
     text-align: center;
     margin-top: 10px;
     width: 100%;
+    cursor: pointer;
 }
 
 .header-user-stats {

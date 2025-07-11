@@ -1,15 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigateAudit, useNavigateAdmin, useNavigateMain, useNavigateHome, HomePageTab, useNavigateMember, useNavigateMessage, useNavigateSearch } from "Globals/Navigate";
 import iconSrc from "Images/LOGO.png";
 import LoginModal from "Components/LoginModal/LoginModal";
 import { useUserToken, setUserToken, useUserInfo, useUserStat, useUserID } from "Globals/GlobalStore";
 import { useUserRole } from "Hooks/useUserRole";
-import { UserRole } from "Plugins/UserService/Objects/UserRole";
 import { LogoutMessage } from "Plugins/UserService/APIs/LogoutMessage";
 import { PersonCenterIcon, LogoutIcon } from "Images/Icons";
 import DEFAULT_AVATAR from "Images/DefaultAvatar.jpg";
-import { SendIcon, HollowFavoriteIcon, HistoryIcon, UploadIcon,SearchIcon } from "Images/Icons";
+import { SendIcon, HollowFavoriteIcon, HistoryIcon, UploadIcon, SearchIcon, NewsIcon } from "Images/Icons";
+import { QueryFollowingVideosMessage } from "Plugins/VideoService/APIs/QueryFollowingVideosMessage";
+import { Video } from "Plugins/VideoService/Objects/Video";
+import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
+import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
+import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
+import NewsPanel from "./NewsPanel";
 import "./Header.css";
+
+export interface VideoWithUploader {
+    video: Video;
+    uploaderInfo: UserInfo;
+}
 
 const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSearch?: boolean }> = ({ usetransparent = false, transparent = false, hideSearch = false }) => {
     const { navigateAudit } = useNavigateAudit();
@@ -27,6 +37,24 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     const { userStat } = useUserStat();
     const { userID } = useUserID();
     const { isAuditor, isAdmin } = useUserRole();
+    const [videoResults, setVideoResults] = useState<VideoWithUploader[]>([]);
+    const [showNewsPanel, setShowNewsPanel] = useState(false);
+    const [userVideos, setUserVideos] = useState<number>(0);
+
+    useEffect(() => {
+        if (userToken && userID) {
+            new QueryUserVideosMessage(userToken, userID).send(
+                (info: string) => {
+                    const videos = JSON.parse(info) as Video[];
+                    setUserVideos(videos.length);
+                },
+                (error: string) => {
+                    console.error("查询用户视频失败:", error);
+                }
+            );
+        }
+    }, [userToken, userID]);
+
     // 跳转函数
     const handleAvatarClick = async () => {
         navigateHome(userID);
@@ -46,7 +74,6 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     const handleAvatarMouseLeave = () => {
         setShowUserPanel(false);
     };
-
 
     const handleMsgClick = async () => {
         navigateMessage();
@@ -80,6 +107,38 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
         navigateSearch(searchKeyword);
         setSearchKeyword("");
     };
+
+    const handleNewsMouseEnter = async () => {
+        try {
+            const videos = await new Promise<Video[]>((resolve, reject) => {
+                new QueryFollowingVideosMessage(userToken, 10, 99999999999999, 9999).send(
+                    (info: string) => resolve(JSON.parse(info) as Video[]),
+                    (error: string) => reject(new Error(error))
+                );
+            });
+            const videosWithUploader = await Promise.all(
+                videos.map(async (video) => {
+                    const uploaderInfo = await new Promise<UserInfo>((resolve, reject) => {
+                        new QueryUserInfoMessage(video.uploaderID).send(
+                            (info: string) => resolve(JSON.parse(info) as UserInfo),
+                            (err: string) => reject(new Error(err))
+                        );
+                    });
+                    return { video, uploaderInfo };
+                })
+            );
+            setVideoResults(videosWithUploader);
+        } catch (error) {
+            console.error("获取动态失败:", error);
+            setVideoResults([]);
+        } finally {
+            setShowNewsPanel(true);
+        }
+    }
+
+    const handleNewsMouseLeave = () => {
+        setShowNewsPanel(false);
+    }
 
     return (
         <header className={`header-header ${usetransparent ? 'usetransparent' : ''} ${transparent ? 'transparent' : ''}`}>
@@ -122,7 +181,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                         {showUserPanel && (
                             <div className="header-user-panel-popover">
                                 {/* 新增放大头像容器 */}
-                                <div className="header-zoomed-avatar">
+                                <div className="header-zoomed-avatar" onClick={handleAvatarClick}>
                                     <img
                                         src={userInfo?.avatarPath || DEFAULT_AVATAR}
                                         alt="用户头像"
@@ -130,7 +189,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                                 </div>
                                 <div className="header-user-panel-content">
                                     {/* 移除原大头像区域，昵称居中 */}
-                                    <div className="header-user-nickname">
+                                    <div className="header-user-nickname" onClick={handleAvatarClick}>
                                         {userInfo?.username || "用户"}
                                     </div>
 
@@ -144,7 +203,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                                             <div className="header-stat-label">粉丝</div>
                                         </div>
                                         <div className="header-stat-item">
-                                            <div className="header-stat-number">0</div>
+                                            <div className="header-stat-number">{userVideos}</div>
                                             <div className="header-stat-label">视频</div>
                                         </div>
                                     </div>
@@ -186,24 +245,29 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                             </div>
                         )}
                     </div>
-                        <div className="header-header-actions">
-                            <div className="header-header-action-btn" onClick={handleMsgClick}>
-                                <SendIcon className="header-action-icon" />
-                                <span>消息</span>
-                            </div>
-                            <div className="header-header-action-btn" onClick={handleFavClick}>
-                                <HollowFavoriteIcon className="header-action-icon" />
-                                <span>收藏</span>
-                            </div>
-                            <div className="header-header-action-btn" onClick={handleHistoryClick}>
-                                <HistoryIcon className="header-action-icon" />
-                                <span>历史</span>
-                            </div>
-                            <div className="header-header-upload-btn" onClick={handleUploadClick}>
-                                <UploadIcon className="header-action-icon" />
-                                <span>投稿</span>
-                            </div>
+                    <div className="header-header-actions">
+                        <div className="header-header-action-btn header-news-btn-wrapper" onMouseEnter={handleNewsMouseEnter} onMouseLeave={handleNewsMouseLeave} style={{ position: 'relative' }}>
+                            <NewsIcon className="header-action-icon news" />
+                            <span>动态</span>
+                            <NewsPanel show={showNewsPanel} videos={videoResults} />
                         </div>
+                        <div className="header-header-action-btn" onClick={handleMsgClick}>
+                            <SendIcon className="header-action-icon" />
+                            <span>消息</span>
+                        </div>
+                        <div className="header-header-action-btn" onClick={handleFavClick}>
+                            <HollowFavoriteIcon className="header-action-icon" />
+                            <span>收藏</span>
+                        </div>
+                        <div className="header-header-action-btn" onClick={handleHistoryClick}>
+                            <HistoryIcon className="header-action-icon" />
+                            <span>历史</span>
+                        </div>
+                        <div className="header-header-upload-btn" onClick={handleUploadClick}>
+                            <UploadIcon className="header-action-icon" />
+                            <span>投稿</span>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div className="header-header-actions">
