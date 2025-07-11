@@ -3,8 +3,9 @@ import { closeBackdropGadget } from 'Plugins/CommonUtils/Gadgets/BackdropGadget'
 import { getNextTestMessage } from 'Plugins/CommonUtils/Send/MockTest'
 import { sendMessage } from 'Plugins/CommonUtils/Send/SendMessage'
 import { getAutoRedirectTimerSnap, setAutoRedirectTimer } from 'Plugins/CommonUtils/Store/CommonSendStore'
-import { getUserIDSnap, setUserInfo, setUserToken, UserInfo } from 'Plugins/CommonUtils/Store/UserInfoStore'
+import { getUserIDSnap } from 'Plugins/CommonUtils/Store/UserInfoStore'
 import { alertCallBack, API, InfoCallBackType, SimpleCallBackType } from 'Plugins/CommonUtils/Send/API'
+import { setUserToken } from 'Globals/GlobalStore'
 
 /**
  * -1 白名单： 处理 patientToken失效，不要退掉当前的医生的账号，
@@ -36,13 +37,11 @@ export async function commonSend(
         backdropCall()
     }
     const url = infoMessage.getURL()
-    console.log('请求的url ------> ' + url+'请求时间'+Date.now())
+    console.log('请求的url ------> ' + url + '请求时间' + Date.now())
 
     const clearTokenTimeOut = () => {
         const timer = setTimeout(() => {
             closeAlert()
-            setUserToken('')
-            setUserInfo(new UserInfo())
             setAutoRedirectTimer(null)
         }, 3000)
         setAutoRedirectTimer(timer)
@@ -52,9 +51,9 @@ export async function commonSend(
     const res = mock
         ? getNextTestMessage(infoMessage.getURL())
         : await sendMessage(infoMessage, timeout, isEncrypt).catch(e => {
-              materialAlertError(e)
-              // return stringToResponse('')
-          })
+            materialAlertError(e)
+            // return stringToResponse('')
+        })
 
     if (backdropCall) closeBackdropGadget()
 
@@ -89,6 +88,11 @@ export async function commonSend(
                 return
             }
         }
+    }
+
+    if (res.status === 400 && responseText.includes('Token不存在')) {
+        console.log('Token不存在，清除用户信息')
+        setUserToken('')
     }
 
     switch (res.status) {
