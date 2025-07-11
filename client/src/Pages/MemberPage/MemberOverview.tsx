@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { MemberPageTab, useNavigateMember, useNavigateVideo } from "Globals/Navigate";
 import { useUserToken, useUserID } from "Globals/GlobalStore";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
 import { Video } from "Plugins/VideoService/Objects/Video";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus";
-import { materialAlertError, materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
+import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import DefaultCover from "Images/DefaultCover.jpg";
-import { formatDuration, formatCount } from "Components/Formatter";
+import { formatTime, formatDuration, formatCount } from "Components/Formatter";
+import { ChangeVideoStatusMessage } from "Plugins/VideoService/APIs/ChangeVideoStatusMessage";
+import { DeleteVideoMessage } from "Plugins/VideoService/APIs/DeleteVideoMessage";
+import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 
 const MemberOverview: React.FC = () => {
-    const navigate = useNavigate();
     const { navigateMemberTab } = useNavigateMember();
     const { navigateVideo } = useNavigateVideo();
     const userToken = useUserToken();
     const { userID } = useUserID();
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
+    const { ToastComponent, showSuccess } = useTopSuccessToast();
 
     useEffect(() => {
         if (userToken && userID) {
@@ -79,6 +81,39 @@ const MemberOverview: React.FC = () => {
         navigateVideo(videoID);
     };
 
+    const handleSetPrivacy = async (videoID: number, oldStatus: VideoStatus) => {
+        const newStatus = oldStatus === VideoStatus.private ? VideoStatus.pending : VideoStatus.private;
+        try {
+            await new Promise<void>((resolve, reject) => {
+                new ChangeVideoStatusMessage(userToken, videoID, newStatus).send(
+                    (info: string) => resolve(),
+                    (error: string) => reject(new Error(error))
+                );
+            });
+            loadUserVideos();
+            showSuccess(`视频已设为${newStatus === VideoStatus.private ? "私密" : "公开"}`);
+        } catch (error) {
+            console.error("修改视频隐私状态失败:", error);
+            materialAlertError("操作失败", error instanceof Error ? error.message : "修改视频隐私状态失败");
+        }
+    };
+
+    const handleDeleteVideo = async (videoID: number) => {
+        try {
+            await new Promise<void>((resolve, reject) => {
+                new DeleteVideoMessage(userToken, videoID).send(
+                    (info: string) => resolve(),
+                    (error: string) => reject(new Error(error))
+                );
+            });
+            loadUserVideos();
+            showSuccess("视频删除成功");
+        } catch (error) {
+            console.error("删除视频失败:", error);
+            materialAlertError("操作失败", error instanceof Error ? error.message : "删除视频失败");
+        }
+    }
+
     if (loading) {
         return (
             <div className="member-loading">
@@ -89,6 +124,7 @@ const MemberOverview: React.FC = () => {
 
     return (
         <div className="member-overview">
+            {ToastComponent}
             <h1 className="member-page-title">内容管理</h1>
 
             {videos.length === 0 ? (
@@ -135,7 +171,7 @@ const MemberOverview: React.FC = () => {
                                 <div className="member-video-stats">
                                     <span>播放量: {formatCount(video.views)}</span>
                                     <span>点赞量: {formatCount(video.likes)}</span>
-                                    <span>上传时间: {new Date(video.uploadTime).toLocaleDateString()}</span>
+                                    <span>上传时间: {formatTime(video.uploadTime)}</span>
                                 </div>
                             </div>
 
@@ -157,6 +193,30 @@ const MemberOverview: React.FC = () => {
                                     onClick={() => handleManageComments(video.videoID)}
                                 >
                                     管理评论
+                                </button>
+                                <button
+                                    className="member-action-btn"
+                                    onClick={() => handleSetPrivacy(video.videoID, video.status)}
+                                    disabled={video.status === VideoStatus.uploading || video.status === VideoStatus.broken}
+                                >
+                                    {(() => {
+                                        switch (video.status) {
+                                            case VideoStatus.private:
+                                                return "设为公开";
+                                            case VideoStatus.uploading:
+                                                return "上传中..";
+                                            case VideoStatus.broken:
+                                                return "上传失败";
+                                            default:
+                                                return "设为私密";
+                                        }
+                                    })()}
+                                </button>
+                                <button
+                                    className="member-action-btn"
+                                    onClick={() => handleDeleteVideo(video.videoID)}
+                                >
+                                    删除视频
                                 </button>
                             </div>
                         </div>

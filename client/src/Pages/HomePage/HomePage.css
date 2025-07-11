@@ -282,10 +282,12 @@
     overflow: hidden;
     cursor: pointer;
 }
+
 .home-video-item:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
 }
+
 .home-video-cover {
     position: absolute;
     top: 0;
@@ -298,9 +300,10 @@
 .home-video-item:hover .home-video-title {
     color: #00a1d6;
 }
+
 .home-video-info {
     padding: 10px 0;
-    padding:5px;
+    padding: 5px;
 }
 
 .home-video-title {
@@ -321,6 +324,10 @@
     color: #999;
     display: flex;
     flex-wrap: wrap;
+}
+
+.home-video-meta-item {
+    margin-right: 5px;
 }
 
 .home-history-remove {

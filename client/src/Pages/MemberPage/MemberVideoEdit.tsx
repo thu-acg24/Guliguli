@@ -6,6 +6,7 @@ import { ModifyVideoMessage } from "Plugins/VideoService/APIs/ModifyVideoMessage
 import { QueryVideoInfoMessage } from "Plugins/VideoService/APIs/QueryVideoInfoMessage";
 import { materialAlertSuccess } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 import { VideoBasicInfo, VideoUpload, CoverUpload } from "./VideoEdit";
+import { Video } from "Plugins/VideoService/Objects/Video";
 
 const MemberVideoEdit: React.FC = () => {
     const { videoID } = useParams<{ videoID: string }>();
@@ -25,12 +26,12 @@ const MemberVideoEdit: React.FC = () => {
                 );
             });
 
-            const videoData = JSON.parse(response);
+            const videoData = JSON.parse(response) as Video;
 
             return {
-                title: videoData.title || "",
-                description: videoData.description || "",
-                tags: videoData.tag || []
+                title: videoData.title,
+                description: videoData.description,
+                tags: videoData.tag
             };
         } catch (error) {
             throw new Error(error instanceof Error ? error.message : "获取视频信息失败");
@@ -43,6 +44,7 @@ const MemberVideoEdit: React.FC = () => {
         }
 
         await new Promise<void>((resolve, reject) => {
+            console.log("Saving video tags:", tags);
             new ModifyVideoMessage(
                 userToken,
                 parseInt(videoID),
