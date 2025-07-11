@@ -125,6 +125,7 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     };
 
     const handleNewsMouseEnter = async () => {
+        setShowNewsPanel(true);
         try {
             const videos = await new Promise<Video[]>((resolve, reject) => {
                 new QueryFollowingVideosMessage(userToken, 10, 99999999999999, 9999).send(
@@ -147,8 +148,6 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
         } catch (error) {
             console.error("获取动态失败:", error);
             setVideoResults([]);
-        } finally {
-            setShowNewsPanel(true);
         }
     }
 
