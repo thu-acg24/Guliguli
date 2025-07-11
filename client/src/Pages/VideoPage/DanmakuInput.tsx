@@ -85,7 +85,7 @@ const DanmakuInput: React.FC<{
                     font: '20px sans-serif',
                     textAlign: 'start',
                     fillStyle: danmakuColor,
-                    strokeStyle: danmakuColor,
+                    strokeStyle: "#000000",
                     lineWidth: 1,
             }})
             setDanmakuContent('');

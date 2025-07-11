@@ -131,7 +131,7 @@ const MinioVideoPlayer: React.FC<{
             font: '20px sans-serif',
             textAlign: 'start',
             fillStyle: d.danmakuColor,
-            strokeStyle: d.danmakuColor,
+            strokeStyle: "#000000",
             lineWidth: 1,
           }
         })
