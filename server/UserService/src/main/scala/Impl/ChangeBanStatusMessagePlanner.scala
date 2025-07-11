@@ -7,15 +7,12 @@ import Common.API.PlanContext
 import Common.API.Planner
 import Common.DBAPI.*
 import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.decodeDateTime
-import Common.Serialize.CustomColumnTypes.encodeDateTime
 import Common.ServiceUtils.schemaName
 import Objects.UserService.UserRole
 import cats.effect.IO
 import cats.implicits.*
 import io.circe.*
 import io.circe.generic.auto.*
-import io.circe.syntax.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -36,6 +33,7 @@ case class ChangeBanStatusMessagePlanner(
       _ <- checkUserExists(userID)
       _ <- IO(logger.info(s"[ChangeBanStatus] 开始处理封禁状态修改请求"))
       _ <- updateBanStatus()
+      _ <- if isBan then removeTokens() else IO.unit
     } yield ()
   }
 
@@ -52,7 +50,7 @@ case class ChangeBanStatusMessagePlanner(
         case Some(_) => IO.unit // 查询到目标用户
         case None =>
             IO(logger.info(s"[ChangeBanStatus] 未在数据库中找到目标用户(userID=$userID)")) *>
-            IO.raiseError(new InvalidInputException(s"未在数据库中找到目标用户"))
+            IO.raiseError(InvalidInputException(s"未在数据库中找到目标用户"))
       }
   }
 
@@ -62,7 +60,7 @@ case class ChangeBanStatusMessagePlanner(
         case UserRole.Auditor | UserRole.Admin => IO.unit
         case role =>
           IO(logger.info(s"[ChangeBanStatus] 错误：角色'${role.toString}'无权访问")) *>
-          IO.raiseError(new InvalidInputException(s"错误：角色'${role.toString}'无权访问"))
+          IO.raiseError(InvalidInputException(s"错误：角色'${role.toString}'无权访问"))
       }
     }
   }
@@ -86,5 +84,10 @@ WHERE user_id = ?
     ).map(_ =>
       logger.info(s"[ChangeBanStatus] 成功更新用户(userID=$userID)封禁状态为: $isBan")
     )
+  }
+
+  private def removeTokens()(using PlanContext): IO[String] = {
+    val sql = s"DELETE FROM $schemaName.token_table WHERE user_id = ?".stripMargin
+    IO(logger.info("删除被封禁用户的Token")) >> writeDB(sql, List(SqlParameter("Int", userID.toString)))
   }
 }
