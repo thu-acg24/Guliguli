@@ -13,6 +13,7 @@ import "./ReplyTab.css";
 import { videoPagePath } from 'Pages/VideoPage/VideoPage';
 
 const ReplyTab: React.FC = () => {
+  console.log("load reply tab");
   interface ReplyWithUserInfo {
     replyNotice: ReplyNotice;
     userInfo: UserInfo;

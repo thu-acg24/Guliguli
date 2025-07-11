@@ -14,16 +14,16 @@ import scala.util.Try
 
 /**
  * NoticesCount
- * desc: 消息实体，包含发送方、接收方等基本信息
- * @param MessagesCount: Int (私信的数量)
- * @param NotificationsCount: Int (通知的数量)
- * @param ReplyNoticesCount: Int (回复的数量)
+ * desc: 未读消息数
+ * @param messagesCount: Int (私信的数量)
+ * @param notificationsCount: Int (通知的数量)
+ * @param replyNoticesCount: Int (回复的数量)
  */
 
 case class NoticesCount(
-  MessagesCount: Int,
-  NotificationsCount: Int,
-  ReplyNoticesCount: Int
+  messagesCount: Int,
+  notificationsCount: Int,
+  replyNoticesCount: Int
 ){
 
   //process class code 预留标志位，不要删除
@@ -46,12 +46,12 @@ case object NoticesCount{
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given messageEncoder: Encoder[NoticesCount] = Encoder.instance { config =>
+  given noticesCountEncoder: Encoder[NoticesCount] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given messageDecoder: Decoder[NoticesCount] = Decoder.instance { cursor =>
+  given noticesCountDecoder: Decoder[NoticesCount] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 

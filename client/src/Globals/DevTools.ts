@@ -24,14 +24,14 @@ interface DevTools {
     store: {
         getUserInfo: () => any;
         getUserID: () => number | null;
-        getUserToken: () => string;
+        getUserToken: () => string | null;
         getUserStat: () => any;
         setUserInfo: (info: any) => void;
         setUserID: (id: number | null) => void;
-        setUserToken: (token: string) => void;
+        setUserToken: (token: string | null) => void;
         clearUserData: () => void;
-        getCurrentUser: () => { id: number | null; token: string; info: any };
-        loginAs: (userId: number, token: string) => void;
+        getCurrentUser: () => { id: number | null; token: string | null; info: any };
+        loginAs: (userId: number, token: string | null) => void;
     };
 }
 
@@ -159,7 +159,7 @@ const devTools: DevTools = {
             console.log('✅ User ID updated:', id);
         },
         
-        setUserToken: (token: string) => {
+        setUserToken: (token: string | null) => {
             setUserToken(token);
             console.log('✅ User token updated:', token ? `${token.substring(0, 10)}...` : 'null');
         },
@@ -179,7 +179,7 @@ const devTools: DevTools = {
             return user;
         },
         
-        loginAs: (userId: number, token: string) => {
+        loginAs: (userId: number, token: string | null) => {
             setUserID(userId);
             setUserToken(token);
             console.log(`✅ Logged in as user ${userId} with token ${token.substring(0, 10)}...`);
