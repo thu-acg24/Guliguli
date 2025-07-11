@@ -3,7 +3,7 @@ import { UserInfo } from 'Plugins/UserService/Objects/UserInfo'
 import { UserStat } from 'Plugins/UserService/Objects/UserStat'
 
 interface GlobalState {
-    userToken: string
+    userToken: string | null
     userID: number | null
     userInfo: UserInfo | null
     userStat: UserStat | null
@@ -20,7 +20,7 @@ interface GlobalState {
 }
 
 interface GlobalActions {
-    setUserToken: (token: string) => void
+    setUserToken: (token: string | null) => void
     setUserID: (id: number | null) => void
     setUserInfo: (info: UserInfo | null) => void
     setUserStat: (stat: UserStat | null) => void
@@ -30,7 +30,7 @@ interface GlobalActions {
 }
 
 const globalStore = create<GlobalState & GlobalActions>((set) => ({
-    userToken: "",
+    userToken: null,
     userID: null,
     userInfo: null,
     userStat: null,
@@ -45,7 +45,7 @@ const globalStore = create<GlobalState & GlobalActions>((set) => ({
         userStat: null
     },
 
-    setUserToken: (token: string) => set({ userToken: token }),
+    setUserToken: (token: string | null) => set({ userToken: token }),
     setUserID: (id: number | null) => set({ userID: id }),
     setUserInfo: (info: UserInfo | null) => set({ userInfo: info }),
     setUserStat: (stat: UserStat | null) => set({ userStat: stat }),
@@ -103,7 +103,7 @@ export const useUserStat = () => {
 
 // 导出 actions
 export const getUserToken = () => globalStore.getState().userToken
-export const setUserToken = (userToken: string) => globalStore.getState().setUserToken(userToken)
+export const setUserToken = (userToken: string | null) => globalStore.getState().setUserToken(userToken)
 export const getUserID = () => globalStore.getState().userID
 export const setUserID = (userID: number | null) => globalStore.getState().setUserID(userID)
 export const getUserInfo = () => globalStore.getState().userInfo

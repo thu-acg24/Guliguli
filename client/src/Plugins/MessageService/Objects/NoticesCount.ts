@@ -12,9 +12,9 @@ import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 export class NoticesCount extends Serializable {
     constructor(
-        public  messagesCount: number,
-        public  notificationsCount: number,
-        public  replyNoticesCount: number,
+        public  MessagesCount: number,
+        public  NotificationsCount: number,
+        public  ReplyNoticesCount: number,
     ) {
         super()
     }

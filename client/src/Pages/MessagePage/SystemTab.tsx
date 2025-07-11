@@ -7,6 +7,7 @@ import './MessagePage.css';
 import './SystemTab.css';
 
 const SystemTab: React.FC = () => {
+  console.log("load system tab");
   const [notices, setNotices] = useState<Notification[]>([]);
   const [selectedNotice, setSelectedNotice] = useState<Notification | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

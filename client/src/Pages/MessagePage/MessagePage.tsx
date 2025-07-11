@@ -1,11 +1,11 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import Header from "Components/Header/Header";
 import { useUserToken } from "Globals/GlobalStore";
 import { useNavigateMain } from "Globals/Navigate";
 import "./MessagePage.css";
-import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
-import { message } from "antd";
+import { QueryNoticesCountMessage } from "Plugins/MessageService/APIs/QueryNoticesCountMessage";
+import { NoticesCount } from "Plugins/MessageService/Objects/NoticesCount";
 
 // 消息页面路径
 export const messagePagePath = "/message";
@@ -52,6 +52,7 @@ const MessagePage: React.FC = () => {
   const userToken = useUserToken();
   const { navigateMessageTab } = useNavigateMessage();
   const { navigateMain } = useNavigateMain();
+  const [noticesCount, setNoticesCount] = useState<NoticesCount | null>(null);
 
   useEffect(() => {
     if (!userToken) {
@@ -63,36 +64,64 @@ const MessagePage: React.FC = () => {
 
   const activeTab = getMessageTab(location.pathname);
 
+  useEffect(() => {
+    if (userToken) {
+      new QueryNoticesCountMessage(userToken).send(
+        (info: string) => {
+          try {
+            const data = JSON.parse(info);
+            console.log("未读信息数查询成功:", data);
+            setNoticesCount(data);
+          } catch (e) {
+            console.error("解析未读信息数失败:", e);
+          }
+        },
+        (error: string) => {
+          console.error("查询未读信息数失败:", error);
+        }
+      );
+    }
+  }, [activeTab]);
+
   return (
     <div className="message-page">
       <Header />
       <div className="message-backcontainer">
-      <div className="message-container">
-        <div className="message-sidebar">
-        <div className="sidebar-title">消息中心</div>
-          <div
-            className={`sidebar-item ${activeTab === MessagePageTab.whisper ? 'active' : ''}`}
-            onClick={() => navigateMessageTab(MessagePageTab.whisper)}
-          >
-            我的消息
+        <div className="message-container">
+          <div className="message-sidebar">
+            <div className="sidebar-title">消息中心</div>
+            <div
+              className={`sidebar-item ${activeTab === MessagePageTab.whisper ? 'active' : ''}`}
+              onClick={() => navigateMessageTab(MessagePageTab.whisper)}
+            >
+              我的消息
+              {noticesCount && noticesCount.MessagesCount > 0 && activeTab !== MessagePageTab.whisper && (
+                <span className="red-dot" />
+              )}
+            </div>
+            <div
+              className={`sidebar-item ${activeTab === MessagePageTab.reply ? 'active' : ''}`}
+              onClick={() => navigateMessageTab(MessagePageTab.reply)}
+            >
+              回复我的
+              {noticesCount && noticesCount.ReplyNoticesCount > 0 && activeTab !== MessagePageTab.reply && (
+                <span className="red-dot" />
+              )}
+            </div>
+            <div
+              className={`sidebar-item ${activeTab === MessagePageTab.system ? 'active' : ''}`}
+              onClick={() => navigateMessageTab(MessagePageTab.system)}
+            >
+              系统通知
+              {noticesCount && noticesCount.NotificationsCount > 0 && activeTab !== MessagePageTab.system && (
+                <span className="red-dot" />
+              )}
+            </div>
           </div>
-          <div
-            className={`sidebar-item ${activeTab === MessagePageTab.reply ? 'active' : ''}`}
-            onClick={() => navigateMessageTab(MessagePageTab.reply)}
-          >
-            回复我的
-          </div>
-          <div
-            className={`sidebar-item ${activeTab === MessagePageTab.system ? 'active' : ''}`}
-            onClick={() => navigateMessageTab(MessagePageTab.system)}
-          >
-            系统通知
+          <div className="message-content">
+            <Outlet />
           </div>
         </div>
-        <div className="message-content">
-          <Outlet />
-        </div>
-      </div>
       </div>
     </div>
   );

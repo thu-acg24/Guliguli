@@ -15,7 +15,7 @@ import {
 } from './GlobalStore'
 
 // 根据 token 获取用户 ID
-export const fetchUserID = async (userToken: string): Promise<void> => {
+export const fetchUserID = async (userToken: string | null): Promise<void> => {
     if (!userToken) {
         setUserID(null)
         setError('userID', null)
