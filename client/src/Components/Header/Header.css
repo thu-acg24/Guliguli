@@ -1,3 +1,19 @@
+/* 消息红点 */
+.header-msg-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: #fb7299;
+    border-radius: 50%;
+    /* box-shadow: 0 0 2px #fff; */
+    z-index: 2;
+    /* border: 1.5px solid #fff; */
+    pointer-events: none;
+    content: '';
+}
+
 /* ====================== 动态面板内容布局 ====================== */
 .news-info-container {
     display: flex;

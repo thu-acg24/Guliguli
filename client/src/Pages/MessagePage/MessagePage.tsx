@@ -67,15 +67,7 @@ const MessagePage: React.FC = () => {
   useEffect(() => {
     if (userToken) {
       new QueryNoticesCountMessage(userToken).send(
-        (info: string) => {
-          try {
-            const data = JSON.parse(info);
-            console.log("未读信息数查询成功:", data);
-            setNoticesCount(data);
-          } catch (e) {
-            console.error("解析未读信息数失败:", e);
-          }
-        },
+        (info: string) => setNoticesCount(JSON.parse(info)),
         (error: string) => {
           console.error("查询未读信息数失败:", error);
         }
@@ -95,7 +87,7 @@ const MessagePage: React.FC = () => {
               onClick={() => navigateMessageTab(MessagePageTab.whisper)}
             >
               我的消息
-              {noticesCount && noticesCount.MessagesCount > 0 && activeTab !== MessagePageTab.whisper && (
+              {noticesCount && noticesCount.messagesCount > 0 && activeTab !== MessagePageTab.whisper && (
                 <span className="red-dot" />
               )}
             </div>
@@ -104,7 +96,7 @@ const MessagePage: React.FC = () => {
               onClick={() => navigateMessageTab(MessagePageTab.reply)}
             >
               回复我的
-              {noticesCount && noticesCount.ReplyNoticesCount > 0 && activeTab !== MessagePageTab.reply && (
+              {noticesCount && noticesCount.replyNoticesCount > 0 && activeTab !== MessagePageTab.reply && (
                 <span className="red-dot" />
               )}
             </div>
@@ -113,7 +105,7 @@ const MessagePage: React.FC = () => {
               onClick={() => navigateMessageTab(MessagePageTab.system)}
             >
               系统通知
-              {noticesCount && noticesCount.NotificationsCount > 0 && activeTab !== MessagePageTab.system && (
+              {noticesCount && noticesCount.notificationsCount > 0 && activeTab !== MessagePageTab.system && (
                 <span className="red-dot" />
               )}
             </div>
