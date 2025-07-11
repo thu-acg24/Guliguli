@@ -13,9 +13,10 @@ import { Video } from "Plugins/VideoService/Objects/Video";
 import { UserInfo } from "Plugins/UserService/Objects/UserInfo";
 import { QueryUserInfoMessage } from "Plugins/UserService/APIs/QueryUserInfoMessage";
 import { QueryUserVideosMessage } from "Plugins/VideoService/APIs/QueryUserVideosMessage";
+import { QueryNoticesCountMessage } from "Plugins/MessageService/APIs/QueryNoticesCountMessage";
+import { NoticesCount } from "Plugins/MessageService/Objects/NoticesCount";
 import NewsPanel from "./NewsPanel";
 import "./Header.css";
-import { set } from "lodash";
 
 export interface VideoWithUploader {
     video: Video;
@@ -41,6 +42,22 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
     const [videoResults, setVideoResults] = useState<VideoWithUploader[]>([]);
     const [showNewsPanel, setShowNewsPanel] = useState(false);
     const [userVideos, setUserVideos] = useState<number>(0);
+    const [noticesCount, setNoticesCount] = useState<number>(0);
+
+    useEffect(() => {
+        console.log("loadheader");
+        if (userToken) {
+            new QueryNoticesCountMessage(userToken).send(
+                (info: string) => {
+                    const data = JSON.parse(info) as NoticesCount;
+                    setNoticesCount(data.messagesCount + data.notificationsCount + data.replyNoticesCount);
+                },
+                (error: string) => {
+                    console.error("查询未读信息数失败:", error);
+                }
+            );
+        }
+    }, [userToken]);
 
     useEffect(() => {
         if (userToken && userID) {
@@ -266,9 +283,12 @@ const Header: React.FC<{ usetransparent?: boolean, transparent?: boolean, hideSe
                             <span>动态</span>
                             <NewsPanel show={showNewsPanel} videos={videoResults} />
                         </div>
-                        <div className="header-header-action-btn" onClick={handleMsgClick}>
+                        <div className="header-header-action-btn" onClick={handleMsgClick} style={{ position: 'relative' }}>
                             <SendIcon className="header-action-icon" />
                             <span>消息</span>
+                            {noticesCount > 0 && (
+                                <span className="header-msg-dot" />
+                            )}
                         </div>
                         <div className="header-header-action-btn" onClick={handleFavClick}>
                             <HollowFavoriteIcon className="header-action-icon" />
