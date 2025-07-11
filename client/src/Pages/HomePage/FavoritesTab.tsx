@@ -64,8 +64,8 @@ const FavoritesTab: React.FC<{ userID?: number }> = (props) => {
                                 <div className="home-video-info">
                                     <div className="home-video-title" onClick={() => handleVideoClick(video.videoID)}>{video.title}</div>
                                     <div className="home-video-meta">
-                                        <span>{formatCount(video.views)} 播放</span>
-                                        <span>{formatCount(video.likes)} 点赞</span>
+                                        <span className="home-video-meta-item">{formatCount(video.views)} 播放</span>
+                                        <span className="home-video-meta-item">{formatCount(video.likes)} 点赞</span>
                                     </div>
                                 </div>
                             </div>

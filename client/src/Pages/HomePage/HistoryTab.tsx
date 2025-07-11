@@ -176,7 +176,7 @@ const HistoryTab: React.FC<{ userID?: number }> = (props) => {
                             <div className="home-video-info">
                                 <div className="home-video-title" onClick={() => handleVideoClick(video.videoID)}>{video.title}</div>
                                 <div className="home-video-meta" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <span>观看时间：{dateformatTime(video.views)}</span>
+                                    <span>观看时间：{dateformatTime(history.timestamp)}</span>
                                     <span
                                         className="home-history-remove"
                                         onClick={() => handleDeleteClick(history.videoID)}
