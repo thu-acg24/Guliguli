@@ -64,14 +64,7 @@ const HomePage: React.FC = () => {
             const userIdNum = parseInt(user_id);
             setUserInfo(await new Promise<UserInfo>((resolve, reject) => {
                 new QueryUserInfoMessage(userIdNum).send(
-                    (info: string) => {
-                        const data = JSON.parse(info);
-                        if (data.isBanned) {
-                            resolve(null);
-                        } else {
-                            resolve(data);
-                        }
-                    },
+                    (info: string) => resolve(JSON.parse(info) as UserInfo),
                     (error: string) => {
                         reject(error);
                     }
