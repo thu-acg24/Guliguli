@@ -1,7 +1,6 @@
 package Process
 
 
-import Global.DBConfig
 import Global.ServerConfig
 import cats.effect.IO
 import cats.effect.Resource
@@ -17,7 +16,9 @@ object ProcessUtils {
     val fileResource: Resource[IO, BufferedSource] = Resource.make {
       IO(Source.fromFile(filePath)) // Acquire the resource
     } { source =>
-      IO(source.close()).handleErrorWith(e => IO{e.printStackTrace()}) // Release the resource, ignoring errors on close
+      IO(source.close()).handleErrorWith(e => IO {
+        e.printStackTrace()
+      }) // Release the resource, ignoring errors on close
     }
 
     // Use the resource
@@ -31,19 +32,4 @@ object ProcessUtils {
       }
     }
   }
-
-  def server2DB(serviceConfig: ServerConfig): DBConfig = {
-    DBConfig(
-      jdbcUrl = serviceConfig.jdbcUrl,
-      username = serviceConfig.username,
-      password = serviceConfig.password,
-      schemaName = Common.ServiceUtils.schemaName,
-      prepStmtCacheSize = serviceConfig.prepStmtCacheSize,
-      prepStmtCacheSqlLimit = serviceConfig.prepStmtCacheSqlLimit,
-      maximumPoolSize = serviceConfig.maximumPoolSize,
-      connectionLiveMinutes = serviceConfig.connectionLiveMinutes,
-      maximumServerConnection = serviceConfig.maximumServerConnection
-    )
-  }
-  
 }

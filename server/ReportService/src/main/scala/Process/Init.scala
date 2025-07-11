@@ -8,10 +8,8 @@ import Common.API.TraceID
 import Common.DBAPI.initSchema
 import Common.DBAPI.writeDB
 import Common.ServiceUtils.schemaName
-import Global.DBConfig
 import Global.GlobalVariables
 import Global.ServerConfig
-import Process.ProcessUtils.server2DB
 import cats.effect.IO
 import io.circe.generic.auto.*
 import java.util.UUID
@@ -19,7 +17,6 @@ import java.util.UUID
 object Init {
   def init(config: ServerConfig): IO[Unit] = {
     given PlanContext = PlanContext(traceID = TraceID(UUID.randomUUID().toString), 0)
-    given DBConfig = server2DB(config)
 
     val program: IO[Unit] = for {
       _ <- IO(GlobalVariables.isTest=config.isTest)
