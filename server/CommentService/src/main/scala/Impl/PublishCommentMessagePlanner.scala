@@ -79,12 +79,12 @@ case class PublishCommentMessagePlanner(
     val sql =
       s"""
          |SELECT EXISTS (
-         |  SELECT COUNT(*) > 0 FROM $schemaName.comment_table
-         |  WHERE comment_id = ?;
-         |)
+         |  SELECT 1 FROM $schemaName.comment_table
+         |  WHERE comment_id = ?
+         |);
        """.stripMargin
     readDBBoolean(sql, List(SqlParameter("Int", commentID.toString)))
-      .ensure(InvalidInputException("回复不存在"))(x => !x).void
+      .ensure(InvalidInputException("回复不存在"))(identity).void
   }
 
   private def validateTargetComment(replyToCommentID: Option[Int])(using PlanContext): IO[(Option[Int],Option[Int])] = {

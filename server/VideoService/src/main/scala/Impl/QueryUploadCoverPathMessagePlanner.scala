@@ -1,5 +1,6 @@
 package Impl
 
+import APIs.RecommendationService.UpdateVideoInfoMessage
 import APIs.UserService.{GetUIDByTokenMessage, QueryUserRoleMessage}
 import Common.API.{PlanContext, Planner}
 import Common.APIException.InvalidInputException
@@ -44,12 +45,13 @@ case class QueryUploadCoverPathMessagePlanner(
 
       // Step 3: set status to Uploading
       _ <- updateVideoStatus(videoID)
+      _ <- UpdateVideoInfoMessage(token, videoID).send
 
       // Step 3: Generate MinIO links
       coverName <- generateObjectName(videoID, "cover")
       coverUploadUrl <- generateUploadUrl(coverName)
       coverToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, token, videoID, coverName)))
+      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, videoID, coverName)))
     } yield UploadPath(List(coverUploadUrl), coverToken)
   }
 }

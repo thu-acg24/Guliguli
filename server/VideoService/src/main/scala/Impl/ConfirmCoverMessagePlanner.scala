@@ -40,14 +40,14 @@ case class ConfirmCoverMessagePlanner(
       }
       _ <- IO(sessions.invalidate(session.token))
       _ <- status match {
-        case "success" => updateCoverLinkInDB(session.userToken, session.videoID, objectName)
+        case "success" => updateCoverLinkInDB(session.videoID, objectName)
         case "failure" => failureControl(session.videoID)
         case _ => IO.raiseError(InvalidInputException(s"status必须是success或failure中的一个"))
       }
     } yield()
   }
 
-  private def updateCoverLinkInDB(token: String, videoID: Int, objectName: String)(using PlanContext): IO[Unit] = {
+  private def updateCoverLinkInDB(videoID: Int, objectName: String)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
            UPDATE $schemaName.video_table
@@ -63,7 +63,7 @@ case class ConfirmCoverMessagePlanner(
     for {
       _ <- IO(logger.info(s"Executing update query: $querySQL with params: $queryParams"))
       updateResponse <- writeDB(querySQL, queryParams)
-      _ <- checkVideoStatus(token, videoID)
+      _ <- checkVideoStatus(videoID)
     } yield ()
   }
   private def failureControl(videoID: Int)(using PlanContext): IO[Unit] = {

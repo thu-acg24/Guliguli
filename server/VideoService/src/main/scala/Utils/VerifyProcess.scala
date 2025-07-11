@@ -91,7 +91,7 @@ case object VerifyProcess {
       }
     }
   }
-  def checkVideoStatus(token: String, videoID: Int)(using PlanContext): IO[Unit] = {
+  def checkVideoStatus(videoID: Int)(using PlanContext): IO[Unit] = {
     val querySQL =
       s"""
          |UPDATE $schemaName.video_table
@@ -102,7 +102,6 @@ case object VerifyProcess {
          |  AND cover IS NOT NULL
          |  AND cover NOT LIKE '0/%'
        """.stripMargin
-    writeDB(querySQL, List(SqlParameter("String", VideoStatus.Pending.toString), SqlParameter("Int", videoID.toString))) >>
-      UpdateVideoInfoMessage(token, videoID).send
+    writeDB(querySQL, List(SqlParameter("String", VideoStatus.Pending.toString), SqlParameter("Int", videoID.toString))).void
   }
 }
