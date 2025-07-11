@@ -40,7 +40,7 @@ case class ConfirmCoverMessagePlanner(
       }
       _ <- IO(sessions.invalidate(session.token))
       _ <- status match {
-        case "success" => updateCoverLinkInDB(session.token, session.videoID, objectName)
+        case "success" => updateCoverLinkInDB(session.userToken, session.videoID, objectName)
         case "failure" => failureControl(session.videoID)
         case _ => IO.raiseError(InvalidInputException(s"status必须是success或failure中的一个"))
       }

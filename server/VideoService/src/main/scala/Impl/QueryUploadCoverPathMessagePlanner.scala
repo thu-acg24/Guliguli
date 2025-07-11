@@ -49,7 +49,7 @@ case class QueryUploadCoverPathMessagePlanner(
       coverName <- generateObjectName(videoID, "cover")
       coverUploadUrl <- generateUploadUrl(coverName)
       coverToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, videoID, coverName)))
+      _ <- IO(sessions.put(coverToken, UploadSession(coverToken, token, videoID, coverName)))
     } yield UploadPath(List(coverUploadUrl), coverToken)
   }
 }

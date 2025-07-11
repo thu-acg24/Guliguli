@@ -47,12 +47,15 @@ case class ChangeVideoStatusMessagePlanner(
       // Step 2: 验证视频ID的存在性和状态
       _ <- IO(logger.info("[validateVideoStatus] Validating videoID existence and status"))
       (uploaderID, title) <- {
-          val sql = s"SELECT uploader_id, title FROM $schemaName.video_table WHERE video_id = ?;"
+          val sql = s"SELECT uploader_id, title, status FROM $schemaName.video_table WHERE video_id = ?;"
           readDBJsonOptional(sql, List(SqlParameter("Int", videoID.toString))).flatMap {
             case Some(json) =>
               val uploaderID = decodeField[Int](json, "uploader_id")
               val title = decodeField[String](json, "title")
-              if (uploaderID != userID && role != UserRole.Auditor) then
+              val originStatus = decodeField[VideoStatus](json, "status")
+              if (List(VideoStatus.Uploading, VideoStatus.Broken).contains(status)) then
+                IO.raiseError(InvalidInputException("不能修改处于系统状态(Uploading, Broken)的视频"))
+              else if (uploaderID != userID && role != UserRole.Auditor) then
                 IO.raiseError(InvalidInputException("权限不足"))
               else IO.pure((uploaderID, title))
             case None => IO.raiseError(InvalidInputException("找不到视频"))

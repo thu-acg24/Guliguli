@@ -95,6 +95,13 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
+      case "QueryFollowingVideosMessage" =>
+        IO(
+          decode[QueryFollowingVideosMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryFollowingVideosMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
       case "QueryLikeMessage" =>
         IO(
           decode[QueryLikeMessagePlanner](str) match

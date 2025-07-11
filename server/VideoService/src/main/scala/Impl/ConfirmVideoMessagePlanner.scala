@@ -43,7 +43,7 @@ case class ConfirmVideoMessagePlanner(
       }
       _ <- IO(sessions.invalidate(session.token))
       _ <- status match {
-        case "success" => updateVideoInDB(session.token, session.videoID, sliceCount)
+        case "success" => updateVideoInDB(session.userToken, session.videoID, sliceCount)
         case "failure" => failureControl(session.videoID)
         case _ => IO.raiseError(InvalidInputException(s"status必须是success或failure中的一个"))
       }

@@ -63,19 +63,19 @@ case class QueryFollowingVideosMessagePlanner(
     
     val sql =
       s"""
-        SELECT video_id, title, description, duration, tag, cover,
-             uploader_id, views, likes, favorites, status, upload_time
-        FROM $schemaName.video_table
-        $whereClause uploader_id = ANY(?) AND (upload_time > ? OR (upload_time == ? AND video_id < ?))
-        ORDER BY upload_time DESC, video_id DESC;
-        LIMIT $fetchLimit
-      """
+        |SELECT video_id, title, description, duration, tag, cover,
+        |     uploader_id, views, likes, favorites, status, upload_time
+        |FROM $schemaName.video_table
+        |$whereClause uploader_id = ANY(?) AND (upload_time < ? OR (upload_time = ? AND video_id < ?))
+        |ORDER BY upload_time DESC, video_id DESC
+        |LIMIT $fetchLimit;
+      """.stripMargin
 
     readDBRows(sql,
       parameters ::: List(
-        SqlParameter("List[Int]", s"[${IDList.mkString(",")}]"),
-        SqlParameter("DateTime", lastTime.toString),
-        SqlParameter("DateTime", lastTime.toString),
+        SqlParameter("Array[Int]", s"[${IDList.mkString(",")}]"),
+        SqlParameter("DateTime", lastTime.getMillis.toString),
+        SqlParameter("DateTime", lastTime.getMillis.toString),
         SqlParameter("Int", lastID.toString)
       )).flatMap(jsonList => jsonList.traverse(decodeVideo))
   }

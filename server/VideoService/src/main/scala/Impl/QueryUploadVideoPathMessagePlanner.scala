@@ -52,7 +52,7 @@ case class QueryUploadVideoPathMessagePlanner(
       videoName <- generateObjectName(videoID, "video")
       (uploadID, videoUploadUrls) <- generateUploadUrls(videoName)
       videoToken <- IO(UUID.randomUUID().toString)
-      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, videoID, videoName, uploadID)))
+      _ <- IO(sessions.put(videoToken, UploadSession(videoToken, token, videoID, videoName, uploadID)))
     } yield UploadPath(videoUploadUrls, videoToken)
   }
 

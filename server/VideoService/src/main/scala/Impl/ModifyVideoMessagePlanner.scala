@@ -90,9 +90,11 @@ case class ModifyVideoMessagePlanner(
         List(
           title.map { t => "title = ?" -> SqlParameter("String", t) },
           description.map { desc => "description = ?" -> SqlParameter("String", desc) },
-          tag.map {t => "tag = ?" -> SqlParameter("Array[String]", t.asJson.noSpaces)},
-          Some("status = ?" -> SqlParameter("String",
-            if status == VideoStatus.Uploading then "Uploading" else "Pending")),
+          tag.map {t => "tag = ?" -> SqlParameter("Array[String]", s"[${t.mkString(",")}]")},
+          if (status != VideoStatus.Uploading && status != VideoStatus.Broken && status != VideoStatus.Private)
+            Some("status = ?" -> SqlParameter("String", "Pending"))
+          else
+            None,
           Some("upload_time = ?" -> SqlParameter("DateTime", currentTime))
         ).flatten
       }
