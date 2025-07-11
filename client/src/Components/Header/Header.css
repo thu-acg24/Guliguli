@@ -112,7 +112,7 @@
     min-width: 0;
 }
 
-.header-user-name{
+.header-user-name {
     color: #61666D;
     text-decoration: none;
     font-size: 14px;
@@ -218,6 +218,15 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    width: 30%;
+}
+
+.header-search-container.with-user {
+    position: static;
+    margin-left: auto;
+    transform: none;
+    left: unset;
+    right: 0;
     width: 30%;
 }
 

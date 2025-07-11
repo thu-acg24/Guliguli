@@ -8,6 +8,7 @@ import DanmakuInput from './DanmakuInput';
 import Danmaku from 'danmaku';
 import { VideoReportModal } from "./ReportComponents";
 import { LikeIcon, FavoriteIcon, ReportIcon,PlayCountIcon } from 'Images/Icons';
+import { useNavigateSearch } from "Globals/Navigate";
 
 const VideoPlayerSection: React.FC<{
   video_id: string;
@@ -35,6 +36,11 @@ const VideoPlayerSection: React.FC<{
   const toggleDescription = () => {
     setIsDescriptionExpanded(!isDescriptionExpanded);
   };
+  const { navigateSearch } = useNavigateSearch();
+
+  const handleTagClick = (tag: string) => {
+    navigateSearch(tag);
+  }
 
   return (
     <div className="video-video-player-section">
@@ -118,7 +124,7 @@ const VideoPlayerSection: React.FC<{
           <span
             key={ttag}
             className="video-tag"
-            onClick={() => alert(`搜索标签: ${ttag}`)}
+            onClick={() => handleTagClick(ttag)}
           >
             {ttag}
           </span>
