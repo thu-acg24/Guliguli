@@ -2,6 +2,7 @@ package Common.API
 
 
 import Common.DBAPI.DidRollbackException
+import Common.APIException.InvalidInputException
 import Common.ServiceUtils.getURI
 import cats.data.NonEmptyList
 import cats.effect.*
@@ -20,6 +21,7 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+
 import scala.compiletime.erasedValue
 import scala.concurrent.duration.DurationInt
 
@@ -92,6 +94,7 @@ object API {
       result <- client.get.run(request).use { response =>
         val handler = summon[ResponseHandler[T]] // Summon an instance of ResponseHandler for T
         val rollbackHeader: Option[NonEmptyList[Header.Raw]] = response.headers.get(CIString("X-DidRollback"))
+        val inputHeader: Option[NonEmptyList[Header.Raw]] = response.headers.get(CIString("X-InvalidInput"))
 
         response.status match {
           case status if status.isSuccess =>
@@ -105,7 +108,14 @@ object API {
                 case Some(header) =>
                   IO.raiseError(DidRollbackException(body))
                 case _ =>
-                  IO.raiseError(new Exception(s"Unexpected response status: ${response.status.code}, body: $body"))
+                  inputHeader match {
+                    case Some(header) =>
+                      IO.raiseError(InvalidInputException(body))
+                    case _ =>
+                      IO.raiseError(
+                        new Exception (s"Unexpected response status: ${response.status.code}, body: $body")
+                      )
+                  }
               }
             }
         }
