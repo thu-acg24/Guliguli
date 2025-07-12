@@ -31,6 +31,7 @@ import SidebarSection from "./SidebarSection";
 import { getRecommendedVideos, SimpleVideo } from "Components/RecommendVideoService";
 import { VideoStatus } from "Plugins/VideoService/Objects/VideoStatus"
 import "./VideoPage.css";
+import { materialAlertError } from "Plugins/CommonUtils/Gadgets/AlertGadget";
 
 export const videoPagePath = "/video/:video_id";
 
@@ -83,6 +84,7 @@ const VideoPage: React.FC = () => {
   const [recommendvideosInfo, setRecommendvideosInfo] = useState<SimpleVideo[]>([]);
   const [videosisloading, setVideosisloading] = useState(true);
   const [upstat, setUpstat] = useState<UserStat>();
+  const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -190,6 +192,8 @@ const VideoPage: React.FC = () => {
       setUploaderInfo(uploaderInfo);
     } catch (error) {
       console.error('加载视频信息失败:', error);
+      materialAlertError('加载视频信息失败',error.message);
+      if (window.history.length > 1) navigate(-1);else navigate("/");
     } finally {
       setVideoinfoIsLoading(false);
     }

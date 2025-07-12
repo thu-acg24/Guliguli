@@ -186,7 +186,7 @@ const VideoReportManagement: React.FC = () => {
                             </div>
                             <div className="danmaku-report-actions">
                                 {
-                                    item.video.videoID > 0 &&
+                                    item.video.uploaderID > 0 &&
                                     <button
                                         className="danmaku-action-btn danmaku-action-view"
                                         onClick={() => handleViewVideo(item.video.videoID)}
@@ -195,7 +195,7 @@ const VideoReportManagement: React.FC = () => {
                                     </button>
                                 }
                                 {
-                                    item.video.videoID > 0 &&
+                                    item.video.uploaderID > 0 &&
                                     <button
                                         className="danmaku-action-btn danmaku-action-approve"
                                         onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
