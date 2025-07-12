@@ -10,7 +10,6 @@ import { ProcessCommentReportMessage } from "Plugins/ReportService/APIs/ProcessC
 import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 import { formatTime } from "Components/Formatter";
-import {Danmaku} from "Plugins/DanmakuService/Objects/Danmaku";
 
 const CommentReportManagement: React.FC = () => {
     interface ReportWithComment {
