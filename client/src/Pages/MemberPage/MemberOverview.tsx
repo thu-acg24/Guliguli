@@ -125,7 +125,7 @@ const MemberOverview: React.FC = () => {
     return (
         <div className="member-overview">
             {ToastComponent}
-            <h1 className="member-page-title">内容管理</h1>
+            <h1 className="member-page-title marg">内容管理</h1>
 
             {videos.length === 0 ? (
                 <div className="member-empty-state">

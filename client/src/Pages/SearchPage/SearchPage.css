@@ -264,9 +264,6 @@
     color: #666;
     margin-bottom: 2px;
     line-height: 1.5;
-    max-height: 3em;
-    overflow: hidden;
-    text-overflow: ellipsis;
     display: -webkit-box;
     padding-top: 10px;
     -webkit-line-clamp: 2;

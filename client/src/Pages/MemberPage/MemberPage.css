@@ -544,6 +544,9 @@
     font-size: 24px;
     font-weight: bold;
     color: #333;
+}
+
+.member-page-title.marg {
     margin-bottom: 20px;
 }
 
