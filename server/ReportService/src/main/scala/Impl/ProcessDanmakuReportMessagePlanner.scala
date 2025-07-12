@@ -41,7 +41,7 @@ case class ProcessDanmakuReportMessagePlanner(
 
   override def plan(using PlanContext): IO[Unit] = {
     if status == ReportStatus.Pending then return IO.raiseError(InvalidInputException("不允许改为等待状态"))
-    if status == ReportStatus.Rejected then for {
+    if status == ReportStatus.Rejected then return for {
       _ <- IO(logger.info("开始处理 ProcessDanmakuReportMessage 请求"))
       // 特判被拒绝的举报
       _ <- validateTokenAndRole(token)
