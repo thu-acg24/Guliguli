@@ -44,9 +44,9 @@ const MemberDanmakuManagement: React.FC = () => {
             });
             // 获取所有弹幕的用户信息
             const danmakusWithUser: DanmakuWithUser[] = await Promise.all(
-                danmakusData.map(async (danmaku: any) => {
+                danmakusData.map(async (danmaku: Danmaku) => {
                     const user = await new Promise<UserInfo>((resolve, reject) => {
-                        new QueryUserInfoMessage(danmaku.userID).send(
+                        new QueryUserInfoMessage(danmaku.authorID).send(
                             (info: string) => resolve(JSON.parse(info) as UserInfo),
                             (error: string) => reject(new Error(error))
                         );
