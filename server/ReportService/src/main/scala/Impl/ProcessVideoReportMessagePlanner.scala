@@ -39,23 +39,28 @@ case class ProcessVideoReportMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
+    if status == ReportStatus.Pending then return IO.raiseError(InvalidInputException("不允许改为等待状态"))
+    if status == ReportStatus.Rejected then for {
+      _ <- IO(logger.info("开始处理 ProcessVideoReportMessage 请求"))
+      // 特判被拒绝的举报
+      _ <- validateTokenAndRole(token)
+      (reporterID, videoID) <- validateReportID(reportID)
+      _ <- updateReportStatus(reportID, status)
+    } yield ()
     for {
-      _ <- IO(logger.info("开始处理 ProcessCommentReportMessage 请求"))
+      _ <- IO(logger.info("开始处理 ProcessVideoReportMessage 请求"))
       // Step 1: 校验 token 是否有效
       _ <- validateTokenAndRole(token)
       (reporterID, videoID) <- validateReportID(reportID)
       (videoTitle, uploaderID) <- validateVideo(videoID)
       _ <- updateReportStatus(reportID, status)
-      _ <- privatizeVideoIfNeeded(videoID)
+      _ <- ChangeVideoStatusMessage(token, videoID, VideoStatus.Rejected).send
       _ <- SendNotificationMessage(token, reporterID,
         s"举报处理通知",
         s"您举报的视频 $videoTitle 已被处理").send
-      // _ <- status match {
-      //   case ReportStatus.Resolved => SendNotificationMessage(token, uploaderID,
-      //     s"视频违规通知",
-      //     s"您的视频 $videoTitle 被举报并已被审核员下架").send
-      //   case _ => IO.unit
-      // }
+      // _ <- SendNotificationMessage(token, uploaderID,
+      //  s"视频违规通知",
+      //  s"您的视频 $videoTitle 被举报并已被审核员下架").send
     } yield ()
   }
 
@@ -87,13 +92,6 @@ case class ProcessVideoReportMessagePlanner(
     for {
       video <- QueryVideoInfoMessage(Some(token), videoID).send
     } yield (video.title, video.uploaderID)
-  }
-
-  private def privatizeVideoIfNeeded(videoID: Int)(using PlanContext): IO[Unit] = {
-    if (status == ReportStatus.Resolved) {
-      logger.info(s"Privatizing video with ID: $videoID")
-      ChangeVideoStatusMessage(token, videoID, VideoStatus.Rejected).send
-    } else IO.unit
   }
 
   private def updateReportStatus(reportID: Int, status: ReportStatus)(using

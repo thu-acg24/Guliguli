@@ -31,7 +31,7 @@ case class QueryCommentByIDMessagePlanner(
       // Step 1: Check if the commentID exists
       _ <- IO(logger.info(s"[QueryCommentByID] 校验 commentID=$commentID 是否存在，并获取评论详细信息"))
       maybeComment <- fetchCommentDetails(commentID)
-      comment <- maybeComment.liftTo[IO](InvalidInputException("commentID=$commentID 不存在"))
+      comment <- maybeComment.liftTo[IO](InvalidInputException(s"commentID=$commentID 不存在"))
       // Step 3: Wrap result and return
       _ <- IO(logger.info(s"[QueryCommentByID] 封装返回结果完成"))
     } yield comment

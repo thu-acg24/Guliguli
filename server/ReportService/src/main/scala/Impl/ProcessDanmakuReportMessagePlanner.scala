@@ -40,23 +40,28 @@ case class ProcessDanmakuReportMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
+    if status == ReportStatus.Pending then return IO.raiseError(InvalidInputException("不允许改为等待状态"))
+    if status == ReportStatus.Rejected then for {
+      _ <- IO(logger.info("开始处理 ProcessDanmakuReportMessage 请求"))
+      // 特判被拒绝的举报
+      _ <- validateTokenAndRole(token)
+      (reporterID, danmakuID) <- validateReportID(reportID)
+      _ <- updateReportStatus(reportID, status)
+    } yield ()
     for {
-      _ <- IO(logger.info("开始处理 ProcessCommentReportMessage 请求"))
+      _ <- IO(logger.info("开始处理 ProcessDanmakuReportMessage 请求"))
       // Step 1: 校验 token 是否有效
       _ <- validateTokenAndRole(token)
       (reporterID, danmakuID) <- validateReportID(reportID)
       (danmakuContent, danmakuAuthorID, videoTitle, videoID) <- validateDanmakuAndVideo(danmakuID)
       _ <- updateReportStatus(reportID, status)
-      _ <- deleteDanmakuIfNeeded(danmakuID)
+      _ <- DeleteDanmakuMessage(token, danmakuID).send
       _ <- SendNotificationMessage(token, reporterID,
         s"举报处理通知",
         s"您在视频 $videoTitle 下举报的弹幕 $danmakuContent 已被处理").send
-      _ <- status match {
-        case ReportStatus.Resolved => SendNotificationMessage(token, danmakuAuthorID,
+      _ <- SendNotificationMessage(token, danmakuAuthorID,
           s"弹幕违规通知",
           s"您在视频 $videoTitle 下的弹幕 $danmakuContent 被举报并已被审核员删除").send
-        case _ => IO.unit
-      }
     } yield ()
   }
 
@@ -84,22 +89,14 @@ case class ProcessDanmakuReportMessagePlanner(
     }
   }
   private def validateDanmakuAndVideo(
-                                       commentID: Int
+                                       danmakuID: Int
                                      )(using PlanContext): IO[(String, Int, String, Int)] = {
     for {
-      _ <- IO(logger.info(s"校验评论 [$commentID] 和其所属视频是否存在"))
-      comment <- QueryDanmakuByIDMessage(commentID).send
+      _ <- IO(logger.info(s"校验弹幕 [$danmakuID] 和其所属视频是否存在"))
+      comment <- QueryDanmakuByIDMessage(danmakuID).send
       videoID = comment.videoID
       video <- QueryVideoInfoMessage(Some(token), videoID).send
     } yield (comment.content, comment.authorID, video.title, videoID)
-  }
-
-  private def deleteDanmakuIfNeeded(commentID: Int)(using PlanContext): IO[Unit] = {
-    if (status == ReportStatus.Resolved) {
-      DeleteDanmakuMessage(token, commentID).send
-    } else {
-      IO.unit
-    }
   }
 
   private def updateReportStatus(reportID: Int, status: ReportStatus)(using

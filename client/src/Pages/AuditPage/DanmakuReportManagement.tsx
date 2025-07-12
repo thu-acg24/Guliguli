@@ -42,14 +42,20 @@ const DanmakuReportManagement: React.FC = () => {
             // 获取每个举报对应的弹幕内容
             const reportsWithDanmaku = await Promise.all(
                 reportsData.map(async (report) => {
-                    const danmakuResponse = await new Promise<string>((resolve, reject) => {
-                        new QueryDanmakuByIDMessage(report.danmakuID).send(
-                            (info: string) => resolve(info),
-                            (error: string) => reject(new Error(error))
-                        );
-                    });
-                    const danmaku = JSON.parse(danmakuResponse) as Danmaku;
-                    return { report, danmaku };
+                    try {
+                        const danmakuResponse = await new Promise<string>((resolve, reject) => {
+                            new QueryDanmakuByIDMessage(report.danmakuID).send(
+                                (info: string) => resolve(info),
+                                (error: string) => reject(new Error(error))
+                            );
+                        });
+                        const danmaku = JSON.parse(danmakuResponse) as Danmaku;
+                        return {report, danmaku};
+                    } catch (e) {
+                        console.warn(`获取弹幕 ${report.danmakuID} 信息失败:`, e)
+                        const defaultDanmaku = new Danmaku(report.danmakuID, "弹幕信息获取失败", 0, 0, "#000000", 0);
+                        return {report, danmaku: defaultDanmaku};
+                    }
                 })
             );
 
@@ -130,20 +136,26 @@ const DanmakuReportManagement: React.FC = () => {
                             </div>
 
                             <div className="danmaku-report-actions">
-                                <button
-                                    className="danmaku-action-btn danmaku-action-view"
-                                    onClick={() => handleViewVideo(item.danmaku.videoID)}
-                                    title="查看原视频"
-                                >
-                                    查看原视频
-                                </button>
-                                <button
-                                    className="danmaku-action-btn danmaku-action-approve"
-                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
-                                    title="通过举报"
-                                >
-                                    ✓
-                                </button>
+                                {
+                                    item.danmaku.videoID > 0 &&
+                                    <button
+                                        className="danmaku-action-btn danmaku-action-view"
+                                        onClick={() => handleViewVideo(item.danmaku.videoID)}
+                                        title="查看原视频"
+                                    >
+                                        查看原视频
+                                    </button>
+                                }
+                                {
+                                    item.danmaku.videoID > 0 &&
+                                    <button
+                                        className="danmaku-action-btn danmaku-action-approve"
+                                        onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
+                                        title="通过举报"
+                                    >
+                                        ✓
+                                    </button>
+                                }
                                 <button
                                     className="danmaku-action-btn danmaku-action-reject"
                                     onClick={() => handleReportAction(item.report.reportID, ReportStatus.rejected)}

@@ -185,18 +185,24 @@ const VideoReportManagement: React.FC = () => {
                                 </div>
                             </div>
                             <div className="danmaku-report-actions">
-                                <button
-                                    className="danmaku-action-btn danmaku-action-view"
-                                    onClick={() => handleViewVideo(item.video.videoID)}
-                                >
-                                    查看视频
-                                </button>
-                                <button
-                                    className="danmaku-action-btn danmaku-action-approve"
-                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
-                                >
-                                    ✓
-                                </button>
+                                {
+                                    item.video.videoID > 0 &&
+                                    <button
+                                        className="danmaku-action-btn danmaku-action-view"
+                                        onClick={() => handleViewVideo(item.video.videoID)}
+                                    >
+                                        查看视频
+                                    </button>
+                                }
+                                {
+                                    item.video.videoID > 0 &&
+                                    <button
+                                        className="danmaku-action-btn danmaku-action-approve"
+                                        onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
+                                    >
+                                        ✓
+                                    </button>
+                                }
                                 <button
                                     className="danmaku-action-btn danmaku-action-reject"
                                     onClick={() => handleReportAction(item.report.reportID, ReportStatus.rejected)}

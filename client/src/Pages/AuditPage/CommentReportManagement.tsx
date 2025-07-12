@@ -10,6 +10,7 @@ import { ProcessCommentReportMessage } from "Plugins/ReportService/APIs/ProcessC
 import { QueryCommentByIDMessage } from "Plugins/CommentService/APIs/QueryCommentByIDMessage";
 import { useTopSuccessToast } from "Components/TopSuccessToast/useTopSuccessToast";
 import { formatTime } from "Components/Formatter";
+import {Danmaku} from "Plugins/DanmakuService/Objects/Danmaku";
 
 const CommentReportManagement: React.FC = () => {
     interface ReportWithComment {
@@ -42,14 +43,30 @@ const CommentReportManagement: React.FC = () => {
             // 获取每个举报对应的评论内容
             const reportsWithComment = await Promise.all(
                 reportsData.map(async (report) => {
-                    const commentResponse = await new Promise<string>((resolve, reject) => {
-                        new QueryCommentByIDMessage(report.commentID).send(
-                            (info: string) => resolve(info),
-                            (error: string) => reject(new Error(error))
+                    try {
+                        const commentResponse = await new Promise<string>((resolve, reject) => {
+                            new QueryCommentByIDMessage(report.commentID).send(
+                                (info: string) => resolve(info),
+                                (error: string) => reject(new Error(error))
+                            );
+                        });
+                        const comment = JSON.parse(commentResponse) as Comment;
+                        return {report, comment};
+                    } catch (e) {
+                        console.warn(`获取评论 ${report.commentID} 信息失败:`, e)
+                        const defaultComment = new Comment(
+                            report.commentID,
+                            "评论信息获取失败",
+                            0,
+                            0,
+                            null,
+                            null,
+                            0,
+                            0,
+                            Date.now().toString()
                         );
-                    });
-                    const comment = JSON.parse(commentResponse) as Comment;
-                    return { report, comment };
+                        return {report, comment: defaultComment};
+                    }
                 })
             );
 
@@ -127,20 +144,26 @@ const CommentReportManagement: React.FC = () => {
                             </div>
 
                             <div className="danmaku-report-actions">
-                                <button
-                                    className="danmaku-action-btn danmaku-action-view"
-                                    onClick={() => handleViewVideo(item.comment.videoID)}
-                                    title="查看原视频"
-                                >
-                                    查看原视频
-                                </button>
-                                <button
-                                    className="danmaku-action-btn danmaku-action-approve"
-                                    onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
-                                    title="通过举报"
-                                >
-                                    ✓
-                                </button>
+                                {
+                                    (item.comment.videoID != 0) &&
+                                    <button
+                                        className="danmaku-action-btn danmaku-action-view"
+                                        onClick={() => handleViewVideo(item.comment.videoID)}
+                                        title="查看原视频"
+                                    >
+                                        查看原视频
+                                    </button>
+                                }
+                                {
+                                    (item.comment.videoID != 0) &&
+                                    <button
+                                        className="danmaku-action-btn danmaku-action-approve"
+                                        onClick={() => handleReportAction(item.report.reportID, ReportStatus.resolved)}
+                                        title="通过举报"
+                                    >
+                                        ✓
+                                    </button>
+                                }
                                 <button
                                     className="danmaku-action-btn danmaku-action-reject"
                                     onClick={() => handleReportAction(item.report.reportID, ReportStatus.rejected)}

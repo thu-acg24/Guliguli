@@ -43,6 +43,14 @@ case class ProcessCommentReportMessagePlanner(
     LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[Unit] = {
+    if status == ReportStatus.Pending then return IO.raiseError(InvalidInputException("不允许改为等待状态"))
+    if status == ReportStatus.Rejected then for {
+      _ <- IO(logger.info("开始处理 ProcessCommentReportMessage 请求"))
+      // 特判被拒绝的举报
+      _ <- validateTokenAndRole(token)
+      (reporterID, commentID) <- validateReportID(reportID)
+      _ <- updateReportStatus(reportID, status)
+    } yield ()
     for {
       _ <- IO(logger.info("开始处理 ProcessCommentReportMessage 请求"))
       // Step 1: 校验 token 是否有效
@@ -50,16 +58,13 @@ case class ProcessCommentReportMessagePlanner(
       (reporterID, commentID) <- validateReportID(reportID)
       (commentContent, commentAuthorID, videoTitle, videoID) <- validateCommentAndVideo(commentID)
       _ <- updateReportStatus(reportID, status)
-      _ <- deleteCommentIfNeeded(commentID)
+      _ <- DeleteCommentMessage(token, commentID).send
       _ <- SendNotificationMessage(token, reporterID,
         s"举报处理通知",
         s"您在视频 $videoTitle 下举报的评论 $commentContent 已被处理").send
-      _ <- status match {
-        case ReportStatus.Resolved => SendNotificationMessage(token, commentAuthorID,
+      _ <- SendNotificationMessage(token, commentAuthorID,
           s"评论违规通知",
           s"您在视频 $videoTitle 下的评论 $commentContent 被举报并已被审核员删除").send
-        case _ => IO.unit
-      }
     } yield ()
   }
 
@@ -96,14 +101,6 @@ case class ProcessCommentReportMessagePlanner(
       videoID = comment.videoID
       video <- QueryVideoInfoMessage(Some(token), videoID).send
     } yield (comment.content, comment.authorID, video.title, videoID)
-  }
-
-  private def deleteCommentIfNeeded(commentID: Int)(using PlanContext): IO[Unit] = {
-    if (status == ReportStatus.Resolved) {
-      DeleteCommentMessage(token, commentID).send
-    } else {
-      IO.unit
-    }
   }
 
   private def updateReportStatus(reportID: Int, status: ReportStatus)(using
