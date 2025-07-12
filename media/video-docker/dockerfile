@@ -12,69 +12,9 @@ RUN \
     apt-get install -f -y --no-install-recommends \
     python3-pip \
     python3-dev \
-#     curl \
-#     wget \
-#     tar \
-#     gcc \
-#     nasm yasm \
-#     git \
-#     # mercurial \
-#     # git-all \
-#     # cmake \
-#     make \
-#     # gcc \
-#     # g++ \
-#     # cmake-curses-gui build-essential \
-#     # libx264 libx265 libfdk_acc libmp3lame libops libogg libvorbis libvpx \
-#     cuda-toolkit-12-3 \
-#     libx264-dev \
-#     libx265-dev \
-#     libfdk-aac-dev \
-#     libmp3lame-dev \
-#     libopus-dev \
-#     libogg-dev \
-#     libvorbis-dev \
-#     libvpx-dev \
-#     libfreetype6-dev \
-#     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home
-
-# ENV PATH="/usr/local/cuda/bin:${PATH}"
-# ENV LD_LIBRARY_PATH="/usr/local/cuda/libcuda.so:/usr/local/cuda/libcudart.so:${LD_LIBRARY_PATH}"
-
-# RUN nvcc --version
-
-# RUN git clone https://github.com/FFmpeg/nv-codec-headers.git
-# RUN cd nv-codec-headers && make && make install
-
-# RUN pkg-config --modversion ffnvcodec
-
-# RUN git clone --branch release/5.1 https://github.com/FFmpeg/FFmpeg.git && \
-#     cd FFmpeg && \
-#     ./configure \
-#         --enable-gpl \
-#         --enable-nonfree \
-#         --enable-debug \
-#         --enable-libx264 \
-#         --enable-libx265 \
-#         --enable-libfdk-aac \
-#         --enable-libmp3lame \
-#         --enable-libopus \
-#         --enable-libvorbis \
-#         --enable-libvpx \
-#         --enable-nvenc \
-#         --enable-cuda \
-#         --enable-cuvid \
-#         --enable-ffnvcodec \
-#         --extra-cflags="-I/usr/local/cuda/include" \
-#         --extra-ldflags="-L/usr/local/cuda/lib64" \
-#          && \
-#     make -j$(nproc) && \
-#     make install
-
-# RUN rm -rf ./FFmpeg && rm -rf ./nv-codec-headers
     
 # 创建应用程序目录
 RUN mkdir -p /app

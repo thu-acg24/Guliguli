@@ -20,3 +20,4 @@ package-lock.json
 server-config.ts
 !server-config-template.env
 !minio-config-template.env
+!template.env
