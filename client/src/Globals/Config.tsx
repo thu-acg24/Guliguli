@@ -18,11 +18,6 @@ export function getAppPath(argv: string[]): string {
 export function readConfig() {
     const outcome = {} as any
     try {
-        const p = getAppPath(process.argv)
-        const info: string = fs.readFileSync(p + '/config.json', 'utf8')
-        console.log(info)
-        const data = JSON.parse(info)
-        outcome.hubURL = data.hubURL
         outcome.protocol = isHttps ? 'https' : 'http'
     } catch (error) {
         alert('alerting:' + error)
